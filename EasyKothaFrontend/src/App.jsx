@@ -12,7 +12,4 @@ function App() {
       <Login />
     </BrowserRouter>
     </>
-  );
-}
-
-export default App;
+ default App;
