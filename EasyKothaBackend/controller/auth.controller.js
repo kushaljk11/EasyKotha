@@ -94,3 +94,142 @@ export const login = async (req, res) => {
         return res.status(500).json({ message: "Internal server error." });
     }
 };
+
+//get all users for admin
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res.json({ users });
+  } catch (error) {
+    console.error("Get All Users Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+//get user by id for admin
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user)
+      return res.status(404).json({ message: "User not found." });
+
+    return res.json({ user });
+
+  } catch (error) {
+    console.error("Get User Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+//update user
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, password, role } = req.body;
+
+    const existingUser = await prisma.user.findUnique({ where: { id: Number(id) } });
+    if (!existingUser)
+      return res.status(404).json({ message: "User not found." });
+
+    let updatedData = { name, email, role };
+
+    // If password is provided, hash it
+    if (password) {
+      updatedData.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: Number(id) },
+      data: updatedData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res.json({
+      message: "User updated successfully.",
+      user: updatedUser,
+    });
+
+  } catch (error) {
+    console.error("Update User Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+//delete user
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existingUser = await prisma.user.findUnique({ where: { id: Number(id) } });
+    if (!existingUser)
+      return res.status(404).json({ message: "User not found." });
+
+    await prisma.user.delete({
+      where: { id: Number(id) }
+    });
+
+    return res.json({ message: "User deleted successfully." });
+
+  } catch (error) {
+    console.error("Delete User Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
+export const me = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader)
+      return res.status(401).json({ message: "Authorization header missing." });
+
+    const token = authHeader.split(" ")[1];
+
+    if (!token)
+      return res.status(401).json({ message: "Invalid token format." });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, name: true, email: true, role: true, createdAt: true }
+    });
+
+    if (!user)
+      return res.status(404).json({ message: "User not found." });
+
+    return res.json({ user });
+
+  } catch (error) {
+    console.error("ME Error:", error);
+    return res.status(401).json({ message: "Invalid or expired token." });
+  }
+};
