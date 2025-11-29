@@ -44,3 +44,21 @@ export const adminOnly = (req, res, next) => {
   }
   next();
 };
+
+//permission if admin or the requested user
+export const adminOrSelf = (req, res, next) => {
+  const requesterId = req.user.userId;   
+  const requesterRole = req.user.role; 
+  const targetId = Number(req.params.id);
+  
+  // Allow if:
+  // 1. Admin
+  // 2. User updating only themselves
+  if (requesterRole === "ADMIN" || requesterId === targetId) {
+    return next();
+  }
+
+  return res.status(403).json({
+    message: "Access denied. Only admin or the account owner can perform this action."
+  });
+};
