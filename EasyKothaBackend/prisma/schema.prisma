@@ -28,4 +28,7 @@ model User {
   createdAt DateTime @default(now())
   district  String?
   city      String?
+  resetToken      String?
+  resetTokenExp   DateTime?
+
 }
