@@ -1,7 +1,7 @@
 import express from 'express';
 import { register, login, logout, me, getAllUsers, getUserById, updateUser, deleteUser, updateProfile, countUsers, toggleSavePost } from '../controller/auth.controller.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { adminOnly, adminOrSelf } from '../middleware/authMiddleware.js';
+import { authMiddleware } from '../middleware/auth.Middleware.js';
+import { adminOnly, adminOrSelf } from '../middleware/auth.Middleware.js';
 import upload from '../middleware/upload.js';
 
 const router = express.Router();

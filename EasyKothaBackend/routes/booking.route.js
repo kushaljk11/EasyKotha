@@ -8,7 +8,7 @@ import {
   getLandlordBookings,
 } from "../controller/booking.controller.js";
 
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/auth.Middleware.js";
 
 const bookingrouter = express.Router();
 

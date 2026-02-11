@@ -1,4 +1,4 @@
-import { baseTemplate } from "./baseTemplate";
+import { baseTemplate } from "./baseTemplates.js";
 
 //booking request (user → landlord)
 export const bookingRequestTemplate = ({ post, user, booking }) =>

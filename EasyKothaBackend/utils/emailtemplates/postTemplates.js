@@ -1,4 +1,4 @@
-import { baseTemplate } from "./baseTemplate.js";
+import { baseTemplate } from "./baseTemplates.js";
 
 export const postPendingTemplate = (post) =>
   baseTemplate({

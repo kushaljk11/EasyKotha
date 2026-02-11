@@ -16,7 +16,7 @@ import {
   getLandlordPosts,
   getRecentSearches,
 } from "../controller/post.controller.js";
-import { authMiddleware, adminOnly } from "../middleware/authMiddleware.js";
+import { authMiddleware, adminOnly } from "../middleware/auth.Middleware.js";
 
 const postrouter = express.Router();
 
