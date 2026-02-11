@@ -2,7 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 import { getAdminStats } from "../controller/admin.controller.js";
-import { authMiddleware, adminOnly } from "../middleware/authMiddleware.js";
+import { authMiddleware, adminOnly } from "../middleware/auth.Middleware.js";
 
 const adminRouter = express.Router();
 

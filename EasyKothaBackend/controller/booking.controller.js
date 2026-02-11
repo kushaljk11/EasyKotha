@@ -6,7 +6,7 @@ import {
   bookingRequestTemplate,
   bookingUserConfirmationTemplate,
   bookingCancelledTemplate
-} from "../utils/emailTemplates/bookingTemplates.js";
+} from "../utils/emailtemplates/bookingTemplates.js";
 
 //get all bookings (for admin)
 export const getAllBookings = async (req, res) => {
