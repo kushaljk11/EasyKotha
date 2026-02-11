@@ -1,31 +1,172 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client"
-  output   = "./generated"
-}
+// prisma/schema.prisma
 
 datasource db {
   provider = "postgresql"
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
 enum Role {
   ADMIN
   LANDLORD
   TENANT
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum PostType {
+  room
+  flat
+  house
+  hostel
+  pg
+  shared_room
+  office
+  others
+}
+
+enum Purpose {
+  rent
+  sale
+  looking
+}
+
+enum Furnishing {
+  furnished
+  semi_furnished
+  unfurnished
+}
+
+enum TenantType {
+  family
+  bachelor
+  students
+  office
+  any
+}
+
+enum GenderPreference {
+  male
+  female
+  any
+}
+
+enum PostStatus {
+  pending
+  approved
+  rejected
+}
+
+enum BookingStatus {
+  pending
+  approved
+  rejected
+  cancelled
+}
+
+// Models
 model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  password     String?
+  googleId     String?
+  facebookId   String?
+  role         Role      @default(TENANT)
+  district     String?
+  city         String?
+  phone        String?
+  profileImage String?
+  status       UserStatus @default(ACTIVE)
+  lastLogin    DateTime?
+
+  posts        Post[]      @relation("UserPosts")
+  savedPosts   Post[]      @relation("SavedPosts")
+  messagesSent Message[]   @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+  bookings     Booking[]
+  searchLogs   SearchLog[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model Post {
+  id               String           @id @default(cuid())
+  title            String
+  content          String
+  authorId         Int
+  author           User             @relation(fields: [authorId], references: [id], name: "UserPosts")
+  type             PostType
+  purpose          Purpose          @default(rent)
+  furnishing       Furnishing       @default(unfurnished)
+  tenantType       TenantType       @default(any)
+  genderPreference GenderPreference @default(any)
+  price            Int
+  district         String
+  city             String
+  address          String?
+  beds             Int              @default(0)
+  baths            Int              @default(0)
+  floor            String           @default("Ground")
+  parking          String           @default("None")
+  amenities        String[]         @default([])
+  images           String[]         @default([])
+  isAvailable      Boolean          @default(true)
+  status           PostStatus       @default(pending)
+  expiryDate       DateTime?
+
+  savedByUsers     User[]           @relation("SavedPosts")
+  bookings         Booking[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+
+  @@index([district, city])
+  @@index([type, price])
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  sender      User     @relation(fields: [senderId], references: [id], name: "SentMessages")
+  receiverId  Int
+  receiver    User     @relation(fields: [receiverId], references: [id], name: "ReceivedMessages")
+  text        String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id])
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  startDate  DateTime
+  endDate    DateTime
+  totalPrice Int
+  status     BookingStatus @default(pending)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+}
+
+model SearchLog {
   id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role @default(TENANT)
+  keyword   String
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  timestamp DateTime @default(now())
+
   createdAt DateTime @default(now())
-  district  String?
-  city      String?
+  updatedAt DateTime @default(now()) @updatedAt
 }
