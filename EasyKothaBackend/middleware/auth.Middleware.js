@@ -9,56 +9,53 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET not found in environment variables.");
 }
 
-
-//to check jwt token validity
+//authenticate middleware
 export const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader)
-      return res.status(401).json({ message: "Authorization header missing." });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Authorization token missing." });
+    }
 
     const token = authHeader.split(" ")[1];
 
-    if (!token)
-      return res.status(401).json({ message: "Invalid token format." });
-
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    req.user = decoded;  
-    // req.user = { userId: <id>, role: <role> }
+    req.user = {
+      id: decoded.userId || decoded.id,
+      role: decoded.role,
+    };
 
     next();
-
   } catch (error) {
-    console.error("Auth Error:", error);
+    console.error("Auth Error:", error.message);
     return res.status(401).json({ message: "Invalid or expired token." });
   }
 };
 
-
-//admin
+//admin only
 export const adminOnly = (req, res, next) => {
-  if (!req.user || req.user.role !== "ADMIN") {
-    return res.status(403).json({ message: "Access denied. Admins only." });
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({
+      message: "Access denied. Admins only.",
+    });
   }
   next();
 };
 
-//permission if admin or the requested user
+//admin or self
 export const adminOrSelf = (req, res, next) => {
-  const requesterId = req.user.userId;   
-  const requesterRole = req.user.role; 
-  const targetId = Number(req.params.id);
-  
-  // Allow if:
-  // 1. Admin
-  // 2. User updating only themselves
-  if (requesterRole === "ADMIN" || requesterId === targetId) {
+  const requesterId = req.user.id;      
+  const requesterRole = req.user.role;
+  const targetId = req.params.id;       
+
+  if (requesterRole === "ADMIN" || String(requesterId) === String(targetId)) {
     return next();
   }
 
   return res.status(403).json({
-    message: "Access denied. Only admin or the account owner can perform this action."
+    message:
+      "Access denied. Only admin or the account owner can perform this action.",
   });
 };
