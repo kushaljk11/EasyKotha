@@ -34,8 +34,18 @@ export default function Login() {
 
       if (data.token) localStorage.setItem("token", data.token);
 
-      // Delay redirect for toast
-      setTimeout(() => navigate("/"), 1200);
+      // Redirect based on user role
+      setTimeout(() => {
+        if (data.user.role === "ADMIN") {
+          navigate("/admin/dashboard");
+        } else if (data.user.role === "LANDLORD") {
+          navigate("/landlord");
+        } else if (data.user.role === "TENANT") {
+          navigate("/tenant");
+        } else {
+          navigate("/");
+        }
+      }, 1200);
     } catch (err) {
       toast.error("Network error");
     } finally {
