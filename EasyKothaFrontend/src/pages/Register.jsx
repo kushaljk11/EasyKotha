@@ -1,5 +1,10 @@
 // src/pages/Register.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuthStore } from "../store/useAuthStore";
+import toast from "react-hot-toast";
+import { FaGoogle, FaFacebookF } from "react-icons/fa";
+import { User, Mail, Lock, Phone, UserCircle } from "lucide-react";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -7,127 +12,175 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState("LANDLORD");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+
+  const { signup, isSigningUp, authUser, checkAuth } = useAuthStore();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      localStorage.setItem("token", token);
+      checkAuth();
+      navigate("/register", { replace: true });
+    }
+  }, [searchParams, checkAuth, navigate]);
+
+  useEffect(() => {
+    if (authUser) {
+      if (authUser.role === "ADMIN") navigate("/admin/dashboard");
+      else if (authUser.role === "LANDLORD") navigate("/landlord/dashboard");
+      else navigate("/tenant/dashboard");
+    }
+  }, [authUser, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const res = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Registration failed");
-        setLoading(false);
-        return;
-      }
-      if (data.token) localStorage.setItem("token", data.token);
-      window.location.href = "/";
-    // eslint-disable-next-line no-unused-vars
-    } catch (_err) {
-      setError("Network error");
-    } finally {
-      setLoading(false);
+    if (!name || !email || !password || !role) {
+      return toast.error("Please fill in all required fields");
     }
+    await signup({ name, email, password, role, phone });
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/api/oauth/google";
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = "http://localhost:5000/api/oauth/facebook";
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white shadow-xl rounded-lg flex w-[900px] overflow-hidden">
-        {/* LEFT SIDE FORM */}
-        <div className="w-1/2 p-10">
-          <h2 className="text-2xl font-semibold text-green-700 mb-6">
-            Create your account
-          </h2>
+    <div className="min-h-screen w-full flex font-sans bg-gray-50">
+      {/* LEFT SIDE - FORM */}
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-12">
+        <h1 className="text-4xl font-extrabold text-green-800 mb-2 text-center">
+          Create Account
+        </h1>
+        <p className="text-gray-600 mb-8 text-center">
+          Join thousands finding their perfect home with Sajilo
+        </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1 font-medium">Full name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-gray-100"
-                placeholder="Enter your full name"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5">
+          {/* Name */}
+          <div className="relative">
+            <User className="absolute left-3 top-3 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
+              required
+            />
+          </div>
 
-            <div>
-              <label className="block mb-1 font-medium">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-gray-100"
-                placeholder="Enter your email"
-              />
-            </div>
+          {/* Email */}
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
+              required
+            />
+          </div>
 
-            <div>
-              <label className="block mb-1 font-medium">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-gray-100"
-                placeholder="Enter your password"
-              />
-            </div>
+          {/* Password */}
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
+              required
+            />
+          </div>
 
-            <div>
-              <label className="block mb-1 font-medium">Phone Number</label>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-gray-100"
-                placeholder="Enter your phone number"
-              />
-            </div>
+          {/* Phone */}
+          <div className="relative">
+            <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
+            <input
+              type="tel"
+              placeholder="Phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
+            />
+          </div>
 
-            <div>
-              <label className="block mb-1 font-medium">Account type</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-gray-100"
-              >
-                <option value="LANDLORD">LANDLORD</option>
-                <option value="TENANT">TENANT</option>
-              </select>
-            </div>
-
-            {error && <p className="text-red-600 text-center">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
+          {/* Role */}
+          <div className="relative">
+            <UserCircle className="absolute left-3 top-3 text-gray-400" size={18} />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
             >
-              {loading ? "Creating..." : "Create Account"}
+              <option value="LANDLORD">Landlord</option>
+              <option value="TENANT">Tenant</option>
+            </select>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isSigningUp}
+            className="w-full bg-green-800 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-900 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSigningUp ? "Creating Account..." : "Create Account"}
+          </button>
+
+          {/* Social login */}
+          <div className="flex items-center my-4">
+            <div className="grow border-t border-gray-200"></div>
+            <span className="mx-3 text-gray-400 text-xs uppercase">or sign up with</span>
+            <div className="grow border-t border-gray-200"></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="flex items-center justify-center bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl hover:bg-gray-50 shadow-sm font-medium transition-all"
+            >
+              <FaGoogle className="mr-2 text-red-500" /> Google
             </button>
+            <button
+              type="button"
+              onClick={handleFacebookLogin}
+              className="flex items-center justify-center bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl hover:bg-gray-50 shadow-sm font-medium transition-all"
+            >
+              <FaFacebookF className="mr-2 text-blue-600" /> Facebook
+            </button>
+          </div>
 
-            <p className="text-center text-sm mt-2">
-              Already have an account?{" "}
-              <span className="text-green-600 font-medium cursor-pointer">
-                Login
-              </span>
-            </p>
-          </form>
-        </div>
+          <p className="text-center text-gray-600 mt-4 text-sm">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="text-green-800 font-bold hover:underline"
+            >
+              Login
+            </button>
+          </p>
+        </form>
+      </div>
 
-        {/* RIGHT SIDE IMAGE + TEXT */}
-        <div className="w-1/2 bg-green-700 text-white flex flex-col items-center justify-center relative">
-          <h1 className="text-3xl font-bold">Your New Home</h1>
-          <h2 className="text-xl mt-1">Awaits</h2>
-
-          <img src="/register.png" alt="home" className="w-full mt-6" />
-        </div>
+      {/* RIGHT SIDE - IMAGE */}
+      <div className="hidden md:flex w-1/2 bg-green-800 justify-center items-center relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+        <img
+          src="/register.png"
+          alt="home illustration"
+          className="w-full transform hover:scale-105 transition-transform duration-500"
+        />
       </div>
     </div>
   );
