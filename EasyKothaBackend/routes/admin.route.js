@@ -19,14 +19,14 @@ export const protectRoute = async (req, res, next) => {
     }
 
     if (!token) {
-      console.log("❌ No token found in cookies or Authorization header");
+      console.log("No token found in cookies or Authorization header");
       return res.status(401).json({ message: "Unauthorized - No Token Provided" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!decoded) {
-      console.log("❌ Token verification failed");
+      console.log("Token verification failed");
       return res.status(401).json({ message: "Unauthorized - Invalid Token" });
     }
 
@@ -45,16 +45,16 @@ export const protectRoute = async (req, res, next) => {
     });
 
     if (!user) {
-      console.log("❌ User not found with userId:", decoded.userId);
+      console.log("User not found with userId:", decoded.userId);
       return res.status(404).json({ message: "User not found" });
     }
 
     req.user = user;
-    console.log("✅ User authenticated:", user.id, user.name);
+    console.log("User authenticated:", user.id, user.name);
 
     next();
   } catch (error) {
-    console.log("❌ Error in protectRoute middleware: ", error.message);
+    console.log("Error in protectRoute middleware: ", error.message);
     res.status(500).json({ message: "Internal server error: " + error.message });
   }
 };
