@@ -11,6 +11,7 @@ import messagerouter from './routes/message.route.js';
 import Oauthrouter from './routes/oauth.route.js';
 import passport from './config/passport.js';
 import { app, server } from './lib/socket.js';
+import { testDatabaseConnection } from './lib/prisma.js';
 
 
 dotenv.config();
@@ -38,4 +39,15 @@ app.use(passport.initialize());
 
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+const startServer = async () => {
+  try {
+    await testDatabaseConnection();
+    server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

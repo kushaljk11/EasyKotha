@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import cloudinary from "../config/cloudinary.js";
+import { sendEmail } from "../utils/email.js";
+import { welcomeTemplate } from "../utils/emailTemplates/wellcomeTemplate.js";
 
 dotenv.config();
 
@@ -50,10 +52,25 @@ export const register = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        password: user.password,
         role: user.role,
       },
       token,
     });
+
+    const registeredUser = await prisma.user.findUnique({ where: { email } });
+
+    // Send welcome email
+    try {
+      await sendEmail({
+        to: registeredUser.email,
+        subject: "Welcome to Easy Kotha!",
+        html: welcomeTemplate({ name: registeredUser.name }),
+      });
+    } catch (emailError) {
+      console.error("Email notification error:", emailError.message);
+    }
+
   } catch (error) {
     console.error("Register Error:", error);
     return res.status(500).json({ message: "Internal server error." });
