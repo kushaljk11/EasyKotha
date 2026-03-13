@@ -65,7 +65,6 @@ export default function Profile() {
   return (
     <LandlordLayout searchPlaceholder="Search profile settings...">
       <h2 className="mb-1 flex items-center gap-2 text-2xl font-bold text-green-800">
-        <FaUser />
         My Account
       </h2>
 

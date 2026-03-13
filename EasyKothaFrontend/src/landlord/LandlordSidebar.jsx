@@ -3,6 +3,7 @@ import { useSidebarStore } from "../store/useSidebarStore";
 import {
   FaCalendarAlt,
   FaComments,
+  FaCompass,
   FaHome,
   FaPlusCircle,
   FaTachometerAlt,
@@ -65,7 +66,7 @@ export default function LandlordSidebar() {
             <NavItem
               to="/landlord/dashboard"
               icon={FaTachometerAlt}
-              label="Overview"
+              label="Dashboard"
               active={pathname.includes("/landlord/dashboard")}
               onClick={closeSidebar}
             />
@@ -74,6 +75,13 @@ export default function LandlordSidebar() {
               icon={FaHome}
               label="My Listings"
               active={pathname.includes("/landlord/listings")}
+              onClick={closeSidebar}
+            />
+            <NavItem
+              to="/landlord/explore"
+              icon={FaCompass}
+              label="Explore"
+              active={pathname.includes("/landlord/explore")}
               onClick={closeSidebar}
             />
             <NavItem

@@ -81,7 +81,6 @@ export default function Message() {
     <LandlordLayout searchPlaceholder="Search chats...">
       <div className="mb-1">
         <h2 className="flex items-center gap-2 text-2xl font-bold text-green-800">
-          <FaComments />
           Messages
         </h2>
         <p className="mt-1 text-slate-600">Message support is connected to your existing backend chat endpoints.</p>

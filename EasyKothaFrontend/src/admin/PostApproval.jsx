@@ -19,6 +19,7 @@ import {
 } from "react-icons/fa";
 
 export default function PostApproval() {
+  const getPostId = (post) => post?._id ?? post?.id;
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -29,10 +30,11 @@ export default function PostApproval() {
     try {
       setLoading(true);
       const res = await axios.get(`posts?status=pending&search=${searchQuery}`);
-      setPosts(res.data.data || []);
+      const fetchedPosts = res.data.data || [];
+      setPosts(fetchedPosts);
       // Auto-select first post if none selected
-      if (res.data.data?.length > 0 && !selectedPost) {
-        setSelectedPost(res.data.data[0]);
+      if (fetchedPosts.length > 0 && !selectedPost) {
+        setSelectedPost(fetchedPosts[0]);
       }
     } catch (error) {
       toast.error("Failed to fetch pending list");
@@ -47,17 +49,22 @@ export default function PostApproval() {
   }, [searchQuery]);
 
   const handleAction = async (id, status) => {
+    if (!id) {
+      toast.error("Invalid post ID. Refresh and try again.");
+      return;
+    }
+
     try {
       setActionLoading(status);
       await axios.patch(`posts/${id}/status`, { status });
       toast.success(`Post ${status} successfully`);
       
       // Update local list
-      const updatedPosts = posts.filter(p => p._id !== id);
+      const updatedPosts = posts.filter((post) => getPostId(post) !== id);
       setPosts(updatedPosts);
       
       // Select next post or null
-      if (selectedPost?._id === id) {
+      if (getPostId(selectedPost) === id) {
         setSelectedPost(updatedPosts.length > 0 ? updatedPosts[0] : null);
       }
     } catch (error) {
@@ -105,10 +112,12 @@ export default function PostApproval() {
                   No pending posts found. Everything is clear!
                 </div>
               ) : (
-                posts.map((post) => (
+                posts.map((post) => {
+                  const postId = getPostId(post);
+                  return (
                   <div 
-                    key={post._id} 
-                    className={`bg-white p-4 rounded-2xl border transition-all cursor-pointer ${selectedPost?._id === post._id ? 'border-green-800 ring-1 ring-green-800' : 'border-gray-100 hover:shadow-md'}`}
+                    key={postId || `${post.title}-${post.createdAt}`} 
+                    className={`bg-white p-4 rounded-2xl border transition-all cursor-pointer ${getPostId(selectedPost) === postId ? 'border-green-800 ring-1 ring-green-800' : 'border-gray-100 hover:shadow-md'}`}
                     onClick={() => setSelectedPost(post)}
                   >
                     <div className="flex gap-4">
@@ -151,7 +160,8 @@ export default function PostApproval() {
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -196,14 +206,14 @@ export default function PostApproval() {
                     <div className="grid grid-cols-2 gap-3 mt-8">
                       <button 
                         disabled={actionLoading}
-                        onClick={() => handleAction(selectedPost._id, 'rejected')}
+                        onClick={() => handleAction(getPostId(selectedPost), 'rejected')}
                         className="flex items-center justify-center gap-2 bg-red-50 text-red-600 py-3 rounded-2xl font-semibold text-xs uppercase tracking-wider hover:bg-red-100 transition-all disabled:opacity-50"
                       >
                         {actionLoading === 'rejected' ? <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-600 rounded-full animate-spin" /> : <><FaTimes /> Reject</>}
                       </button>
                       <button 
                         disabled={actionLoading}
-                        onClick={() => handleAction(selectedPost._id, 'approved')}
+                        onClick={() => handleAction(getPostId(selectedPost), 'approved')}
                         className="flex items-center justify-center gap-2 bg-green-800 text-white py-3 rounded-2xl font-semibold text-xs uppercase tracking-wider hover:bg-[#123d43] transition-all shadow-lg shadow-[green-800]/20 disabled:opacity-50"
                       >
                         {actionLoading === 'approved' ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><FaCheck /> Approve</>}

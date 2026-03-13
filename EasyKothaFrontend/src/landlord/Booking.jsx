@@ -71,7 +71,6 @@ export default function Booking() {
       <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2 text-2xl font-bold text-green-800">
-            <FaCalendarAlt />
             Booking Requests
           </h2>
           <p className="mt-1 text-slate-600">Approve, reject, or cancel booking requests from tenants.</p>

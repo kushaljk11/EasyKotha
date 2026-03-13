@@ -14,13 +14,20 @@ import PostApproval from "./admin/PostApproval";
 import AdminBooking from "./admin/AdminBooking";
 import LogsManagement from "./admin/LogsManagement";
 import AdminSetting from "./admin/AdminSetting";
-// import LandlordDashboard from "./landlord/LandlordDashboard";
+import LandlordDashboard from "./landlord/LandlordDashboard";
+import LandlordListings from "./landlord/LandlordListings";
+import Addlisting from "./landlord/Addlisting";
+import LandlordBooking from "./landlord/Booking";
+import LandlordMessage from "./landlord/Message";
+import LandlordProfile from "./landlord/Profile";
+import LandlordExplore from "./landlord/LandlordExplore";
 import Landing from "./pages/Landing";
 import Aboutus from "./pages/Aboutus";
 import ContactUs from "./pages/Contactus";
 import { useAuthStore } from "./store/useAuthStore";
 import Loader from "./components/Loader";
 import ProfilePage from "./pages/ProfilePage";
+import Detailpage from "./components/Detailedpage";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
@@ -55,19 +62,92 @@ const App = () => {
             path="/tenant"
             element={
               <ProtectedRoute roles={["TENANT"]}>
-                {/* <TenantDashboard /> */} 
+                {/* <TenantDashboard /> */}
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/landlord"
+            path="/landlord/dashboard"
             element={
               <ProtectedRoute roles={["LANDLORD"]}>
-                {/* <LandlordDashboard /> */}
+                <LandlordDashboard />
+              </ProtectedRoute>
+            }
+          ></Route>
+
+          <Route
+            path="/landlord/add-listing"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <Addlisting />
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/landlord/add-listing"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <Addlisting />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/landlord/messages"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <LandlordMessage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/landlord/listings"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <LandlordListings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/landlord/explore"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <LandlordExplore />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/landlord/bookings"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <LandlordBooking />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/landlord/profile"
+            element={
+              <ProtectedRoute roles={["LANDLORD"]}>
+                <LandlordProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/posts/:id"
+            element={
+              <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
+                <Detailpage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/admin/dashboard"
             element={
@@ -136,6 +216,6 @@ const App = () => {
       </BrowserRouter>
     </AuthProvider>
   );
-}
+};
 
 export default App;

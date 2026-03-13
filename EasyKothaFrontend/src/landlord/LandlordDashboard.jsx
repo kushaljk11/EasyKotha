@@ -79,11 +79,10 @@ export default function LandlordDashboard() {
     <LandlordLayout searchPlaceholder="Search bookings, listings, users...">
       <div className="flex flex-col gap-1">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-green-800 md:text-3xl">
-          <FaTable className="text-green-800" />
           Landlord Dashboard
         </h1>
         <p className="flex items-center gap-1 text-sm font-semibold text-gray-500">
-          Welcome back, {authUser?.name || "Landlord"} <FaHandPaper className="text-yellow-500" />
+          Welcome back, {authUser?.name || "Landlord"}!
         </p>
       </div>
 

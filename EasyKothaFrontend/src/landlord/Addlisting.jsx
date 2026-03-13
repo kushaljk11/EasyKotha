@@ -97,7 +97,6 @@ export default function AddListing() {
     <LandlordLayout searchPlaceholder="Search listing templates...">
       <div className="mb-1">
         <h2 className="flex items-center gap-2 text-2xl font-bold text-green-800">
-          <FaFileAlt />
           Create New Listing
         </h2>
         <p className="mt-1 text-slate-600">This form submits directly to your backend endpoint `/createpost`.</p>
