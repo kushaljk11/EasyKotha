@@ -94,6 +94,11 @@ export const login = async (req, res) => {
     });
     if (!user) return res.status(401).json({ message: "Invalid credentials." });
 
+    // Some social-login users may not have a local password hash.
+    if (!user.password || typeof user.password !== "string") {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials." });

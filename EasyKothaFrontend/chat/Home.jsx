@@ -1,47 +1,76 @@
-import { useChatStore } from "../store/useChatStore";
-import { useAuthStore } from "../store/useAuthStore";
-import Sidebar from "../chat/components/Sidebar";
-import NoChatSelected from "../chat/components/NoChatSelected";
-import ChatContainer from "../chat/ChatContainer";
-import TenantTopbar from "../tenants/TenantTopbar";
-import AdminTopbar from "../admin/Topbar";
-// import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useChatStore } from "../src/store/useChatStore";
+import { useAuthStore } from "../src/store/useAuthStore";
+import Sidebar from "./Sidebar";
+import NoChatSelected from "./components/skeletons/NoChatSelection";
+import ChatContainer from "./ChatContainer";
+import TenantTopbar from "../src/components/Topbar";
+import AdminTopbar from "../src/admin/Topbar";
+import LandlordTopbar from "../src/landlord/LandlordTopbar";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaComments } from "react-icons/fa";
 
 const HomePage = () => {
   const { selectedUser } = useChatStore();
   const { authUser } = useAuthStore();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  // const handleBack = () => {
-  //   if (authUser?.role === "TENANT") {
-  //     navigate("/tenant/dashboard");
-  //   } else if (authUser?.role === "ADMIN") {
-  //     navigate("/admin/dashboard");
-  //   } else if (authUser?.role === "LANDLORD") {
-  //     navigate("/landlord/dashboard");
-  //   }
-  // };
+  const backPath = useMemo(() => {
+    if (authUser?.role === "ADMIN") return "/admin/dashboard";
+    if (authUser?.role === "LANDLORD") return "/landlord/dashboard";
+    return "/";
+  }, [authUser?.role]);
+
+  const backLabel = useMemo(() => {
+    if (authUser?.role === "ADMIN") return "Back to Admin Dashboard";
+    if (authUser?.role === "LANDLORD") return "Back to Landlord Dashboard";
+    return "Back to Home";
+  }, [authUser?.role]);
+
+  const handleBack = () => {
+    navigate(backPath);
+  };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Topbar */}
       {authUser?.role === "TENANT" && <TenantTopbar />}
       {authUser?.role === "ADMIN" && <AdminTopbar />}
-      {authUser?.role === "LANDLORD" && <TenantTopbar />}
-      
+      {authUser?.role === "LANDLORD" && <LandlordTopbar />}
+
       {/* Main Chat Area */}
-      <div className="flex-1 flex overflow-hidden bg-[#f1f5f9]">
-        {/* Sidebar */}
-        <div className="ml-6 my-6 flex flex-col gap-4">
-          <div className="w-85 border border-gray-200/50 rounded-2xl bg-white overflow-hidden shadow-xl shadow-gray-200/50 h-full">
-            <Sidebar />
+      <div className="flex-1 overflow-hidden bg-[#eef3f8] px-3 pb-3 pt-4 sm:px-4 md:px-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#d6e0ea] bg-white/85 px-4 py-3 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-[#19545c]/10 p-2 text-[#19545c]">
+              <FaComments />
+            </div>
+            <div>
+              <h1 className="text-base font-semibold text-slate-900 sm:text-lg">Messages</h1>
+              <p className="text-xs text-slate-500 sm:text-sm">Chat with your contacts in real time</p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            <FaArrowLeft className="text-xs" />
+            <span>{backLabel}</span>
+          </button>
         </div>
 
-        {/* Chat Content */}
-        <div className="flex-1 flex flex-col bg-white ml-2 mr-6 my-6 rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50">
-          {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+        <div className="flex h-[calc(100%-68px)] overflow-hidden rounded-2xl border border-[#dbe5ef] bg-white/30">
+        {/* Sidebar */}
+          <div className="m-3 hidden w-[310px] shrink-0 rounded-2xl border border-gray-200/70 bg-white shadow-md md:block">
+            <Sidebar />
+          </div>
+
+          {/* Chat Content */}
+          <div className="m-3 flex-1 overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-md">
+            {!selectedUser ? <NoChatSelected onBack={handleBack} backLabel={backLabel} /> : <ChatContainer />}
+          </div>
         </div>
       </div>
     </div>

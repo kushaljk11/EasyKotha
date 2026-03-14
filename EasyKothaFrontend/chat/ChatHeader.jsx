@@ -1,20 +1,21 @@
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/useAuthStore";
-import { useChatStore } from "../store/useChatStore.js";
+import { useAuthStore } from "../src/store/useAuthStore";
+import { useChatStore } from "../src/store/useChatStore.js";
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const navigate = useNavigate();
-  const isOnline = onlineUsers.includes(selectedUser._id);
+  const selectedUserId = selectedUser?.id ?? selectedUser?._id;
+  const isOnline = onlineUsers.includes(String(selectedUserId));
 
   return (
     <div className="px-6 py-4 border-b border-gray-100 bg-white shadow-sm z-10 transition-all">
       <div className="flex items-center justify-between">
         <div 
           className="flex items-center gap-4 group cursor-pointer"
-          onClick={() => navigate(`/profile/${selectedUser._id}`)}
+          onClick={() => navigate(`/profile/${selectedUserId}`)}
         >
           {/* Avatar with Status Ring */}
           <div className="relative">

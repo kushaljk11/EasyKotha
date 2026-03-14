@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import React, { useEffect } from "react";
 import AuthProvider from "./context/AuthContext";
@@ -18,7 +18,6 @@ import LandlordDashboard from "./landlord/LandlordDashboard";
 import LandlordListings from "./landlord/LandlordListings";
 import Addlisting from "./landlord/Addlisting";
 import LandlordBooking from "./landlord/Booking";
-import LandlordMessage from "./landlord/Message";
 import LandlordProfile from "./landlord/Profile";
 import LandlordExplore from "./landlord/LandlordExplore";
 import Landing from "./pages/Landing";
@@ -28,6 +27,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import Loader from "./components/Loader";
 import ProfilePage from "./pages/ProfilePage";
 import Detailpage from "./components/Detailedpage";
+import HomePage from "../chat/Home";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
@@ -98,7 +98,16 @@ const App = () => {
             path="/landlord/messages"
             element={
               <ProtectedRoute roles={["LANDLORD"]}>
-                <LandlordMessage />
+                <Navigate to="/chat" replace />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
+                <HomePage />
               </ProtectedRoute>
             }
           />

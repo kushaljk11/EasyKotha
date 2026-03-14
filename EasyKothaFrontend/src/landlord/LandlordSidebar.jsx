@@ -99,10 +99,10 @@ export default function LandlordSidebar() {
               onClick={closeSidebar}
             />
             <NavItem
-              to="/landlord/messages"
+              to="/chat"
               icon={FaComments}
-              label="Messages"
-              active={pathname.includes("/landlord/messages")}
+              label="Chat"
+              active={pathname.includes("/chat")}
               onClick={closeSidebar}
             />
             <NavItem

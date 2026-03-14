@@ -56,7 +56,7 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="absolute top-8 left-8 hidden md:block">
-          <img src="/EasyKotha2-06.png" alt="Logo" className="h-16 w-auto" />
+          <img src="/logo.png" alt="Logo" className="h-16 w-auto" />
         </div>
 
         <div className="w-full max-w-sm">

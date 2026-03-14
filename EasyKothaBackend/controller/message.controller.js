@@ -4,26 +4,53 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getUsersForSidebar = async (req, res) => {
   try {
-    const loggedInUserId = Number(req.user.id);
-    const filteredUsers = await prisma.user.findMany({
+    const myId = Number(req.user.id);
+
+    const conversations = await prisma.message.findMany({
       where: {
-        id: {
-          not: loggedInUserId
-        }
+        OR: [{ senderId: myId }, { receiverId: myId }],
       },
+      select: {
+        senderId: true,
+        receiverId: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const chattedUserIds = new Set();
+    for (const convo of conversations) {
+      if (convo.senderId !== myId) chattedUserIds.add(convo.senderId);
+      if (convo.receiverId !== myId) chattedUserIds.add(convo.receiverId);
+    }
+
+    if (chattedUserIds.size === 0) return res.status(200).json([]);
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: [...chattedUserIds] } },
       select: {
         id: true,
         name: true,
         email: true,
-        profileImage: true,
         role: true,
-      }
+        city: true,
+        district: true,
+        profileImage: true,
+        createdAt: true,
+      },
     });
 
-    res.status(200).json(filteredUsers);
+    // Keep legacy keys for old chat UI while preserving Prisma fields.
+    const normalizedUsers = users.map((user) => ({
+      ...user,
+      _id: user.id,
+      fullName: user.name,
+      profilePic: user.profileImage,
+    }));
+
+    return res.status(200).json(normalizedUsers);
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

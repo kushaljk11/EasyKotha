@@ -1,12 +1,12 @@
-import { useChatStore } from "../store/useChatStore";
+import { useChatStore } from "../src/store/useChatStore";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./Messageinput";
 import MessageSkeleton from "./components/skeletons/MessageSkeleton";
-import { useAuthStore } from "../store/useAuthStore";
-import { formatMessageTime } from "../api/utils";
-import ProfileModal from "./components/ProfileModal";
+import { useAuthStore } from "../src/store/useAuthStore";
+import { formatMessageTime } from "../src/api/utils";
+import ProfileModal from "./components/skeletons/ProfileModal";
 
 const ChatContainer = () => {
   const {
@@ -22,17 +22,22 @@ const ChatContainer = () => {
   const messageEndRef = useRef(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileToShow] = useState(null);
+
+  const selectedUserId = selectedUser?.id ?? selectedUser?._id;
+
   const handleProfileClick = (user) => {
     navigate(`/profile/${user._id || user.id}`);
   };
 
   useEffect(() => {
-    getMessages(selectedUser._id);
+    if (!selectedUserId) return;
+
+    getMessages(selectedUserId);
 
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUserId, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -57,7 +62,7 @@ const ChatContainer = () => {
       <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#f8fafc]">
         {messages.map((message, index) => {
           const isMyMessage = String(message.senderId) === String(authUser?.id || authUser?._id);
-          const isDelivered = onlineUsers.includes(message.receiverId);
+          const isDelivered = onlineUsers.includes(String(message.receiverId));
           
           return (
             <div
