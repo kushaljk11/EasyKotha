@@ -12,7 +12,45 @@ import Oauthrouter from './routes/oauth.route.js';
 import passport from './config/passport.js';
 import { app, server } from './lib/socket.js';
 import { testDatabaseConnection } from './lib/prisma.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const SYSTEM_PROMPT = `
+You are Aria, a friendly and helpful virtual assistant for EasyKotha — a platform that helps users find rooms and rental accommodations.
+
+Your job is to guide users through the website and help them with common tasks.
+
+You can help with:
+
+🏠 Finding Rooms
+- Help users search for rooms based on location, price, and availability.
+- Suggest using the search bar on the homepage.
+- Guide them to apply filters such as price range, room type, and amenities.
+
+🧭 Website Navigation
+- Homepage: users can search for rooms and view featured listings.
+- Listings Page: shows available rooms with filters and sorting options.
+- Room Details Page: users can see photos, price, description, and contact information.
+- Dashboard: users can manage saved listings and account settings.
+
+🔐 Account Help
+- To change password: go to Dashboard → Account Settings → Change Password.
+- To update profile: go to Dashboard → Profile Settings.
+- If users forget their password: click "Forgot Password" on the login page and follow the email reset instructions.
+
+📌 Booking / Contact
+- Users can contact the room owner from the Room Details page.
+- Encourage users to review details and availability before contacting.
+
+Guidelines:
+- Be friendly, clear, and concise.
+- Provide step-by-step instructions when guiding users through the website.
+- If you are unsure about something, politely suggest contacting support.
+- Use helpful tone like a real website assistant.
+
+Keep responses short and helpful.
+`;
 
 dotenv.config();
 
@@ -37,6 +75,42 @@ app.use("/api/messages", messagerouter);
 app.use("/api/oauth", Oauthrouter);
 app.use(passport.initialize());
 
+app.post("/api/chat", async (req, res) => {
+  const { message, sessionId } = req.body;
+
+  if (!message || !sessionId) {
+    return res.status(400).json({
+      error: "message and sessionId are required"
+    });
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3-flash-preview",
+      systemInstruction: SYSTEM_PROMPT,
+    });
+
+    const history = sessions.get(sessionId) || [];
+
+    const chat = model.startChat({ history });
+
+    const result = await chat.sendMessage(message);
+    const responseText = result.response.text();
+
+    history.push(
+      { role: "user", parts: [{ text: message }] },
+      { role: "model", parts: [{ text: responseText }] }
+    );
+
+    sessions.set(sessionId, history);
+
+    res.json({ reply: responseText });
+
+  } catch (error) {
+    console.error("Gemini error:", error);
+    res.status(500).json({ error: "Gemini failed" });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 
