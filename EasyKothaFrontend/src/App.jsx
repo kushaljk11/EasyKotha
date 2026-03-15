@@ -28,6 +28,7 @@ import Loader from "./components/Loader";
 import ProfilePage from "./pages/ProfilePage";
 import Detailpage from "./components/Detailedpage";
 import HomePage from "../chat/Home";
+import Chatbot from "./components/chatbot";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
@@ -222,6 +223,7 @@ const App = () => {
             }
           />
         </Routes>
+        <Chatbot/>
       </BrowserRouter>
     </AuthProvider>
   );
