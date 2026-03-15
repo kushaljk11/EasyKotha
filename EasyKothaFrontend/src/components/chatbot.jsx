@@ -16,15 +16,9 @@ const getGeminiResponse = async (message) => {
   return data.reply;
 };
 
-const Avatar = () => (
-  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-600 to-green-400 flex items-center justify-center shadow-md shrink-0">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="6" width="18" height="13" rx="3" stroke="white" strokeWidth="1.8" />
-      <circle cx="9" cy="12" r="1.5" fill="white" />
-      <circle cx="15" cy="12" r="1.5" fill="white" />
-      <path d="M8 18v2M16 18v2" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M9 6V4M15 6V4" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
+const Avatar = ({ size = "w-9 h-9" }) => (
+  <div className={`${size} rounded-full bg-green-800 ring-2 ring-green-300 flex items-center justify-center shadow-md shrink-0 overflow-hidden`}>
+    <img src="/logo.png" alt="EasyKotha logo" className="w-[75%] h-[75%] object-contain" />
   </div>
 );
 
@@ -89,18 +83,16 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed bottom-7 right-7 flex flex-col items-end gap-4">
+    <div className="fixed bottom-4 right-4 sm:bottom-7 sm:right-7 z-9999 flex flex-col items-end gap-3 sm:gap-4">
 
       {open && (
-        <div className="w-[380px] h-[540px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="w-[calc(100vw-2rem)] max-w-[380px] h-[min(540px,75vh)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 to-green-500 p-4 flex justify-between items-center">
+          <div className="bg-linear-to-r from-green-600 to-green-500 p-4 flex justify-between items-center">
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center border border-white/30">
-                🤖
-              </div>
+              <Avatar size="w-10 h-10" />
 
               <div>
                 <p className="text-white font-bold text-sm">Chatbot</p>
@@ -183,9 +175,9 @@ export default function Chatbot() {
       {/* Toggle Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-14 h-14 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center hover:scale-110 transition"
+        className="w-14 h-14 rounded-full bg-green-800 text-white shadow-lg flex items-center justify-center hover:scale-110 transition"
       >
-        {open ? "×" : "💬"}
+        {open ? "×" : <Avatar size="w-8 h-8" />}
       </button>
     </div>
   );
