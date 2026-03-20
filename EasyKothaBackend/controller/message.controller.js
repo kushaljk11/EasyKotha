@@ -103,6 +103,14 @@ export const sendMessage = async (req, res) => {
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("notification", {
+        id: `chat-${newMessage.id}-${Date.now()}`,
+        title: "New chat message",
+        message: text ? text.slice(0, 80) : "You received an image message",
+        type: "chat",
+        link: "/chat",
+        createdAt: new Date().toISOString(),
+      });
     }
 
     res.status(201).json(newMessage);

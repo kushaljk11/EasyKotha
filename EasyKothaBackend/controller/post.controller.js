@@ -1,10 +1,18 @@
 import { prisma } from "../lib/prisma.js";
 import { sendEmail } from "../utils/email.js";
+import { io, getReceiverSocketId } from "../lib/socket.js";
 import {
   postPendingTemplate,
   postApprovedTemplate,
   postRejectedTemplate,
 } from "../utils/emailTemplates/postTemplates.js";
+
+const emitNotification = (userId, payload) => {
+  const receiverSocketId = getReceiverSocketId(userId);
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("notification", payload);
+  }
+};
 
 //create post
 export const createPost = async (req, res) => {
@@ -50,6 +58,22 @@ export const createPost = async (req, res) => {
         status: "pending",
       },
     });
+
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    });
+
+    const pendingPayload = {
+      id: `post-pending-${savedPost.id}-${Date.now()}`,
+      title: "New post pending approval",
+      message: `${savedPost.title} was submitted and needs review`,
+      type: "post-pending",
+      link: "/admin/approvals",
+      createdAt: new Date().toISOString(),
+    };
+
+    admins.forEach((admin) => emitNotification(admin.id, pendingPayload));
 
     // Attempt to send email notifications without blocking the response
     try {
@@ -230,6 +254,7 @@ export const updatePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = Number(req.user.id);
+    const userRole = req.user.role;
 
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) {
@@ -239,7 +264,7 @@ export const updatePost = async (req, res) => {
       });
     }
 
-    if (post.authorId !== userId) {
+    if (post.authorId !== userId && userRole !== "ADMIN") {
       return res.status(403).json({
         success: false,
         message: "Unauthorized access",
@@ -436,7 +461,28 @@ export const updatePostStatus = async (req, res) => {
     const post = await prisma.post.update({
       where: { id: postId },
       data: { status },
-      include: { author: { select: { email: true, name: true } } }
+      include: { author: { select: { id: true, email: true, name: true } } }
+    });
+
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    });
+
+    const statusPayload = {
+      id: `post-status-${post.id}-${Date.now()}`,
+      title: "Post status updated",
+      message: `${post.title} is ${status}`,
+      type: "post-status",
+      link: status === "approved" ? "/admin/properties" : "/admin/approvals",
+      createdAt: new Date().toISOString(),
+    };
+
+    const recipients = new Set([post.author?.id, ...admins.map((admin) => admin.id)]);
+    recipients.forEach((id) => {
+      if (id !== undefined && id !== null) {
+        emitNotification(id, statusPayload);
+      }
     });
 
     // Send email to post author if they exist

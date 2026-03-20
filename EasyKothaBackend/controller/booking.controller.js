@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { sendEmail } from "../utils/email.js";
+import { io, getReceiverSocketId } from "../lib/socket.js";
 import { 
   bookingApprovedTemplate, 
   bookingRejectedTemplate, 
@@ -8,13 +9,35 @@ import {
   bookingCancelledTemplate
 } from "../utils/emailtemplates/bookingTemplates.js";
 
+const emitNotification = (userId, payload) => {
+  const receiverSocketId = getReceiverSocketId(userId);
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("notification", payload);
+  }
+};
+
 //get all bookings (for admin)
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
       include: {
         user: { select: { name: true, email: true } },
-        post: { select: { title: true, city: true, district: true, price: true } }
+        post: {
+          select: {
+            title: true,
+            city: true,
+            district: true,
+            price: true,
+            images: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" }
     });
@@ -102,6 +125,23 @@ export const createBooking = async (req, res) => {
 
     const userData = await prisma.user.findUnique({ where: { id: userId } });
     const postOwner = await prisma.user.findUnique({ where: { id: post.authorId } });
+
+    // Real-time in-app notifications (no SMTP dependency)
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    });
+    const notificationPayload = {
+      id: `booking-${booking.id}-${Date.now()}`,
+      title: "New booking request",
+      message: `${userData?.name || "A tenant"} requested ${post.title}`,
+      type: "booking",
+      link: "/admin/bookings",
+      createdAt: new Date().toISOString(),
+    };
+
+    const recipientIds = new Set([post.authorId, ...admins.map((admin) => admin.id)]);
+    recipientIds.forEach((id) => emitNotification(id, notificationPayload));
 
     if (postOwner && postOwner.email) {
       await sendEmail({
@@ -216,6 +256,32 @@ export const updateBookingStatus = async (req, res) => {
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: { status }
+    });
+
+    const postOwner = booking.post?.authorId;
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    });
+
+    const statusNotification = {
+      id: `booking-status-${updatedBooking.id}-${Date.now()}`,
+      title: "Booking updated",
+      message: `Booking for ${booking.post?.title || "property"} is now ${status}`,
+      type: "booking-status",
+      link: "/admin/bookings",
+      createdAt: new Date().toISOString(),
+    };
+
+    const recipients = new Set([
+      booking.userId,
+      postOwner,
+      ...admins.map((admin) => admin.id),
+    ]);
+    recipients.forEach((id) => {
+      if (id !== undefined && id !== null) {
+        emitNotification(id, statusNotification);
+      }
     });
 
     res.status(200).json({
