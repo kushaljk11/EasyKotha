@@ -9,37 +9,39 @@ import bookingrouter from './routes/booking.route.js';
 import adminRouter from './routes/admin.route.js';
 import messagerouter from './routes/message.route.js';
 import Oauthrouter from './routes/oauth.route.js';
+import paymentRouter from './routes/payment.route.js';
 import passport from './config/passport.js';
 import { app, server } from './lib/socket.js';
 import { testDatabaseConnection } from './lib/prisma.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const sessions = new Map();
 
 const SYSTEM_PROMPT = `
-You are Aria, a friendly and helpful virtual assistant for EasyKotha — a platform that helps users find rooms and rental accommodations.
+You are EasyKotha Helper, a friendly and helpful virtual assistant for EasyKotha — a platform that helps users find rooms and rental accommodations.
 
 Your job is to guide users through the website and help them with common tasks.
 
 You can help with:
 
-🏠 Finding Rooms
+Finding Rooms
 - Help users search for rooms based on location, price, and availability.
 - Suggest using the search bar on the homepage.
 - Guide them to apply filters such as price range, room type, and amenities.
 
-🧭 Website Navigation
+Website Navigation
 - Homepage: users can search for rooms and view featured listings.
 - Listings Page: shows available rooms with filters and sorting options.
 - Room Details Page: users can see photos, price, description, and contact information.
 - Dashboard: users can manage saved listings and account settings.
 
-🔐 Account Help
+Account Help
 - To change password: go to Dashboard → Account Settings → Change Password.
 - To update profile: go to Dashboard → Profile Settings.
 - If users forget their password: click "Forgot Password" on the login page and follow the email reset instructions.
 
-📌 Booking / Contact
+Booking / Contact
 - Users can contact the room owner from the Room Details page.
 - Encourage users to review details and availability before contacting.
 
@@ -73,6 +75,7 @@ app.use("/api", adminRouter);
 app.use("/api/auth", authRoutes); // Keep support for /api/auth/login etc
 app.use("/api/messages", messagerouter);
 app.use("/api/oauth", Oauthrouter);
+app.use("/api/payment", paymentRouter);
 app.use(passport.initialize());
 
 app.post("/api/chat", async (req, res) => {

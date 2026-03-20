@@ -296,16 +296,15 @@ export const getUserBookings = async (req, res) => {
             images: true,
             content: true,
             authorId: true,
-          },
-          include: {
             author: {
               select: {
+                id: true,
                 name: true,
                 email: true,
                 profileImage: true,
                 phone: true,
-              }
-            }
+              },
+            },
           }
         }
       },

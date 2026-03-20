@@ -71,6 +71,18 @@ enum BookingStatus {
   cancelled
 }
 
+enum PaymentGateway {
+  ESEWA
+  KHALTI
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
 // Models
 model User {
   id           Int       @id @default(autoincrement())
@@ -92,10 +104,49 @@ model User {
   messagesSent Message[]   @relation("SentMessages")
   messagesReceived Message[] @relation("ReceivedMessages")
   bookings     Booking[]
+  tenantPayments PaymentTransaction[] @relation("TenantPayments")
+  landlordPayments PaymentTransaction[] @relation("LandlordPayments")
+  adminReleasedPayments PaymentTransaction[] @relation("AdminReleasedPayments")
   searchLogs   SearchLog[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model PaymentTransaction {
+  id                  Int                      @id @default(autoincrement())
+  tenantId            Int                      @map("userId")
+  tenant              User                     @relation("TenantPayments", fields: [tenantId], references: [id])
+  landlordId          Int?
+  landlord            User?                    @relation("LandlordPayments", fields: [landlordId], references: [id])
+  tenantName          String                   @default("")
+  tenantEmail         String                   @default("")
+  landlordName        String?
+  landlordEmail       String?
+  customerDetails     Json?
+  customerName        String                   @default("")
+  customerEmail       String                   @default("")
+  customerPhone       String                   @default("")
+  productName         String
+  productId           String                   @unique
+  amount              Float
+  paymentGateway      PaymentGateway
+  status              PaymentTransactionStatus @default(PENDING)
+  adminReleaseApproved Boolean                 @default(false)
+  adminReleaseAt      DateTime?
+  adminReleasedBy     Int?
+  adminReleasedByUser User?                    @relation("AdminReleasedPayments", fields: [adminReleasedBy], references: [id])
+
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @default(now()) @updatedAt
+
+  @@index([tenantId])
+  @@index([landlordId])
+  @@index([adminReleasedBy])
+  @@index([status])
+  @@index([paymentGateway])
+  @@index([status, adminReleaseApproved])
+  @@index([createdAt])
 }
 
 model Post {
