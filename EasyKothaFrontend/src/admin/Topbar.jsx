@@ -5,10 +5,19 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useSidebarStore } from "../store/useSidebarStore";
 
 export default function Topbar() {
-  const { authUser, logout } = useAuthStore();
+  const { authUser, logout, socket } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { toggleSidebar } = useSidebarStore();
   const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
+  const isNotificationOpenRef = useRef(false);
+
+  useEffect(() => {
+    isNotificationOpenRef.current = isNotificationOpen;
+  }, [isNotificationOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -16,10 +25,43 @@ export default function Topbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (payload) => {
+      const nextNotification = {
+        id: payload?.id || `notif-${Date.now()}`,
+        title: payload?.title || "Notification",
+        message: payload?.message || "You have a new update",
+        link: payload?.link || "/admin/bookings",
+        createdAt: payload?.createdAt || new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [nextNotification, ...prev].slice(0, 20));
+      if (!isNotificationOpenRef.current) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    };
+
+    socket.on("notification", handleNotification);
+    return () => socket.off("notification", handleNotification);
+  }, [socket]);
+
+  const toggleNotificationPanel = () => {
+    setIsNotificationOpen((prev) => {
+      const next = !prev;
+      if (next) setUnreadCount(0);
+      return next;
+    });
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 sticky top-0 z-30">
@@ -54,18 +96,61 @@ export default function Topbar() {
           </button>
 
           {/* Notification Bell */}
-          <button
-            type="button"
-            className="relative p-2 text-green-800 hover:bg-green-800/5 rounded-lg transition-colors"
-            title="Notifications"
-          >
-            <FaBell className="text-lg" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-green-800 rounded-full"></span>
-          </button>
+          <div className="relative" ref={notificationRef}>
+            <button
+              type="button"
+              onClick={toggleNotificationPanel}
+              className="relative p-2 text-green-800 hover:bg-green-800/5 rounded-lg transition-colors"
+              title="Notifications"
+            >
+              <FaBell className="text-lg" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-green-800 text-white text-[10px] font-semibold flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {isNotificationOpen && (
+              <div className="absolute right-0 mt-2 w-80 max-w-[92vw] rounded-xl border border-gray-200 bg-white shadow-xl z-50">
+                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                  <p className="text-sm font-semibold text-slate-800">Notifications</p>
+                  <button
+                    type="button"
+                    onClick={() => setNotifications([])}
+                    className="text-xs font-semibold text-green-800 hover:underline"
+                  >
+                    Clear all
+                  </button>
+                </div>
+
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <p className="px-4 py-6 text-sm text-slate-500">No notifications yet.</p>
+                  ) : (
+                    notifications.map((notification) => (
+                      <Link
+                        key={notification.id}
+                        to={notification.link}
+                        onClick={() => setIsNotificationOpen(false)}
+                        className="block border-b border-gray-50 px-4 py-3 hover:bg-green-50/50"
+                      >
+                        <p className="text-sm font-semibold text-slate-800">{notification.title}</p>
+                        <p className="mt-0.5 text-xs text-slate-600">{notification.message}</p>
+                        <p className="mt-1 text-[10px] text-slate-400">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </p>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Settings */}
           <Link
-            to="/settings"
+            to="/admin/settings"
             className="hidden sm:block p-2 text-green-800 hover:bg-green-800/5 rounded-lg transition-colors"
             title="Settings"
             aria-label="Settings"
@@ -112,7 +197,7 @@ export default function Topbar() {
                     <span>My Profile</span>
                   </Link>
                   <Link
-                    to="/settings"
+                    to="/admin/settings"
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 transition-colors"
                   >
                     <FaCog className="text-blue-800/60" />

@@ -1,18 +1,20 @@
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaUserFriends,
   FaTabletAlt,
   FaCheckCircle,
   FaHeadset,
-  FaMapMarkerAlt,
   FaHome,
   FaWallet,
   FaSearch,
   FaUserCheck,
   FaLock,
 } from "react-icons/fa";
+import axiosInstance from "../api/axios";
 import Footer from "../components/Footer";
 import Topbar from "../components/Topbar";
+import { useAuthStore } from "../store/useAuthStore";
 
 function LocationCard({ imageSrc, locationName, to }) {
   return (
@@ -88,7 +90,116 @@ function RoomByBudgetCard({ budgetRange, description, to, button }) {
   );
 }
 
+function getPostPreviewImage(images) {
+  if (Array.isArray(images) && images.length > 0) {
+    return images[0];
+  }
+
+  if (typeof images === "string" && images.trim()) {
+    try {
+      const parsed = JSON.parse(images);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed[0];
+      }
+    } catch {
+      return images;
+    }
+  }
+
+  return "/abouthero.webp";
+}
+
 export default function Landing() {
+  const navigate = useNavigate();
+  const { authUser } = useAuthStore();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionBoxRef = useRef(null);
+
+  useEffect(() => {
+    const closeSuggestionsOnOutsideClick = (event) => {
+      if (
+        suggestionBoxRef.current &&
+        !suggestionBoxRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeSuggestionsOnOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", closeSuggestionsOnOutsideClick);
+    };
+  }, []);
+
+  useEffect(() => {
+    const keyword = searchTerm.trim();
+
+    if (keyword.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const response = await axiosInstance.get("/posts", {
+          params: {
+            search: keyword,
+            status: "approved",
+            page: 1,
+            limit: 6,
+          },
+        });
+
+        if (response.data?.success) {
+          setSuggestions(response.data.data || []);
+          setShowSuggestions(true);
+        }
+      } catch (error) {
+        console.error("Failed to search posts:", error);
+        setSuggestions([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const navigateWithAuthCheck = (path) => {
+    if (authUser) {
+      navigate(path);
+      return;
+    }
+
+    navigate("/login");
+  };
+
+  const handleSearchSubmit = () => {
+    const keyword = searchTerm.trim();
+    const target = keyword
+      ? `/explore?search=${encodeURIComponent(keyword)}`
+      : "/explore";
+
+    navigateWithAuthCheck(target);
+  };
+
+  const handleSuggestionClick = (postId) => {
+    if (!postId) return;
+    setShowSuggestions(false);
+    navigateWithAuthCheck(`/posts/${postId}`);
+  };
+
+  const handleSearchInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSearchSubmit();
+    }
+  };
+
   return (
     <>
       <Topbar />
@@ -113,16 +224,72 @@ export default function Landing() {
 
           <div className="mt-8 w-full max-w-5xl">
             <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50">
-                  <FaMapMarkerAlt className="text-green-800 text-lg" />
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div
+                  ref={suggestionBoxRef}
+                  className="relative flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-4 lg:col-span-5"
+                >
+                  <FaSearch className="text-green-800 text-lg" />
                   <input
                     className="w-full bg-transparent text-sm md:text-base focus:outline-none"
-                    placeholder="Location (e.g. Lalitpur)"
+                    placeholder="Search rooms"
                     type="text"
+                    value={searchTerm}
+                    onChange={(event) => {
+                      setSearchTerm(event.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={handleSearchInputKeyDown}
                   />
+
+                  {showSuggestions && searchTerm.trim().length >= 2 && (
+                    <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-xl">
+                      {isSearching ? (
+                        <p className="px-4 py-3 text-sm text-gray-500">Searching...</p>
+                      ) : suggestions.length > 0 ? (
+                        <ul className="max-h-80 overflow-y-auto p-2">
+                          {suggestions.map((post) => (
+                            <li
+                              key={post.id}
+                              className="mb-2 last:mb-0"
+                              onMouseDown={(event) => {
+                                event.preventDefault();
+                                handleSuggestionClick(post.id);
+                              }}
+                            >
+                              <div className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-100 p-2 text-left transition-colors hover:bg-green-50">
+                                <img
+                                  src={getPostPreviewImage(post.images)}
+                                  alt={post.title || "Room"}
+                                  className="h-12 w-14 rounded-md object-cover"
+                                  onError={(event) => {
+                                    event.currentTarget.src = "/abouthero.webp";
+                                  }}
+                                />
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-semibold text-gray-800">
+                                    {post.title}
+                                  </p>
+                                  <p className="truncate text-xs text-gray-500">
+                                    {post.city || ""}
+                                    {post.city && post.district ? ", " : ""}
+                                    {post.district || ""}
+                                  </p>
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="px-4 py-3 text-sm text-gray-500">
+                          No matching active listings found.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50">
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-3 lg:col-span-2">
                   <FaHome className="text-green-800 text-lg" />
                   <select className="w-full bg-transparent text-sm md:text-base focus:outline-none">
                     <option>Property Type</option>
@@ -132,7 +299,7 @@ export default function Landing() {
                     <option>Studio</option>
                   </select>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50">
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-3 lg:col-span-2">
                   <FaWallet className="text-green-800 text-lg" />
                   <select className="w-full bg-transparent text-sm md:text-base focus:outline-none">
                     <option>Budget Range</option>
@@ -142,7 +309,10 @@ export default function Landing() {
                     <option>Rs. 30,000+</option>
                   </select>
                 </div>
-                <button className="flex items-center justify-center gap-2 rounded-xl bg-green-800 text-white font-semibold py-3 px-4 hover:bg-[#154f52] transition-colors shadow-lg">
+                <button
+                  className="flex items-center justify-center gap-2 rounded-xl bg-green-800 text-white font-semibold py-3 px-4 hover:bg-[#154f52] transition-colors shadow-lg md:col-span-2 lg:col-span-3"
+                  onClick={handleSearchSubmit}
+                >
                   <FaSearch />
                   Search
                 </button>

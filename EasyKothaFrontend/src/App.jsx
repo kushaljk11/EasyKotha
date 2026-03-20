@@ -42,15 +42,11 @@ import TenantMessage from "./tenants/Message";
 import TenantProfile from "./tenants/Profile";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
-
-  console.log({ onlineUsers });
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
-
-  console.log({ authUser });
 
   if (isCheckingAuth && !authUser)
     return (

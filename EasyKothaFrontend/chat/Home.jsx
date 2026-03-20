@@ -8,7 +8,7 @@ import AdminTopbar from "../src/admin/Topbar";
 import LandlordTopbar from "../src/landlord/LandlordTopbar";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaComments } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 
 const HomePage = () => {
   const { selectedUser } = useChatStore();
@@ -32,7 +32,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 font-semibold">
       {/* Topbar */}
       {authUser?.role === "TENANT" && <TenantTopbar />}
       {authUser?.role === "ADMIN" && <AdminTopbar />}
@@ -42,12 +42,16 @@ const HomePage = () => {
       <div className="flex-1 overflow-hidden bg-[#eef3f8] px-3 pb-3 pt-4 sm:px-4 md:px-6">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#d6e0ea] bg-white/85 px-4 py-3 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-[#19545c]/10 p-2 text-[#19545c]">
-              <FaComments />
+            <div className="rounded-xl bg-green-800/10 p-2 text-green-800">
+              <img
+                src="/EasyKothaColoured-02.png"
+                alt="EasyKotha"
+                className="h-5 w-5 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-base font-semibold text-slate-900 sm:text-lg">Messages</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">Chat with your contacts in real time</p>
+              <p className="text-xs font-semibold text-slate-500 sm:text-sm">Chat with your contacts in real time</p>
             </div>
           </div>
 

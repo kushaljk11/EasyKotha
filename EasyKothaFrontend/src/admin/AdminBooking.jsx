@@ -18,6 +18,12 @@ export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getBookingDisplayId = (booking) => {
+    const rawId = booking?.id ?? booking?._id;
+    if (rawId === undefined || rawId === null) return "N/A";
+    return String(rawId).slice(-6);
+  };
+
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -81,10 +87,12 @@ export default function AdminBookings() {
                     </tr>
                   ) : bookings.length > 0 ? (
                     bookings.map((booking) => (
-                      <tr key={booking._id} className="hover:bg-gray-50/30 transition-colors">
+                      <tr key={booking.id ?? booking._id} className="hover:bg-gray-50/30 transition-colors">
                         <td className="px-6 py-4">
-                          <p className="text-xs font-semibold text-slate-800 uppercase line-clamp-1">{booking._id.slice(-6)}</p>
-                          <p className="text-[10px] font-semibold text-gray-400 mt-0.5">{new Date(booking.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs font-semibold text-slate-800 line-clamp-1">{getBookingDisplayId(booking)}</p>
+                          <p className="text-[10px] font-semibold text-gray-400 mt-0.5">
+                            {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : "N/A"}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -98,15 +106,20 @@ export default function AdminBookings() {
                         <td className="px-6 py-4 text-left">
                           <div className="flex flex-col gap-0.5">
                             <div className="text-[10px] font-semibold flex items-center gap-1.5">
-                              <span className="text-blue-600 truncate">{booking.user?.name}</span>
+                              <span className="text-blue-600 truncate">{booking.user?.name || "Tenant"}</span>
                               <FaArrowRight className="text-gray-300 text-[8px]" />
-                              <span className="text-green-800 truncate">Landlord</span>
+                              <span className="text-green-800 truncate">{booking.post?.author?.name || "Landlord"}</span>
                             </div>
-                            <p className="text-[9px] font-semibold text-gray-400 truncate">{booking.user?.email}</p>
+                            <p className="text-[9px] font-semibold text-gray-400 truncate">
+                              {booking.user?.email || "No tenant email"}
+                            </p>
+                            <p className="text-[9px] font-semibold text-gray-400 truncate">
+                              {booking.post?.author?.email || "No landlord email"}
+                            </p>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-left">
-                          <p className="text-xs font-semibold text-slate-800">रू {booking.totalPrice?.toLocaleString()}</p>
+                          <p className="text-xs font-semibold text-slate-800">रू {booking.totalPrice?.toLocaleString?.() || "0"}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`text-[9px] font-semibold px-2.5 py-1 rounded-md tracking-wider uppercase ${

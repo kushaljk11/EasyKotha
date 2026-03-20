@@ -9,7 +9,7 @@ export default function Footer() {
         {/* Logo and Description */}
         <div className="flex flex-col gap-4">
           <div className="h-12 w-12 flex items-center">
-            <img src="/EasyKothaUncloured-03.png" alt="EasyKotha Logo" className="h-full w-full object-contain" />
+            <img src="/logo.png" alt="EasyKotha Logo" className="h-full w-full object-contain" />
           </div>
           <p className="text-sm text-gray-300">
             Your trusted platform for finding the perfect room. Easy, fast, and reliable.

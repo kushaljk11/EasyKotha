@@ -1,7 +1,10 @@
 import { useState } from "react";
 import axiosInstance from "../api/axios";
 import { FaFileAlt, FaImage, FaMapMarkerAlt, FaPlus, FaTag, FaTrash } from "react-icons/fa";
+import toast from "react-hot-toast";
 import LandlordLayout from "./LandlordLayout";
+
+const allowedImageExtensions = ["jpg", "jpeg", "png", "webp", "svg"];
 
 const defaultForm = {
   title: "",
@@ -81,6 +84,51 @@ export default function AddListing() {
 
   const addImageUrlField = () => {
     setForm((prev) => ({ ...prev, imageUrls: [...prev.imageUrls, ""] }));
+  };
+
+  const handleDeviceImagesChange = async (event) => {
+    const selectedFiles = Array.from(event.target.files || []);
+    if (!selectedFiles.length) return;
+
+    const validFiles = [];
+
+    selectedFiles.forEach((file) => {
+      const extension = (file.name.split(".").pop() || "").toLowerCase();
+      if (!allowedImageExtensions.includes(extension)) {
+        toast.error("Image extension not supported");
+        return;
+      }
+      validFiles.push(file);
+    });
+
+    if (!validFiles.length) {
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const imageDataUrls = await Promise.all(
+        validFiles.map(
+          (file) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result || ""));
+              reader.onerror = () => reject(new Error("Failed to read image file"));
+              reader.readAsDataURL(file);
+            }),
+        ),
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        imageUrls: [...prev.imageUrls, ...imageDataUrls].filter(Boolean),
+      }));
+    } catch (error) {
+      console.error("Failed to process device images:", error);
+      toast.error("Failed to process selected images");
+    } finally {
+      event.target.value = "";
+    }
   };
 
   const removeImageUrlField = (index) => {
@@ -187,6 +235,22 @@ export default function AddListing() {
 
             <Field label="Image URLs" icon={FaImage}>
               <div className="space-y-3">
+                <div className="rounded-lg border border-dashed border-green-800/25 bg-green-50/40 p-3">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-green-800 px-3 py-2 text-sm font-semibold text-white hover:bg-[#154e54]">
+                    <FaImage /> Upload From Device
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,.svg"
+                      multiple
+                      onChange={handleDeviceImagesChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="mt-2 text-xs text-slate-600">
+                    Supported: jpg, jpeg, png, webp, svg.
+                  </p>
+                </div>
+
                 {form.imageUrls.map((url, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex gap-2">
@@ -231,7 +295,7 @@ export default function AddListing() {
                 </button>
 
                 <p className="text-xs text-slate-500">
-                  Add direct image links (jpg/png/webp). Empty fields are ignored on submit.
+                  Add direct image links or upload from your device. Empty fields are ignored on submit.
                 </p>
               </div>
             </Field>

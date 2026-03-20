@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../api/axios";
 import {
   FaCalendarAlt,
+  FaComments,
   FaCheck,
   FaFilter,
   FaTimes,
@@ -11,6 +12,8 @@ import {
   FaBan,
 } from "react-icons/fa";
 import LandlordLayout from "./LandlordLayout";
+import { useNavigate } from "react-router-dom";
+import { useChatStore } from "../store/useChatStore";
 
 const statusBadge = {
   approved: "bg-emerald-100 text-emerald-700",
@@ -20,6 +23,8 @@ const statusBadge = {
 };
 
 export default function Booking() {
+  const navigate = useNavigate();
+  const { setSelectedUser } = useChatStore();
   const [bookings, setBookings] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -65,6 +70,12 @@ export default function Booking() {
       return statusMatches && searchMatches;
     });
   }, [bookings, search, statusFilter]);
+
+  const handleChatWithTenant = (booking) => {
+    if (!booking?.user) return;
+    setSelectedUser(booking.user);
+    navigate("/chat");
+  };
 
   return (
     <LandlordLayout searchPlaceholder="Search bookings...">
@@ -147,6 +158,13 @@ export default function Booking() {
               </div>
 
               <div className="mt-5 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleChatWithTenant(booking)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-green-800/20 px-3 py-2 text-sm font-semibold text-green-800 hover:bg-green-800/10"
+                >
+                  <FaComments /> Chat Tenant
+                </button>
                 <button
                   disabled={updatingId === booking.id || booking.status === "approved"}
                   onClick={() => updateStatus(booking.id, "approved")}
