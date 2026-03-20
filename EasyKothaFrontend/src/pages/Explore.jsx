@@ -3,6 +3,7 @@ import axiosInstance from "../api/axios";
 import { Search as SearchIcon, MapPin, Home, Filter, Clock, Heart, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TenantTopbar from "../tenants/TenantTopbar";
+import TenantSidebar from "../tenants/TenantSidebar";
 import Search from "../components/Search";
 import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
@@ -133,9 +134,11 @@ const Explore = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-white">
+    <div className="flex min-h-screen bg-[#f8fafc]">
+      <TenantSidebar />
+      <div className="h-screen flex-1 overflow-y-auto bg-white">
       <TenantTopbar />
-      
+
       <div className="bg-gray-50/30 pb-20 p-4 md:p-8">
         {/* Horizontal Search & Filter Bar */}
         <div className="w-full bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100">
@@ -229,8 +232,10 @@ const Explore = () => {
           ) : (
             <div className="space-y-6">
               {posts.length > 0 ? (
-                posts.map((post) => (
-                  <div key={post._id} className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row border border-gray-100 group overflow-hidden md:h-65">
+                posts.map((post) => {
+                  const postId = post?._id || post?.id || post?.postId;
+                  return (
+                  <div key={postId || post.title} className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row border border-gray-100 group overflow-hidden md:h-65">
                     {/* Image Container - Reduced height matching parent */}
                     <div className="relative w-full md:w-90 h-56 md:h-full shrink-0 overflow-hidden">
                       <img
@@ -298,26 +303,37 @@ const Explore = () => {
                          </div>
                          <div className="flex items-center gap-3">
                             <button 
-                              onClick={() => handleToggleSave(post._id)}
+                              onClick={() => postId && handleToggleSave(postId)}
                               className={`w-10 h-10 flex items-center justify-center border rounded-xl transition-all ${
-                                isSaved(post._id) 
+                                isSaved(postId) 
                                   ? "bg-red-50 border-red-100 text-red-500 shadow-inner" 
                                   : "bg-white border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50"
                               }`}
                             >
-                                <Heart size={18} fill={isSaved(post._id) ? "currentColor" : "none"} />
+                                <Heart size={18} fill={isSaved(postId) ? "currentColor" : "none"} />
                             </button>
-                            <Link 
-                                to={`/posts/${post._id}`}
-                                className="bg-[#19545c] hover:bg-[#15443f] text-white px-8 py-3 rounded-xl text-sm font-semibold  transition-all active:scale-[0.98]"
+                            {postId ? (
+                              <Link 
+                                  to={`/posts/${postId}`}
+                                  className="bg-[#19545c] hover:bg-[#15443f] text-white px-8 py-3 rounded-xl text-sm font-semibold  transition-all active:scale-[0.98]"
+                                >
+                                  View Property
+                                </Link>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled
+                                className="bg-gray-200 text-gray-500 px-8 py-3 rounded-xl text-sm font-semibold cursor-not-allowed"
                               >
                                 View Property
-                              </Link>
+                              </button>
+                            )}
                          </div>
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
                   <h3 className="text-2xl font-semibold text-gray-900">No properties found</h3>
@@ -346,6 +362,7 @@ const Explore = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
     <Footer />

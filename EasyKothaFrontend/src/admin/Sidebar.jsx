@@ -10,7 +10,7 @@ import {
   FaCog,
   FaStar,
   FaSignOutAlt,
-  FaComments,
+  FaMoneyCheckAlt,
   FaTimes,
   FaHistory,
 } from "react-icons/fa";
@@ -127,6 +127,13 @@ export default function Sidebar() {
               icon={FaCalendarAlt}
               label="Bookings"
               active={pathname.includes("/admin/bookings")}
+              onClick={closeSidebar}
+            />
+            <MenuItem
+              to="/admin/payments"
+              icon={FaMoneyCheckAlt}
+              label="Payment"
+              active={pathname.includes("/admin/payments")}
               onClick={closeSidebar}
             />
             <MenuItem

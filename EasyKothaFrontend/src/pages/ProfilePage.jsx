@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 import axios from "../api/axios";
 import { 
   FaUser, 
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { authUser, updateProfile } = useAuthStore();
+  const { setSelectedUser } = useChatStore();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -173,6 +175,19 @@ export default function ProfilePage() {
     }
   };
 
+  const handleMessageUser = () => {
+    if (!displayedUser) return;
+
+    setSelectedUser({
+      id: displayedUser.id ?? displayedUser._id,
+      name: displayedUser.name,
+      email: displayedUser.email,
+      profileImage: displayedUser.profileImage,
+    });
+
+    navigate("/chat");
+  };
+
   if (!authUser || (loading && !displayedUser)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -230,7 +245,7 @@ export default function ProfilePage() {
             </button>
           ) : (
             <button
-              onClick={() => navigate("/chat")}
+              onClick={handleMessageUser}
               className="flex items-center gap-2 px-5 py-2.5 bg-[#19545c] text-white rounded-xl font-bold text-sm hover:bg-[#154e54] transition-all"
             >
               <FaComments /> Message User

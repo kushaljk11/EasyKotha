@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../api/axios";
 import { useChatStore } from "../store/useChatStore";
@@ -28,12 +28,23 @@ import Topbar from "./Topbar";
 const Detailpage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const { setSelectedUser } = useChatStore();
   const { authUser } = useAuthStore();
   const [visitDate, setVisitDate] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+  const routeId = typeof id === "string" ? id.trim() : "";
+  const fallbackId =
+    location.state?.postId ||
+    location.state?.post?._id ||
+    location.state?.post?.id ||
+    "";
+  const postId =
+    routeId && routeId !== "undefined" && routeId !== "null"
+      ? routeId
+      : fallbackId;
 
   // Icon mapping for amenities
   const amenityIcons = {
@@ -49,8 +60,14 @@ const Detailpage = () => {
 
   useEffect(() => {
     const fetchPost = async () => {
+      if (!postId) {
+        toast.error("Invalid property link");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axiosInstance.get(`/posts/${id}`);
+        const response = await axiosInstance.get(`/posts/${postId}`);
         if (response.data.success) {
           setPost(response.data.data);
         } else {
@@ -65,7 +82,7 @@ const Detailpage = () => {
     };
     
     fetchPost();
-  }, [id]);
+  }, [postId]);
 
   const handleBooking = async () => {
     if (!authUser) {
@@ -81,8 +98,14 @@ const Detailpage = () => {
 
     setBookingLoading(true);
     try {
+      if (!postId) {
+        toast.error("Invalid property link");
+        setBookingLoading(false);
+        return;
+      }
+
       const response = await axiosInstance.post("/bookings", {
-        postId: id,
+        postId,
         startDate: visitDate,
         endDate: visitDate, // Controller will handle same-day logic or we can add 1 day
       });
@@ -99,6 +122,27 @@ const Detailpage = () => {
     } finally {
       setBookingLoading(false);
     }
+  };
+
+  const handlePayNow = () => {
+    if (!authUser) {
+      toast.error("Please login to continue payment");
+      navigate("/login");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      amount: String(post?.price || ""),
+      gateway: "esewa",
+      productName: `Booking - ${post?.title || "Property"}`,
+      landlordId: String(post?.author?.id || post?.author?._id || post?.authorId || ""),
+      landlordName: post?.author?.name || "",
+      landlordEmail: post?.author?.email || "",
+      tenantName: authUser?.name || "",
+      tenantEmail: authUser?.email || "",
+    });
+
+    navigate(`/payment?${params.toString()}`);
   };
 
   const handleChat = () => {
@@ -348,11 +392,10 @@ const Detailpage = () => {
                   </button>
                   
                   <button 
-                    onClick={handleBooking}
-                    disabled={bookingLoading}
+                    onClick={handlePayNow}
                     className="w-full bg-white border border-[#19545c]/30 text-[#19545c] hover:bg-[#19545c]/5 font-semibold uppercase tracking-widest py-3.5 rounded-xl text-[10px] flex items-center justify-center gap-2 transition-all"
                   >
-                    Request Physical Visit
+                    Pay Booking Amount
                   </button>
                 </div>
 

@@ -21,6 +21,7 @@ const Search = ({
   const suggestionRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const getPostId = (item) => item?._id || item?.id || item?.postId || "";
 
 
 
@@ -163,14 +164,19 @@ const Search = ({
                 <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Matching Properties</p>
               </div>
               {suggestions.map((item) => (
+                (() => {
+                  const postId = getPostId(item);
+                  return (
                 <div 
-                  key={item._id}
+                  key={postId || item.title}
                   onClick={() => {
                     setShowSuggestions(false);
                     if (onSuggestionClick) {
                       onSuggestionClick(item);
                     } else {
-                      navigate(`/posts/${item._id}`);
+                      if (postId) {
+                        navigate(`/posts/${postId}`);
+                      }
                     }
                   }}
                   className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between group transition-colors"
@@ -189,6 +195,8 @@ const Search = ({
                      <p className="text-[9px] text-gray-400 uppercase font-bold">Month</p>
                   </div>
                 </div>
+                  );
+                })()
               ))}
               <div 
                 onClick={handleSearchSubmit}

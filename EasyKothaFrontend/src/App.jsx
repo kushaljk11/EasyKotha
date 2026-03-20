@@ -12,6 +12,7 @@ import UserManagement from "./admin/UserManagement";
 import Property from "./admin/Property";
 import PostApproval from "./admin/PostApproval";
 import AdminBooking from "./admin/AdminBooking";
+import AdminPayment from "./admin/AdminPayment";
 import LogsManagement from "./admin/LogsManagement";
 import AdminSetting from "./admin/AdminSetting";
 import LandlordDashboard from "./landlord/LandlordDashboard";
@@ -23,12 +24,22 @@ import LandlordExplore from "./landlord/LandlordExplore";
 import Landing from "./pages/Landing";
 import Aboutus from "./pages/Aboutus";
 import ContactUs from "./pages/Contactus";
+import Explore from "./pages/Explore";
 import { useAuthStore } from "./store/useAuthStore";
 import Loader from "./components/Loader";
 import ProfilePage from "./pages/ProfilePage";
 import Detailpage from "./components/Detailedpage";
 import HomePage from "../chat/Home";
 import Chatbot from "./components/chatbot";
+import PaymentForm from "./pages/payment/PaymentForm";
+import PaymentSuccess from "./pages/payment/PaymentSuccess";
+import PaymentFailure from "./pages/payment/PaymentFailure";
+import TenantDashboard from "./tenants/TenantDashboard";
+import TenantHome from "./tenants/Home";
+import TenantBooking from "./tenants/Booking";
+import TenantFavourate from "./tenants/Favourate";
+import TenantMessage from "./tenants/Message";
+import TenantProfile from "./tenants/Profile";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
@@ -63,7 +74,79 @@ const App = () => {
             path="/tenant"
             element={
               <ProtectedRoute roles={["TENANT"]}>
-                {/* <TenantDashboard /> */}
+                <Navigate to="/tenant/dashboard" replace />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/dashboard"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <TenantDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/home"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <TenantHome />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/explore"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <Explore />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/bookings"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <TenantBooking />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/saved"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <TenantFavourate />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/favourites"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <Navigate to="/tenant/saved" replace />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/messages"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <TenantMessage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tenant/profile"
+            element={
+              <ProtectedRoute roles={["TENANT"]}>
+                <TenantProfile />
               </ProtectedRoute>
             }
           />
@@ -199,6 +282,14 @@ const App = () => {
             }
           />
           <Route
+            path="/admin/payments"
+            element={
+              <ProtectedRoute roles={["ADMIN"]}>
+                <AdminPayment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/logs"
             element={
               <ProtectedRoute roles={["ADMIN"]}>
@@ -219,6 +310,38 @@ const App = () => {
             element={
               <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:id"
+            element={
+              <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
+                <PaymentForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-success"
+            element={
+              <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
+                <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-failure"
+            element={
+              <ProtectedRoute roles={["ADMIN", "TENANT", "LANDLORD"]}>
+                <PaymentFailure />
               </ProtectedRoute>
             }
           />
