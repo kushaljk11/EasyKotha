@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../api/axios";
-import { Search as SearchIcon, MapPin, Home, Filter, Clock, Heart, Users } from "lucide-react";
+import { Search as SearchIcon, MapPin, Home, Filter, Clock, Heart, Users, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TenantTopbar from "../tenants/TenantTopbar";
 import TenantSidebar from "../tenants/TenantSidebar";
@@ -8,6 +8,11 @@ import Search from "../components/Search";
 import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
 import Footer from "../components/Footer";
+import {
+  getProvinces,
+  getDistrictsByProvince,
+  getMunicipalitySuggestions,
+} from "../utils/locationUtils";
 
 const Explore = () => {
   const [posts, setPosts] = useState([]);
@@ -24,24 +29,108 @@ const Explore = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Constants
-  const districts = [
-    "Kathmandu", "Lalitpur", "Bhaktapur", "Pokhara", "Chitwan", "Butwal", "Dharan", "Biratnagar"
-  ];
+  // Location dynamic data
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [locationsLoading, setLocationsLoading] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [citySearchInput, setCitySearchInput] = useState("");
 
   useEffect(() => {
     fetchRoomTypes();
+    loadLocationData();
     
     // Parse URL params on mount
     const queryParams = new URLSearchParams(location.search);
     
     const dist = queryParams.get("district");
-    const type = queryParams.get("type");
     
     if (dist) setDistrict(dist);
-    if (type) setRoomType(type);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load province and district data
+  const loadLocationData = async () => {
+    try {
+      setLocationsLoading(true);
+      const prov = await getProvinces();
+      setProvinces(prov);
+    } catch (error) {
+      console.error("Error loading location data:", error);
+    } finally {
+      setLocationsLoading(false);
+    }
+  };
+
+  // Load districts when province changes
+  useEffect(() => {
+    const loadDistricts = async () => {
+      if (!selectedProvince) {
+        setDistricts([]);
+        setDistrict("");
+        setCitySearchInput("");
+        setCitySuggestions([]);
+        return;
+      }
+
+      try {
+        const districtList = await getDistrictsByProvince(selectedProvince);
+        setDistricts(districtList);
+        setDistrict("");
+        setCitySearchInput("");
+        setCitySuggestions([]);
+      } catch (error) {
+        console.error("Error loading districts:", error);
+      }
+    };
+
+    loadDistricts();
+  }, [selectedProvince]);
+
+  // Load city suggestions when district changes
+  useEffect(() => {
+    const loadCitySuggestions = async () => {
+      if (!district) {
+        setCitySuggestions([]);
+        setCitySearchInput("");
+        return;
+      }
+
+      try {
+        const suggestions = await getMunicipalitySuggestions(district, "", 15);
+        setCitySuggestions(suggestions);
+      } catch (error) {
+        console.error("Error loading city suggestions:", error);
+      }
+    };
+
+    loadCitySuggestions();
+  }, [district]);
+
+  // Filter city suggestions when city search input changes
+  useEffect(() => {
+    const filterCities = async () => {
+      if (!district) {
+        return;
+      }
+
+      try {
+        const filtered = await getMunicipalitySuggestions(
+          district,
+          citySearchInput,
+          15
+        );
+        setCitySuggestions(filtered);
+      } catch (error) {
+        console.error("Error filtering city suggestions:", error);
+      }
+    };
+
+    const debounceTimer = setTimeout(filterCities, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [citySearchInput, district]);
 
   useEffect(() => {
     fetchPosts();
@@ -119,6 +208,12 @@ const Explore = () => {
     fetchPosts();
   };
 
+  const handleCitySelect = (city) => {
+    setCitySearchInput(city);
+    setDistrict(city); // For filtering, set the selected city as the district filter
+    setShowCitySuggestions(false);
+  };
+
   const handleToggleSave = async (postId) => {
     if (!authUser) {
       toast.error("Please login to save posts");
@@ -144,7 +239,7 @@ const Explore = () => {
         <div className="w-full bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100">
           <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
             {/* Search Bar Component */}
-            <div className="md:col-span-4">
+            <div className="md:col-span-3">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
                 <SearchIcon size={12} /> Search Property
               </label>
@@ -154,36 +249,40 @@ const Explore = () => {
               />
             </div>
 
-            {/* City */}
+            {/* Province */}
             <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
-                <MapPin size={12} /> City/District
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400 mb-4">
+                <MapPin size={12} /> Province
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium"
+                value={selectedProvince}
+                onChange={(e) => setSelectedProvince(e.target.value)}
+                disabled={locationsLoading}
+              >
+                <option value="">All Provinces</option>
+                {provinces.map((prov) => (
+                  <option key={prov} value={prov}>{prov}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* District */}
+            <div className="md:col-span-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400 mb-4">
+                <Home size={12} /> District
               </label>
               <select
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium"
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
+                disabled={!selectedProvince || locationsLoading}
               >
-                <option value="">All Locations</option>
+                <option value="">
+                  {!selectedProvince ? "Select Province first" : "All Districts"}
+                </option>
                 {districts.map((d) => (
                   <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Property Type */}
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
-                <Home size={12} /> Property Type
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium capitalize"
-                value={roomType}
-                onChange={(e) => setRoomType(e.target.value)}
-              >
-                <option value="">Any Type</option>
-                {roomTypes.map((type) => (
-                  <option key={type} value={type}>{type.replace("_", " ")}</option>
                 ))}
               </select>
             </div>
@@ -205,12 +304,104 @@ const Explore = () => {
             </div>
 
             {/* Button */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <button
                 type="submit"
                 className="w-full bg-[#19545c] text-white px-4 py-3 rounded-xl font-semibold text-xs  hover:bg-[#153d44] transition shadow-xl shadow-[#19545c]/10 active:scale-[0.98]"
               >
-                Apply Filters
+                Apply
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Secondary Row - City Search */}
+        <div className="w-full bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100">
+          <form className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <div className="md:col-span-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
+                <MapPin size={12} /> Property Type
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium capitalize"
+                value={roomType}
+                onChange={(e) => setRoomType(e.target.value)}
+              >
+                <option value="">Any Type</option>
+                {roomTypes.map((type) => (
+                  <option key={type} value={type}>{type.replace("_", " ")}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="md:col-span-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
+                <MapPin size={12} /> City/Municipality
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={citySearchInput}
+                  onChange={(e) => {
+                    setCitySearchInput(e.target.value);
+                    setShowCitySuggestions(true);
+                  }}
+                  onFocus={() => district && setShowCitySuggestions(true)}
+                  disabled={!district || locationsLoading}
+                  placeholder={!district ? "Select District first" : "Type city name..."}
+                  className={`w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium ${
+                    !district ? "cursor-not-allowed" : ""
+                  }`}
+                />
+
+                {citySearchInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCitySearchInput("");
+                      setCitySuggestions([]);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+
+                {/* City Suggestions Panel */}
+                {showCitySuggestions && district && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto">
+                    {citySuggestions.length > 0 ? (
+                      citySuggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleCitySelect(suggestion)}
+                          className="w-full text-left px-4 py-2.5 hover:bg-[#19545c]/5 border-b border-gray-100 last:border-b-0 text-sm font-medium text-gray-700 hover:text-[#19545c] transition flex items-center gap-2"
+                        >
+                          <MapPin size={14} className="text-gray-400" />
+                          {suggestion}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-center">
+                        <p className="text-sm text-gray-500">
+                          {citySearchInput ? "No matching cities found" : "Start typing to see cities"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Apply Button for City */}
+            <div className="md:col-span-1">
+              <button
+                type="button"
+                onClick={handleFilterSubmit}
+                className="w-full bg-[#19545c] text-white px-4 py-3 rounded-xl font-semibold text-xs  hover:bg-[#153d44] transition shadow-xl shadow-[#19545c]/10 active:scale-[0.98]"
+              >
+                Filter
               </button>
             </div>
           </form>
