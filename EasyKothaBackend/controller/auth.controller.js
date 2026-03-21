@@ -88,13 +88,16 @@ export const login = async (req, res) => {
   }
 
   try {
+    // Normalize email input for consistency
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await prisma.user.findUnique({ 
-      where: { email },
+      where: { email: normalizedEmail },
       include: { savedPosts: true }
     });
     if (!user) return res.status(401).json({ message: "Invalid credentials." });
 
-    // Some social-login users may not have a local password hash.
+    // Guard against missing or malformed password (social-login accounts)
     if (!user.password || typeof user.password !== "string") {
       return res.status(401).json({ message: "Invalid credentials." });
     }
