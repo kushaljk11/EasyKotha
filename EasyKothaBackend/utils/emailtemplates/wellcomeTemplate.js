@@ -1,4 +1,4 @@
-export const welcomeTemplate = ({ name = "User", loginUrl = "http://localhost:5173/login" } = {}) => `
+export const welcomeTemplate = ({ name = "User", loginUrl = "https://easykotha.onrender.com/login" } = {}) => `
 <!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif">

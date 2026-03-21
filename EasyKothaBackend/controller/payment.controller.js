@@ -372,7 +372,7 @@ export const initiatePayment = async (req, res) => {
         url: getEnvUrl("KHALTI_PAYMENT_URL"),
         data: {
           return_url: getEnvUrl("SUCCESS_URL"),
-          website_url: getEnvUrl("WEBSITE_URL") || "http://localhost:5173",
+          website_url: getEnvUrl("WEBSITE_URL") || "https://easykotha.onrender.com",
           amount: Math.round(numericAmount * 100),
           purchase_order_id: productId,
           purchase_order_name: productName || "Booking Payment",

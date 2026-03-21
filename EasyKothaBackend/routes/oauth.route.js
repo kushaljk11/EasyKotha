@@ -3,6 +3,8 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 
 const Oauthrouter = Router();
+const FRONTEND_URL =
+  (process.env.FRONTEND_URL || "https://easykotha.onrender.com").replace(/\/$/, "");
 
 // ---------------- GOOGLE ----------------
 Oauthrouter.get(
@@ -19,7 +21,7 @@ Oauthrouter.get(
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+    res.redirect(`${FRONTEND_URL}/login?token=${token}`);
   }
 );
 
@@ -38,7 +40,7 @@ Oauthrouter.get(
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+    res.redirect(`${FRONTEND_URL}/login?token=${token}`);
   }
 );
 

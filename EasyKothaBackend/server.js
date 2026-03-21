@@ -89,6 +89,10 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use('/api', authRoutes);
 app.use('/api', emailrouter);
 app.use('/api', postrouter);
@@ -144,6 +148,7 @@ const startServer = async () => {
     await testDatabaseConnection();
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
     });
   } catch (error) {
     console.error('Database connection failed:', error.message);
