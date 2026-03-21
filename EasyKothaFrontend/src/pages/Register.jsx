@@ -6,6 +6,9 @@ import toast from "react-hot-toast";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { User, Mail, Lock, Phone, UserCircle } from "lucide-react";
 
+const API_ORIGIN =
+  import.meta.env.VITE_API_ORIGIN || "https://easykotha.onrender.com";
+
 export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,11 +46,11 @@ export default function Register() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/api/oauth/google";
+    window.location.href = `${API_ORIGIN}/api/oauth/google`;
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:5000/api/oauth/facebook";
+    window.location.href = `${API_ORIGIN}/api/oauth/facebook`;
   };
 
   return (

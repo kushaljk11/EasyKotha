@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 
-const API_URL = "http://localhost:5000/api/chat";
+const API_URL =
+  `${import.meta.env.VITE_API_BASE_URL || "https://easykotha.onrender.com/api"}/chat`;
 const SESSION_ID = crypto.randomUUID();
 
 const getGeminiResponse = async (message) => {

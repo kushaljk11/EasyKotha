@@ -1,5 +1,8 @@
 import { createContext, useState, useEffect } from "react";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://easykotha.onrender.com/api";
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
 
@@ -20,7 +23,7 @@ export default function AuthProvider({ children }) {
   const fetchMe = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/me", {
+      const res = await fetch(`${API_BASE_URL}/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -35,7 +38,7 @@ export default function AuthProvider({ children }) {
   };
 
   const login = async (email, password) => {
-    const res = await fetch("http://localhost:5000/api/login", {
+    const res = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -50,7 +53,7 @@ export default function AuthProvider({ children }) {
   };
 
   const registerUser = async (name, email, password, role) => {
-    const res = await fetch("http://localhost:5000/api/register", {
+    const res = await fetch(`${API_BASE_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, role }),

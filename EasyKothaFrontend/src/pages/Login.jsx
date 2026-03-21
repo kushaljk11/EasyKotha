@@ -5,6 +5,9 @@ import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { Mail, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 
+const API_ORIGIN =
+  import.meta.env.VITE_API_ORIGIN || "https://easykotha.onrender.com";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,11 +44,11 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/api/oauth/google";
+    window.location.href = `${API_ORIGIN}/api/oauth/google`;
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:5000/api/oauth/facebook";
+    window.location.href = `${API_ORIGIN}/api/oauth/facebook`;
   }
 
   return (
