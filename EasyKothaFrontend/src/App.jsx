@@ -40,6 +40,7 @@ import TenantBooking from "./tenants/Booking";
 import TenantFavourate from "./tenants/Favourate";
 import TenantMessage from "./tenants/Message";
 import TenantProfile from "./tenants/Profile";
+import NotFound from "./pages/NotFound";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -341,6 +342,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Chatbot/>
       </BrowserRouter>
