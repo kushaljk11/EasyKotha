@@ -53,7 +53,7 @@ function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, to }) {
   return (
     <Link
       to={to}
-      className="FeaturedListingCard w-72 border border-green-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200"
+      className="FeaturedListingCard w-full max-w-sm border border-green-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 mx-auto"
     >
       <img className="h-48 w-full object-cover" src={imageSrc} alt={title} />
       <div className="p-4">
@@ -412,11 +412,11 @@ export default function Landing() {
       </div>
 
       {/* why easykotha section */}
-      <div className="WhyEasyKothaSection flex flex-col items-center mt-16 gap-6">
-        <h2 className="text-4xl font-semibold">
+      <div className="WhyEasyKothaSection flex flex-col items-center mt-16 gap-6 px-4">
+        <h2 className="text-3xl md:text-4xl font-semibold text-center">
           Why <span className="text-green-800 font-bold">EasyKotha</span>?
         </h2>
-        <div className="WhyEasyKothaGrid grid grid-cols-4 gap-8">
+        <div className="WhyEasyKothaGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
           <WhyEasyKothaCard
             icon={FaUserFriends({ size: 48 })}
             title="No Middle Man"
@@ -441,11 +441,11 @@ export default function Landing() {
       </div>
 
       {/* Location */}
-      <div className="LocationsSection flex flex-col items-center mt-20 bg-gray-100 gap-8 p-10">
-        <h2 className="text-3xl font-bold">
+      <div className="LocationsSection flex flex-col items-center mt-20 bg-gray-100 gap-8 px-4 py-10 md:p-10">
+        <h2 className="text-2xl md:text-3xl font-bold text-center">
           <span className="text-green-800 font-bold">Explore </span>by Location
         </h2>
-        <div className="LocationsGrid grid grid-cols-6 gap-8">
+        <div className="LocationsGrid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 md:gap-8">
           <LocationCard
             imageSrc="https://imgs.search.brave.com/GAIYvtELr_GBXvpe7yW6Cz4yl7g-lidMwk8wj79C1-4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/ZWFydGh0cmVra2Vy/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTYvMDIvS2F0/aG1hbmR1LWZyb20t/SGlnaC5qcGcub3B0/aW1hbC5qcGc"
             locationName="Kathmandu"
@@ -475,11 +475,11 @@ export default function Landing() {
 
       {/* Featured listing post */}
 
-      <div className="FeaturedListingsSection flex flex-col items-center mt-20 gap-8 mb-16">
-        <h2 className="text-3xl font-bold">
+      <div className="FeaturedListingsSection flex flex-col items-center mt-20 gap-8 mb-16 px-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-center">
           <span className="text-green-800 font-bold">Featured </span>Listings
         </h2>
-        <div className="FeaturedListingsGrid grid grid-cols-4 gap-8">
+        <div className="FeaturedListingsGrid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8 w-full max-w-7xl">
           <FeaturedListingCard
             imageSrc="https://imgs.search.brave.com/54S1fefN_7he89-JO8FAEd0jRlR0GLFKCfjb2CGEZSY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/bW9zLmNtcy5mdXR1/cmVjZG4ubmV0LzRG/amhZTkQyZHQzQWdC/WHR3c040RzkuanBn"
             title="Cozy Furnished Room"
@@ -508,11 +508,11 @@ export default function Landing() {
       </div>
 
       {/* how easykotha works */}
-      <div className="HowEasyKothaWorksSection flex flex-col items-center mt-20 mb-16 gap-18 bg-gray-50 p-10">
-        <h2 className="text-4xl font-semibold">
+      <div className="HowEasyKothaWorksSection flex flex-col items-center mt-20 mb-16 gap-8 bg-gray-50 px-4 py-10 md:p-10">
+        <h2 className="text-3xl md:text-4xl font-semibold text-center">
           How <span className="text-green-800 font-bold">EasyKotha</span> Works
         </h2>
-        <div className="HowEasyKothaWorksGrid grid grid-cols-4 gap-8">
+        <div className="HowEasyKothaWorksGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full max-w-6xl">
           <HowEasyKothaWorksCard
             number={1}
             title="Search Rooms"
@@ -541,11 +541,11 @@ export default function Landing() {
       </div>
 
       {/* Room by budget */}
-      <div className="RoomByBudgetSection flex flex-col items-center mt-20 mb-16 gap-8">
-        <h2 className="text-3xl font-bold">
+      <div className="RoomByBudgetSection flex flex-col items-center mt-20 mb-16 gap-8 px-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-center">
           <span className="text-green-800 font-bold">Rooms </span>by Budget
         </h2>
-        <div className="RoomByBudgetGrid grid grid-cols-3 gap-8">
+        <div className="RoomByBudgetGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl">
           <RoomByBudgetCard
             budgetRange="Under Rs. 10,000"
             description="Affordable rooms for budget-conscious renters."
@@ -565,8 +565,8 @@ export default function Landing() {
       </div>
 
       {/* looking for a room section */}
-      <div className="LookingForARoomSection flex justify-between gap-3 items-center text-white p-10 mb-10 rounded-lg mx-24">
-        <div className="bg-green-400 p-10 rounded-lg flex-1 flex flex-col items-center">
+      <div className="LookingForARoomSection flex flex-col lg:flex-row justify-between gap-4 items-stretch text-white p-4 sm:p-6 md:p-10 mb-10 rounded-lg mx-4 sm:mx-8 lg:mx-24">
+        <div className="bg-green-400 p-6 md:p-10 rounded-lg flex-1 flex flex-col items-center">
           <h1 className="text-2xl font-semibold text-center mt-3">
             Looking for a Room?
           </h1>
@@ -579,7 +579,7 @@ export default function Landing() {
           </button>
         </div>
 
-        <div className="bg-blue-400 p-10 rounded-lg flex-1 flex flex-col items-center">
+        <div className="bg-blue-400 p-6 md:p-10 rounded-lg flex-1 flex flex-col items-center">
           <h1 className="text-2xl font-semibold text-center mt-3">
             Have a Room to Rent?
           </h1>
@@ -706,12 +706,12 @@ export default function Landing() {
       </div>
 
       {/* browse listings section */}
-      <div className="bg-gray-300 p-8 flex flex-col items-center gap-2">
-        <h1 className="text-4xl text-green-800 font-bold text-center">
+      <div className="bg-gray-300 px-4 py-8 md:p-8 flex flex-col items-center gap-2">
+        <h1 className="text-2xl md:text-4xl text-green-800 font-bold text-center">
           Ready to find the Perfect Rent?
         </h1>
 
-        <p className="text-lg font-normal text-green-800 text-center">
+        <p className="text-base md:text-lg font-normal text-green-800 text-center">
           Explore our listings and find your ideal rentals today.
         </p>
 
