@@ -396,25 +396,31 @@ export default function Landing() {
       </div>
 
       {/* Popular searches (bridges hero and next section) */}
-      <div className="PopularCategories w-11/12 md:w-8/12 max-w-5xl mx-auto bg-white text-black p-3 shadow-2xl flex items-center gap-4 border border-gray-200 mt-6 md:-mt-7 relative z-10 ">
-        <h2 className="text-lg md:text-xl font-bold mr-2 text-green-800">
-          Popular
-        </h2>
-        <div className="flex flex-wrap items-center gap-3 md:gap-6 text-xs md:text-sm font-semibold">
-          <button className="hover:underline">Furnished Room</button>
-          <button className="hover:underline">Shared Room</button>
-          <button className="hover:underline">Single Room</button>
-          <button className="hover:underline">Studio Apartment</button>
-          <button className="hover:underline">Pet-Friendly</button>
-          <button className="hover:underline">Near Public Transport</button>
-          <button className="hover:underline">Budget Rooms</button>
+      <div className="PopularCategories w-[94%] sm:w-[92%] md:w-[95%] max-w-6xl mx-auto bg-gray-100 text-black px-3 py-2.5 sm:px-4 sm:py-3 md:px-6 md:py-5 shadow-2xl border border-gray-200 -mt-14 md:-mt-10 relative z-20">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-5">
+          <h2 className="text-center md:text-left text-base sm:text-lg md:text-2xl font-semibold text-red-600 leading-tight whitespace-nowrap">
+            Popular Searches
+          </h2>
+          <div className="flex flex-wrap md:flex-nowrap items-center cursor-pointer justify-center md:justify-start gap-0 text-xs sm:text-sm md:text-[20px] font-medium text-gray-800 whitespace-nowrap">
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Furnished Room</button>
+            <span className="text-gray-400">|</span>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Shared Room</button>
+            <span className="text-gray-400">|</span>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Single Room</button>
+            <span className="text-gray-400">|</span>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Pet-Friendly</button>
+            <span className="text-gray-400">|</span>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Budget Rooms</button>
+            <span className="text-gray-400">|</span>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Nearby Locations</button>
+          </div>
         </div>
       </div>
 
       {/* why easykotha section */}
       <div className="WhyEasyKothaSection flex flex-col items-center mt-16 gap-6 px-4">
         <h2 className="text-3xl md:text-4xl font-semibold text-center">
-          Why <span className="text-green-800 font-bold">EasyKotha</span>?
+          Why <span className="text-green-800 font-semibold">EasyKotha</span>?
         </h2>
         <div className="WhyEasyKothaGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
           <WhyEasyKothaCard
@@ -442,8 +448,8 @@ export default function Landing() {
 
       {/* Location */}
       <div className="LocationsSection flex flex-col items-center mt-20 bg-gray-100 gap-8 px-4 py-10 md:p-10">
-        <h2 className="text-2xl md:text-3xl font-bold text-center">
-          <span className="text-green-800 font-bold">Explore </span>by Location
+        <h2 className="text-3xl md:text-3xl font-semibold text-center">
+          <span className="text-green-800 font-semibold">Explore </span>by Location
         </h2>
         <div className="LocationsGrid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 md:gap-8">
           <LocationCard
@@ -476,8 +482,8 @@ export default function Landing() {
       {/* Featured listing post */}
 
       <div className="FeaturedListingsSection flex flex-col items-center mt-20 gap-8 mb-16 px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center">
-          <span className="text-green-800 font-bold">Featured </span>Listings
+        <h2 className="text-3xl md:text-3xl font-semibold text-center">
+          <span className="text-green-800 font-semibold">Featured </span>Listings
         </h2>
         <div className="FeaturedListingsGrid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8 w-full max-w-7xl">
           <FeaturedListingCard
@@ -510,7 +516,7 @@ export default function Landing() {
       {/* how easykotha works */}
       <div className="HowEasyKothaWorksSection flex flex-col items-center mt-20 mb-16 gap-8 bg-gray-50 px-4 py-10 md:p-10">
         <h2 className="text-3xl md:text-4xl font-semibold text-center">
-          How <span className="text-green-800 font-bold">EasyKotha</span> Works
+          How <span className="text-green-800 font-semibold">EasyKotha</span> Works
         </h2>
         <div className="HowEasyKothaWorksGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full max-w-6xl">
           <HowEasyKothaWorksCard
@@ -542,8 +548,8 @@ export default function Landing() {
 
       {/* Room by budget */}
       <div className="RoomByBudgetSection flex flex-col items-center mt-20 mb-16 gap-8 px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center">
-          <span className="text-green-800 font-bold">Rooms </span>by Budget
+        <h2 className="text-3xl md:text-3xl font-semibold text-center">
+          <span className="text-green-800 font-semibold">Rooms </span>by Budget
         </h2>
         <div className="RoomByBudgetGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl">
           <RoomByBudgetCard
