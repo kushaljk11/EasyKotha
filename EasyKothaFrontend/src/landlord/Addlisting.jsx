@@ -25,9 +25,23 @@ const defaultForm = {
 export default function AddListing() {
   const [form, setForm] = useState(defaultForm);
   const [submitting, setSubmitting] = useState(false);
+  const [submitSeconds, setSubmitSeconds] = useState(0);
   const [feedback, setFeedback] = useState({ type: "", text: "" });
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+
+  useEffect(() => {
+    if (!submitting) {
+      setSubmitSeconds(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setSubmitSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [submitting]);
 
   useEffect(() => {
     const loadSuggestions = async () => {
@@ -62,6 +76,7 @@ export default function AddListing() {
     }
 
     setSubmitting(true);
+    const loadingToastId = toast.loading("Submitting listing... Please wait.");
 
     try {
       const images = form.imageUrls
@@ -83,19 +98,28 @@ export default function AddListing() {
         images,
       };
 
-      await axiosInstance.post("/createpost", payload);
+      await axiosInstance.post("/createpost", payload, {
+        timeout: 180000,
+      });
       setFeedback({ type: "success", text: "Listing submitted successfully and is now pending approval." });
       setForm(defaultForm);
-
-      // User requested refresh after successful submission.
-      setTimeout(() => {
-        window.location.reload();
-      }, 900);
+      setShowCitySuggestions(false);
+      toast.dismiss(loadingToastId);
+      toast.success("Post submitted successfully.");
     } catch (error) {
+      toast.dismiss(loadingToastId);
+      const isPayloadTooLarge = error?.response?.status === 413;
       setFeedback({
         type: "error",
-        text: error.response?.data?.message || "Failed to create listing. Please check your input.",
+        text: isPayloadTooLarge
+          ? "Upload is too large. Please use fewer/smaller images and try again."
+          : error.response?.data?.message || "Failed to create listing. Please check your input.",
       });
+      toast.error(
+        isPayloadTooLarge
+          ? "Images are too large for upload."
+          : "Failed to submit listing.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -170,11 +194,26 @@ export default function AddListing() {
 
   return (
     <LandlordLayout searchPlaceholder="Search listing templates...">
+      {submitting && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-green-200 border-t-green-800" />
+            <h3 className="text-lg font-semibold text-gray-900">Submitting your listing...</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Please do not refresh or close this page while upload is in progress.
+            </p>
+            <p className="mt-2 text-xs font-medium text-green-800">
+              Time elapsed: {submitSeconds}s
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-1">
         <h2 className="flex items-center gap-2 text-2xl font-bold text-green-800">
           Create New Listing
         </h2>
-        <p className="mt-1 text-slate-600">This form submits directly to your backend endpoint `/createpost`.</p>
+        <p className="mt-1 text-slate-600">Submit your listing details below.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -377,8 +416,11 @@ export default function AddListing() {
             <div className="flex justify-end">
               <button
                 disabled={submitting}
-                className="rounded-lg bg-green-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#154e54] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg bg-green-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#154e54] disabled:opacity-60"
               >
+                {submitting && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                )}
                 {submitting ? "Submitting..." : "Submit Listing"}
               </button>
             </div>
