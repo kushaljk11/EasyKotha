@@ -271,6 +271,58 @@ export async function getMunicipalitySuggestions(districtName, searchKeyword = '
 }
 
 /**
+ * Get all municipalities across Nepal (deduplicated)
+ * @returns {Promise<Array<string>>} Array of municipality names
+ */
+export async function getAllMunicipalities() {
+  try {
+    const data = await loadLocationData();
+
+    if (!data?.municipalities || typeof data.municipalities !== 'object') {
+      return [];
+    }
+
+    const allMunicipalities = Object.values(data.municipalities)
+      .flatMap((districtMunicipalities) =>
+        Array.isArray(districtMunicipalities) ? districtMunicipalities : [],
+      )
+      .map((name) => (typeof name === 'string' ? name.trim() : ''))
+      .filter(Boolean);
+
+    const uniqueMunicipalities = [...new Set(allMunicipalities)];
+    uniqueMunicipalities.sort((a, b) => a.localeCompare(b));
+    return uniqueMunicipalities;
+  } catch (error) {
+    console.error('Error getting all municipalities:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Get municipality suggestions across Nepal
+ * @param {string} searchKeyword - Search keyword (case-insensitive)
+ * @param {number} limit - Maximum number of results
+ * @returns {Promise<Array<string>>} Filtered municipalities
+ */
+export async function getCitySuggestions(searchKeyword = '', limit = 10) {
+  try {
+    const municipalities = await getAllMunicipalities();
+    const keyword = String(searchKeyword || '').trim().toLowerCase();
+
+    if (!keyword) {
+      return municipalities.slice(0, limit);
+    }
+
+    return municipalities
+      .filter((name) => name.toLowerCase().includes(keyword))
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error getting city suggestions:', error.message);
+    return [];
+  }
+}
+
+/**
  * Validate if a province exists
  * @param {string} provinceName - The province name to validate
  * @returns {Promise<boolean>} True if province exists, false otherwise
@@ -343,6 +395,8 @@ export default {
   getDistrictsByProvince,
   getMunicipalitiesByDistrict,
   getMunicipalitySuggestions,
+  getAllMunicipalities,
+  getCitySuggestions,
   isValidProvince,
   isValidDistrict,
   isValidMunicipality,

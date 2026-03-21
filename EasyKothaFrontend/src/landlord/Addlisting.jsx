@@ -4,6 +4,7 @@ import { FaFileAlt, FaImage, FaMapMarkerAlt, FaPlus, FaTag, FaTrash } from "reac
 import { ChevronDown, X } from "lucide-react";
 import toast from "react-hot-toast";
 import LandlordLayout from "./LandlordLayout";
+import { getCitySuggestions } from "../utils/locationUtils";
 
 const allowedImageExtensions = ["jpg", "jpeg", "png", "webp", "svg"];
 
@@ -25,10 +26,27 @@ export default function AddListing() {
   const [form, setForm] = useState(defaultForm);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", text: "" });
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      const suggestions = await getCitySuggestions(form.city, 12);
+      setCitySuggestions(suggestions);
+    };
+
+    const debounceTimer = setTimeout(loadSuggestions, 180);
+    return () => clearTimeout(debounceTimer);
+  }, [form.city]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCitySelect = (cityName) => {
+    setForm((prev) => ({ ...prev, city: cityName }));
+    setShowCitySuggestions(false);
   };
 
   const handleSubmit = async (event) => {
@@ -229,14 +247,39 @@ export default function AddListing() {
               </Field>
 
               <Field label="City / Municipality" required>
-                <input
-                  type="text"
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                  placeholder="Enter city / municipality"
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    onFocus={() => setShowCitySuggestions(true)}
+                    onBlur={() => {
+                      setTimeout(() => setShowCitySuggestions(false), 120);
+                    }}
+                    placeholder="Type a Nepali city/municipality"
+                    className={inputClass}
+                    autoComplete="off"
+                  />
+
+                  {showCitySuggestions && citySuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 z-20 mt-1 max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                      {citySuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            handleCitySelect(suggestion);
+                          }}
+                          className="w-full border-b border-gray-100 px-3 py-2 text-left text-sm text-gray-700 hover:bg-green-50 last:border-b-0"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </Field>
 
               <Field label="Address" required>
