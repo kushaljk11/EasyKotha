@@ -32,11 +32,14 @@ export const createPost = async (req, res) => {
       images,
     } = req.body;
 
+    const normalizedCity = String(city || "").trim();
+    const normalizedDistrict = String(district || normalizedCity || "N/A").trim();
+
     // Basic validation
-    if (!title || !price || !city || !district) {
+    if (!title || !price || !normalizedCity) {
       return res.status(400).json({
         success: false,
-        message: "Title, price, city and district are required",
+        message: "Title, price and city are required",
       });
     }
 
@@ -50,8 +53,8 @@ export const createPost = async (req, res) => {
         tenantType,
         genderPreference,
         price: Number(price),
-        district,
-        city,
+        district: normalizedDistrict,
+        city: normalizedCity,
         address,
         images,
         authorId: Number(req.user.id),
