@@ -7,6 +7,9 @@ import LandlordLayout from "./LandlordLayout";
 import { getCitySuggestions } from "../utils/locationUtils";
 
 const allowedImageExtensions = ["jpg", "jpeg", "png", "webp", "svg"];
+const MAX_DEVICE_IMAGES = 6;
+const MAX_IMAGE_SIDE = 1280;
+const COMPRESS_QUALITY = 0.78;
 
 const defaultForm = {
   title: "",
@@ -24,6 +27,7 @@ const defaultForm = {
 
 export default function AddListing() {
   const [form, setForm] = useState(defaultForm);
+  const [uploadedImages, setUploadedImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitSeconds, setSubmitSeconds] = useState(0);
   const [feedback, setFeedback] = useState({ type: "", text: "" });
@@ -79,9 +83,22 @@ export default function AddListing() {
     const loadingToastId = toast.loading("Submitting listing... Please wait.");
 
     try {
-      const images = form.imageUrls
+      const manualImages = form.imageUrls
         .map((item) => item.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((item) => !item.startsWith("data:image/"));
+
+      const images = [...uploadedImages, ...manualImages].filter(Boolean);
+
+      if (!images.length) {
+        setFeedback({
+          type: "error",
+          text: "Please add at least one image (upload or URL).",
+        });
+        setSubmitting(false);
+        toast.dismiss(loadingToastId);
+        return;
+      }
 
       const payload = {
         title: form.title,
@@ -103,6 +120,7 @@ export default function AddListing() {
       });
       setFeedback({ type: "success", text: "Listing submitted successfully and is now pending approval." });
       setForm(defaultForm);
+      setUploadedImages([]);
       setShowCitySuggestions(false);
       toast.dismiss(loadingToastId);
       toast.success("Post submitted successfully.");
@@ -141,6 +159,12 @@ export default function AddListing() {
     const selectedFiles = Array.from(event.target.files || []);
     if (!selectedFiles.length) return;
 
+    if (uploadedImages.length >= MAX_DEVICE_IMAGES) {
+      toast.error(`You can upload up to ${MAX_DEVICE_IMAGES} device images only.`);
+      event.target.value = "";
+      return;
+    }
+
     const validFiles = [];
 
     selectedFiles.forEach((file) => {
@@ -157,29 +181,32 @@ export default function AddListing() {
       return;
     }
 
+    const availableSlots = MAX_DEVICE_IMAGES - uploadedImages.length;
+    const filesToProcess = validFiles.slice(0, availableSlots);
+
+    if (validFiles.length > availableSlots) {
+      toast.error(`Only ${availableSlots} more image(s) allowed.`);
+    }
+
     try {
       const imageDataUrls = await Promise.all(
-        validFiles.map(
+        filesToProcess.map(
           (file) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(String(reader.result || ""));
-              reader.onerror = () => reject(new Error("Failed to read image file"));
-              reader.readAsDataURL(file);
-            }),
+            compressImageToDataUrl(file),
         ),
       );
 
-      setForm((prev) => ({
-        ...prev,
-        imageUrls: [...prev.imageUrls, ...imageDataUrls].filter(Boolean),
-      }));
+      setUploadedImages((prev) => [...prev, ...imageDataUrls].filter(Boolean));
     } catch (error) {
       console.error("Failed to process device images:", error);
       toast.error("Failed to process selected images");
     } finally {
       event.target.value = "";
     }
+  };
+
+  const removeUploadedImage = (index) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeImageUrlField = (index) => {
@@ -356,7 +383,27 @@ export default function AddListing() {
                   <p className="mt-2 text-xs text-slate-600">
                     Supported: jpg, jpeg, png, webp, svg.
                   </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Up to {MAX_DEVICE_IMAGES} uploaded images. Images are auto-compressed for faster submit.
+                  </p>
                 </div>
+
+                {uploadedImages.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {uploadedImages.map((img, index) => (
+                      <div key={`upload-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                        <img src={img} alt={`Uploaded ${index + 1}`} className="h-28 w-full rounded object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeUploadedImage(index)}
+                          className="mt-2 inline-flex items-center gap-1 rounded-md border border-rose-200 px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                        >
+                          <FaTrash /> Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {form.imageUrls.map((url, index) => (
                   <div key={index} className="space-y-2">
@@ -427,6 +474,41 @@ export default function AddListing() {
       </form>
     </LandlordLayout>
   );
+}
+
+async function compressImageToDataUrl(file) {
+  const originalDataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Failed to read image file"));
+    reader.readAsDataURL(file);
+  });
+
+  const imageElement = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Failed to load image for compression"));
+    img.src = originalDataUrl;
+  });
+
+  const width = imageElement.width;
+  const height = imageElement.height;
+  const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(width, height));
+  const targetWidth = Math.max(1, Math.round(width * scale));
+  const targetHeight = Math.max(1, Math.round(height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return originalDataUrl;
+  }
+
+  context.drawImage(imageElement, 0, 0, targetWidth, targetHeight);
+  const compressedDataUrl = canvas.toDataURL("image/webp", COMPRESS_QUALITY);
+  return compressedDataUrl || originalDataUrl;
 }
 
 function Field({ label, required, children, icon: Icon }) {
