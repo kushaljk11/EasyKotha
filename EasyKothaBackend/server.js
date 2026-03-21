@@ -15,6 +15,23 @@ import { app, server } from './lib/socket.js';
 import { testDatabaseConnection } from './lib/prisma.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+dotenv.config();
+
+const normalizeOrigin = (value) => value?.replace(/\/$/, "").trim();
+
+const configuredOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => normalizeOrigin(origin))
+  .filter(Boolean);
+
+const allowedOrigins = [
+  normalizeOrigin(process.env.FRONTEND_URL || ""),
+  normalizeOrigin(process.env.CLIENT_URL || ""),
+  ...configuredOrigins,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+].filter(Boolean);
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const sessions = new Map();
 
@@ -54,19 +71,12 @@ Guidelines:
 Keep responses short and helpful.
 `;
 
-dotenv.config();
-
 // const app = express();
-
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  process.env.CLIENT_URL,
-  "http://localhost:5173",
-].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const normalizedOrigin = normalizeOrigin(origin || "");
+    if (!origin || allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
       return;
     }
@@ -127,12 +137,14 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 const startServer = async () => {
   try {
     await testDatabaseConnection();
-    server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   } catch (error) {
     console.error('Database connection failed:', error.message);
     process.exit(1);
