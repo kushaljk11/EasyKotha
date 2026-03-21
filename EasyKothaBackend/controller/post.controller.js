@@ -5,7 +5,7 @@ import {
   postPendingTemplate,
   postApprovedTemplate,
   postRejectedTemplate,
-} from "../utils/emailTemplates/postTemplates.js";
+} from "../utils/emailtemplates/postTemplates.js";
 
 const emitNotification = (userId, payload) => {
   const receiverSocketId = getReceiverSocketId(userId);

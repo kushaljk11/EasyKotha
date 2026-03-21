@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import cloudinary from "../config/cloudinary.js";
 import { sendEmail } from "../utils/email.js";
-import { welcomeTemplate } from "../utils/emailTemplates/wellcomeTemplate.js";
+import { welcomeTemplate } from "../utils/emailtemplates/wellcomeTemplate.js";
 
 dotenv.config();
 
