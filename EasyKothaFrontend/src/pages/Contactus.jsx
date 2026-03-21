@@ -7,7 +7,7 @@ export default function Contactus() {
     <div className="min-h-screen overflow-x-hidden bg-slate-50">
       <Topbar />
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700">
+      <section className="relative overflow-hidden bg-linear-to-br from-green-900 via-green-800 to-emerald-700">
         <div className="mx-auto grid w-11/12 max-w-6xl gap-8 py-12 md:grid-cols-5 md:py-16">
           <div className="md:col-span-3">
             <p className="inline-flex w-fit rounded-full border border-white/30 bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
