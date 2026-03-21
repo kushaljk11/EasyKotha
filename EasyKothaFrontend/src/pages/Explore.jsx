@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../api/axios";
-import { Search as SearchIcon, MapPin, Home, Filter, Clock, Heart, Users, X } from "lucide-react";
+import { Search as SearchIcon, MapPin, Home, Filter, Clock, Heart, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TenantTopbar from "../tenants/TenantTopbar";
 import TenantSidebar from "../tenants/TenantSidebar";
@@ -11,7 +11,7 @@ import Footer from "../components/Footer";
 import {
   getProvinces,
   getDistrictsByProvince,
-  getMunicipalitySuggestions,
+  getMunicipalitiesByDistrict,
 } from "../utils/locationUtils";
 
 const Explore = () => {
@@ -23,20 +23,17 @@ const Explore = () => {
   const { authUser, toggleSavePost } = useAuthStore();
   
   // Filters state
-  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
   const [roomType, setRoomType] = useState("");
   const [sort, setSort] = useState("latest");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Location dynamic data
-  const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [citySuggestions, setCitySuggestions] = useState([]);
-  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  // City dropdown data
+  const [cities, setCities] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [citySearchInput, setCitySearchInput] = useState("");
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const cityInputRef = useRef(null);
 
   useEffect(() => {
     fetchRoomTypes();
@@ -44,19 +41,51 @@ const Explore = () => {
     
     // Parse URL params on mount
     const queryParams = new URLSearchParams(location.search);
-    
-    const dist = queryParams.get("district");
-    
-    if (dist) setDistrict(dist);
+
+    const cityParam = queryParams.get("city") || queryParams.get("district");
+
+    if (cityParam) setCity(cityParam);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load province and district data
+  useEffect(() => {
+    const closeCitySuggestions = (event) => {
+      if (cityInputRef.current && !cityInputRef.current.contains(event.target)) {
+        setShowCitySuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeCitySuggestions);
+    return () => {
+      document.removeEventListener("mousedown", closeCitySuggestions);
+    };
+  }, []);
+
+  // Load all available cities for dropdown
   const loadLocationData = async () => {
     try {
       setLocationsLoading(true);
-      const prov = await getProvinces();
-      setProvinces(prov);
+      const provinces = await getProvinces();
+      const districtChunks = await Promise.all(
+        provinces.map((province) => getDistrictsByProvince(province))
+      );
+
+      const districts = districtChunks.flat().filter(Boolean);
+      const municipalityChunks = await Promise.all(
+        districts.map((district) => getMunicipalitiesByDistrict(district))
+      );
+
+      const cityList = municipalityChunks
+        .flat()
+        .filter(Boolean)
+        .map((name) => name.trim())
+        .filter(Boolean);
+
+      const uniqueCities = [...new Set(cityList)].sort((a, b) =>
+        a.localeCompare(b)
+      );
+
+      setCities(uniqueCities);
     } catch (error) {
       console.error("Error loading location data:", error);
     } finally {
@@ -64,80 +93,12 @@ const Explore = () => {
     }
   };
 
-  // Load districts when province changes
-  useEffect(() => {
-    const loadDistricts = async () => {
-      if (!selectedProvince) {
-        setDistricts([]);
-        setDistrict("");
-        setCitySearchInput("");
-        setCitySuggestions([]);
-        return;
-      }
-
-      try {
-        const districtList = await getDistrictsByProvince(selectedProvince);
-        setDistricts(districtList);
-        setDistrict("");
-        setCitySearchInput("");
-        setCitySuggestions([]);
-      } catch (error) {
-        console.error("Error loading districts:", error);
-      }
-    };
-
-    loadDistricts();
-  }, [selectedProvince]);
-
-  // Load city suggestions when district changes
-  useEffect(() => {
-    const loadCitySuggestions = async () => {
-      if (!district) {
-        setCitySuggestions([]);
-        setCitySearchInput("");
-        return;
-      }
-
-      try {
-        const suggestions = await getMunicipalitySuggestions(district, "", 15);
-        setCitySuggestions(suggestions);
-      } catch (error) {
-        console.error("Error loading city suggestions:", error);
-      }
-    };
-
-    loadCitySuggestions();
-  }, [district]);
-
-  // Filter city suggestions when city search input changes
-  useEffect(() => {
-    const filterCities = async () => {
-      if (!district) {
-        return;
-      }
-
-      try {
-        const filtered = await getMunicipalitySuggestions(
-          district,
-          citySearchInput,
-          15
-        );
-        setCitySuggestions(filtered);
-      } catch (error) {
-        console.error("Error filtering city suggestions:", error);
-      }
-    };
-
-    const debounceTimer = setTimeout(filterCities, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [citySearchInput, district]);
-
   useEffect(() => {
     fetchPosts();
     // Scroll to top when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [district, roomType, sort, page, location.search]);
+  }, [city, roomType, sort, page, location.search]);
 
   const fetchRoomTypes = async () => {
     try {
@@ -163,7 +124,7 @@ const Explore = () => {
         limit: 10,
         status: "approved",
         ...(searchQuery && { search: searchQuery }),
-        ...(district && { district }),
+        ...(city && { city }),
         ...(roomType && { type: roomType }),
         ...(sort && { sort }),
         ...(minPrice && { minPrice }),
@@ -188,11 +149,12 @@ const Explore = () => {
     
     // Sync filters to URL
     const queryParams = new URLSearchParams(location.search);
-    if (district) {
-      queryParams.set("district", district);
+    if (city) {
+      queryParams.set("city", city);
     } else {
-      queryParams.delete("district");
+      queryParams.delete("city");
     }
+    queryParams.delete("district");
     
     if (roomType) {
       queryParams.set("type", roomType);
@@ -208,11 +170,13 @@ const Explore = () => {
     fetchPosts();
   };
 
-  const handleCitySelect = (city) => {
-    setCitySearchInput(city);
-    setDistrict(city); // For filtering, set the selected city as the district filter
-    setShowCitySuggestions(false);
-  };
+  const filteredCities = city.trim()
+    ? cities.filter((cityName) =>
+        cityName.toLowerCase().includes(city.toLowerCase().trim())
+      )
+    : cities;
+
+  const citySuggestions = filteredCities.slice(0, 12);
 
   const handleToggleSave = async (postId) => {
     if (!authUser) {
@@ -224,7 +188,16 @@ const Explore = () => {
   };
 
   const isSaved = (postId) => {
-    return authUser?.savedPosts?.includes(postId);
+    if (!Array.isArray(authUser?.savedPosts)) return false;
+
+    return authUser.savedPosts.some((savedPost) => {
+      const savedId =
+        typeof savedPost === "object"
+          ? savedPost?.id ?? savedPost?.postId ?? savedPost?._id
+          : savedPost;
+
+      return String(savedId) === String(postId);
+    });
   };
 
   return (
@@ -249,81 +222,50 @@ const Explore = () => {
               />
             </div>
 
-            {/* Province */}
-            <div className="md:col-span-2">
+            {/* City Search */}
+            <div ref={cityInputRef} className="md:col-span-3 relative">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-400 mb-4">
-                <MapPin size={12} /> Province
+                <MapPin size={12} /> City
               </label>
-              <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium"
-                value={selectedProvince}
-                onChange={(e) => setSelectedProvince(e.target.value)}
+              <input
+                type="text"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium"
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value);
+                  setShowCitySuggestions(true);
+                }}
+                onFocus={() => setShowCitySuggestions(true)}
+                placeholder="Search city (e.g. ita...)"
                 disabled={locationsLoading}
-              >
-                <option value="">All Provinces</option>
-                {provinces.map((prov) => (
-                  <option key={prov} value={prov}>{prov}</option>
-                ))}
-              </select>
+              />
+
+              {showCitySuggestions && !locationsLoading && citySuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-52 overflow-y-auto">
+                  {citySuggestions.map((cityName) => (
+                    <button
+                      key={cityName}
+                      type="button"
+                      onClick={() => {
+                        setCity(cityName);
+                        setShowCitySuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-green-800/5 border-b border-gray-100 last:border-b-0 text-sm font-medium text-gray-700 hover:text-green-800 transition"
+                    >
+                      {cityName}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* District */}
+            {/* Property Type */}
             <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400 mb-4">
-                <Home size={12} /> District
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                disabled={!selectedProvince || locationsLoading}
-              >
-                <option value="">
-                  {!selectedProvince ? "Select Province first" : "All Districts"}
-                </option>
-                {districts.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
-                <Filter size={12} /> Sort By
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-              >
-                <option value="latest">Newest First</option>
-                <option value="priceLowToHigh">Price: Low</option>
-                <option value="priceHighToLow">Price: High</option>
-              </select>
-            </div>
-
-            {/* Button */}
-            <div className="md:col-span-1">
-              <button
-                type="submit"
-                className="w-full bg-[#19545c] text-white px-4 py-3 rounded-xl font-semibold text-xs  hover:bg-[#153d44] transition shadow-xl shadow-[#19545c]/10 active:scale-[0.98]"
-              >
-                Apply
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Secondary Row - City Search */}
-        <div className="w-full bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100">
-          <form className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-            <div className="md:col-span-3">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
                 <MapPin size={12} /> Property Type
               </label>
               <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium capitalize"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium capitalize"
                 value={roomType}
                 onChange={(e) => setRoomType(e.target.value)}
               >
@@ -334,74 +276,29 @@ const Explore = () => {
               </select>
             </div>
 
-            <div className="md:col-span-3">
+            {/* Sort */}
+            <div className="md:col-span-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
-                <MapPin size={12} /> City/Municipality
+                <Filter size={12} /> Sort By
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={citySearchInput}
-                  onChange={(e) => {
-                    setCitySearchInput(e.target.value);
-                    setShowCitySuggestions(true);
-                  }}
-                  onFocus={() => district && setShowCitySuggestions(true)}
-                  disabled={!district || locationsLoading}
-                  placeholder={!district ? "Select District first" : "Type city name..."}
-                  className={`w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#19545c]/20 focus:bg-white focus:border-[#19545c] transition-all outline-none text-sm font-medium ${
-                    !district ? "cursor-not-allowed" : ""
-                  }`}
-                />
-
-                {citySearchInput && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCitySearchInput("");
-                      setCitySuggestions([]);
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-
-                {/* City Suggestions Panel */}
-                {showCitySuggestions && district && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto">
-                    {citySuggestions.length > 0 ? (
-                      citySuggestions.map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleCitySelect(suggestion)}
-                          className="w-full text-left px-4 py-2.5 hover:bg-[#19545c]/5 border-b border-gray-100 last:border-b-0 text-sm font-medium text-gray-700 hover:text-[#19545c] transition flex items-center gap-2"
-                        >
-                          <MapPin size={14} className="text-gray-400" />
-                          {suggestion}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-center">
-                        <p className="text-sm text-gray-500">
-                          {citySearchInput ? "No matching cities found" : "Start typing to see cities"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <select
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+              >
+                <option value="latest">Newest First</option>
+                <option value="priceLowToHigh">Price: Low</option>
+                <option value="priceHighToLow">Price: High</option>
+              </select>
             </div>
 
-            {/* Apply Button for City */}
-            <div className="md:col-span-1">
+            {/* Button */}
+            <div className="md:col-span-2">
               <button
-                type="button"
-                onClick={handleFilterSubmit}
-                className="w-full bg-[#19545c] text-white px-4 py-3 rounded-xl font-semibold text-xs  hover:bg-[#153d44] transition shadow-xl shadow-[#19545c]/10 active:scale-[0.98]"
+                type="submit"
+                className="w-full bg-green-800 text-white px-4 py-3 rounded-xl font-semibold text-xs hover:bg-green-900 transition shadow-xl shadow-green-800/10 active:scale-[0.98]"
               >
-                Filter
+                Apply
               </button>
             </div>
           </form>
@@ -410,7 +307,7 @@ const Explore = () => {
         {/* Listings Section */}
         <div className="w-full">
           <div className="mb-4 px-2">
-            <h2 className="text-3xl font-semibold text-[#19545c] tracking-tight">All Rooms</h2>
+            <h2 className="text-3xl font-semibold text-green-800 tracking-tight">All Rooms</h2>
             <p className="text-gray-500 text-sm mt-1 font-medium ">Found {posts.length} properties matching your criteria</p>
           </div>
 
@@ -426,16 +323,16 @@ const Explore = () => {
                 posts.map((post) => {
                   const postId = post?._id || post?.id || post?.postId;
                   return (
-                  <div key={postId || post.title} className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row border border-gray-100 group overflow-hidden md:h-65">
+                  <div key={postId || post.title} className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row border border-gray-100 group overflow-hidden">
                     {/* Image Container - Reduced height matching parent */}
-                    <div className="relative w-full md:w-90 h-56 md:h-full shrink-0 overflow-hidden">
+                    <div className="relative w-full md:w-72 lg:w-80 h-56 md:h-auto shrink-0 overflow-hidden">
                       <img
                         src={post.images?.[0] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                       />
                       <div className="absolute top-4 left-4 flex gap-2">
-                         <span className="bg-[#19545c] text-white text-[9px] font-semibold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
+                         <span className="bg-green-800 text-white text-[9px] font-semibold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
                           {post.type.replace("_", " ")}
                         </span>
                         <span className="bg-green-500 text-white text-[9px] font-semibold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
@@ -447,12 +344,12 @@ const Explore = () => {
                     {/* Content Container */}
                     <div className="flex-1 p-6 flex flex-col justify-between">
                       <div className="flex-1">
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                           <div className="flex-1 mr-8">
                             <div className="flex items-center gap-2 text-black font-semibold text-sm mb-2">
                               <MapPin size={12} /> {post.district}, {post.city}
                             </div>
-                            <h3 className="text-2xl font-semibold text-gray-900 line-clamp-1 group-hover:text-[#19545c] transition-colors">
+                            <h3 className="text-xl md:text-2xl font-semibold text-gray-900 line-clamp-1 group-hover:text-green-800 transition-colors">
                               {post.title}
                             </h3>
                           </div>
@@ -482,9 +379,9 @@ const Explore = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-50 mt-4">
                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#19545c]/10 border border-[#19545c]/20 flex items-center justify-center text-[#19545c] text-[10px] font-semibold shadow-inner">
+                            <div className="w-9 h-9 rounded-full bg-green-800/10 border border-green-800/20 flex items-center justify-center text-green-800 text-[10px] font-semibold shadow-inner">
                                {post.author?.name?.charAt(0) || "U"}
                             </div>
                             <div>
@@ -506,7 +403,7 @@ const Explore = () => {
                             {postId ? (
                               <Link 
                                   to={`/posts/${postId}`}
-                                  className="bg-[#19545c] hover:bg-[#15443f] text-white px-8 py-3 rounded-xl text-sm font-semibold  transition-all active:scale-[0.98]"
+                                  className="bg-green-800 hover:bg-green-900 text-white px-5 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
                                 >
                                   View Property
                                 </Link>
@@ -543,7 +440,7 @@ const Explore = () => {
                   onClick={() => setPage(i + 1)}
                   className={`w-10 h-10 rounded-xl font-semibold transition-all text-xs ${
                     page === i + 1
-                      ? "bg-[#19545c] text-white shadow-xl shadow-[#19545c]/20"
+                      ? "bg-green-800 text-white shadow-xl shadow-green-800/20"
                       : "bg-white text-gray-400 border border-gray-100 hover:bg-gray-50"
                   }`}
                 >

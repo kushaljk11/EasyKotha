@@ -102,7 +102,17 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post(`/auth/save-post/${postId}`);
       set({ authUser: res.data });
-      const isSaved = res.data.savedPosts?.includes(postId);
+
+      const isSaved = Array.isArray(res.data.savedPosts)
+        ? res.data.savedPosts.some((savedPost) => {
+            const savedId =
+              typeof savedPost === "object"
+                ? savedPost?.id ?? savedPost?.postId ?? savedPost?._id
+                : savedPost;
+            return String(savedId) === String(postId);
+          })
+        : false;
+
       toast.success(isSaved ? "Post saved to your list" : "Post removed from list");
     // eslint-disable-next-line no-unused-vars
     } catch (error) {

@@ -1,14 +1,58 @@
 /**
  * Nepal Location Utility Module
  * Provides dynamic access to Nepal's geographic data (provinces, districts, municipalities)
- * Uses @nepalutils/nepal-geodata for reliable location data
+ * Uses browser-safe JSON data from @nepalutils/nepal-geodata
  */
 
-import { getNepaliGeographicData } from '@nepalutils/nepal-geodata';
+import nepalLocationHierarchy from '@nepalutils/nepal-geodata/nepal_data/provinces_with_districts_and_municipalities.json';
 
 // Cache for loaded data to avoid multiple async loads
 let cachedLocationData = null;
 let loadingPromise = null;
+
+function normalizeLocationData(rawData) {
+  if (!rawData || typeof rawData !== 'object' || Array.isArray(rawData)) {
+    throw new Error('Invalid location data format: expected province hierarchy object');
+  }
+
+  const provinces = Object.keys(rawData).filter(Boolean);
+  const districts = {};
+  const municipalities = {};
+
+  for (const provinceName of provinces) {
+    const provinceDistricts = rawData[provinceName];
+
+    if (!provinceDistricts || typeof provinceDistricts !== 'object') {
+      districts[provinceName] = [];
+      continue;
+    }
+
+    const districtNames = Object.keys(provinceDistricts).filter(Boolean);
+    districts[provinceName] = districtNames;
+
+    for (const districtName of districtNames) {
+      const municipalityGroups = provinceDistricts[districtName];
+
+      if (!municipalityGroups || typeof municipalityGroups !== 'object') {
+        municipalities[districtName] = [];
+        continue;
+      }
+
+      // The source groups municipalities by local-government type (Ma.Na.Pa., Upa.Ma., etc.).
+      const districtMunicipalities = Object.values(municipalityGroups)
+        .flatMap(group => (Array.isArray(group) ? group : []))
+        .filter(name => typeof name === 'string' && name.trim().length > 0);
+
+      municipalities[districtName] = districtMunicipalities;
+    }
+  }
+
+  return {
+    provinces,
+    districts,
+    municipalities,
+  };
+}
 
 /**
  * Load Nepal location data asynchronously
@@ -29,7 +73,7 @@ async function loadLocationData() {
   // Start new loading promise
   loadingPromise = (async () => {
     try {
-      const data = await getNepaliGeographicData();
+      const data = normalizeLocationData(nepalLocationHierarchy);
       
       // Validate data structure
       if (!data || typeof data !== 'object') {

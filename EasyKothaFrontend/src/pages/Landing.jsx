@@ -5,7 +5,7 @@ import {
   FaTabletAlt,
   FaCheckCircle,
   FaHeadset,
-  FaHome,
+  FaMapMarkerAlt,
   FaWallet,
   FaSearch,
   FaUserCheck,
@@ -15,6 +15,11 @@ import axiosInstance from "../api/axios";
 import Footer from "../components/Footer";
 import Topbar from "../components/Topbar";
 import { useAuthStore } from "../store/useAuthStore";
+import {
+  getDistrictsByProvince,
+  getMunicipalitiesByDistrict,
+  getProvinces,
+} from "../utils/locationUtils";
 
 function LocationCard({ imageSrc, locationName, to }) {
   return (
@@ -116,7 +121,45 @@ export default function Landing() {
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState("");
   const suggestionBoxRef = useRef(null);
+
+  useEffect(() => {
+    const loadLocationOptions = async () => {
+      try {
+        const provinces = await getProvinces();
+        const districtChunks = await Promise.all(
+          provinces.map((province) => getDistrictsByProvince(province))
+        );
+
+        const allDistricts = districtChunks
+          .flat()
+          .filter(Boolean)
+
+        const municipalityChunks = await Promise.all(
+          allDistricts.map((district) => getMunicipalitiesByDistrict(district))
+        );
+
+        const allCities = municipalityChunks
+          .flat()
+          .filter(Boolean)
+          .map((city) => city.trim())
+          .filter(Boolean);
+
+        const uniqueCities = [...new Set(allCities)].sort((a, b) =>
+          a.localeCompare(b)
+        );
+
+        setLocationOptions(uniqueCities);
+      } catch (error) {
+        console.error("Failed to load location options:", error);
+        setLocationOptions([]);
+      }
+    };
+
+    loadLocationOptions();
+  }, []);
 
   useEffect(() => {
     const closeSuggestionsOnOutsideClick = (event) => {
@@ -180,8 +223,18 @@ export default function Landing() {
 
   const handleSearchSubmit = () => {
     const keyword = searchTerm.trim();
-    const target = keyword
-      ? `/explore?search=${encodeURIComponent(keyword)}`
+    const queryParams = new URLSearchParams();
+
+    if (keyword) {
+      queryParams.set("search", keyword);
+    }
+
+    if (selectedLocation) {
+      queryParams.set("city", selectedLocation);
+    }
+
+    const target = queryParams.toString()
+      ? `/explore?${queryParams.toString()}`
       : "/explore";
 
     navigateWithAuthCheck(target);
@@ -290,13 +343,18 @@ export default function Landing() {
                   )}
                 </div>
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-3 lg:col-span-2">
-                  <FaHome className="text-green-800 text-lg" />
-                  <select className="w-full bg-transparent text-sm md:text-base focus:outline-none">
-                    <option>Property Type</option>
-                    <option>Apartment</option>
-                    <option>Shared Room</option>
-                    <option>Single Room</option>
-                    <option>Studio</option>
+                  <FaMapMarkerAlt className="text-green-800 text-lg" />
+                  <select
+                    className="w-full bg-transparent text-sm md:text-base focus:outline-none"
+                    value={selectedLocation}
+                    onChange={(event) => setSelectedLocation(event.target.value)}
+                  >
+                    <option value="">City</option>
+                    {locationOptions.map((location) => (
+                      <option key={location} value={location}>
+                        {location}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-3 lg:col-span-2">
