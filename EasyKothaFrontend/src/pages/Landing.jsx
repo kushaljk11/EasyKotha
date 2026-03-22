@@ -608,7 +608,7 @@ export default function Landing() {
             <div className="relative w-48 sm:w-56 md:w-80 h-56 sm:h-64 md:h-96 bg-teal-500 rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden">
               {/* Phone mockup with image */}
               <img
-                src="/mobile.png"
+                src="/EasyKothaColoured-02.png"
                 alt="Mobile App Preview"
                 className="w-full h-full object-cover"
               />
