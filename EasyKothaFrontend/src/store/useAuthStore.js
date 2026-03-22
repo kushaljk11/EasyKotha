@@ -2,11 +2,15 @@ import { create } from "zustand";
 import axiosInstance from "../api/axios";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { API_ORIGIN } from "../config/env";
 
 const BASE_URL =
   import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_ORIGIN ||
-  "https://easykotha.onrender.com";
+  API_ORIGIN;
+
+if (!BASE_URL) {
+  throw new Error("VITE_SOCKET_URL or VITE_API_ORIGIN is required in EasyKothaFrontend/.env");
+}
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,

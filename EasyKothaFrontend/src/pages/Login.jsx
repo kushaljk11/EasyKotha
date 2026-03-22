@@ -4,12 +4,11 @@ import { useAuthStore } from "../store/useAuthStore";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { Mail, Lock } from "lucide-react";
 import toast from "react-hot-toast";
+import { API_ORIGIN } from "../config/env";
 
-const API_ORIGIN =
-  import.meta.env.VITE_API_ORIGIN ||
-  (import.meta.env.VITE_API_BASE_URL
-    ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "")
-    : "https://easykotha.onrender.com");
+if (!API_ORIGIN) {
+  throw new Error("VITE_API_ORIGIN is required in EasyKothaFrontend/.env");
+}
 
 export default function Login() {
   const [email, setEmail] = useState("");

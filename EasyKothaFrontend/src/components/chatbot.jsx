@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { API_BASE_URL } from "../config/env";
 
-const API_URL =
-  `${import.meta.env.VITE_API_BASE_URL || "https://easykotha.onrender.com/api"}/chat`;
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is required in EasyKothaFrontend/.env");
+}
+
+const API_URL = `${API_BASE_URL}/chat`;
 const SESSION_ID = crypto.randomUUID();
 
 const getGeminiResponse = async (message) => {

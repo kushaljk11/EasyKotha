@@ -1,8 +1,10 @@
 // src/api/axios.js
 import axios from "axios";
+import { API_BASE_URL } from "../config/env";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://easykotha.onrender.com/api";
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is required in EasyKothaFrontend/.env");
+}
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,

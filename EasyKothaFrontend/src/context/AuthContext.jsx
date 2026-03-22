@@ -1,7 +1,9 @@
 import { createContext, useState, useEffect } from "react";
+import { API_BASE_URL } from "../config/env";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://easykotha.onrender.com/api";
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is required in EasyKothaFrontend/.env");
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();

@@ -2,3 +2,8 @@ node_modules/
 /prisma/generated/
 
 /prisma/generated
+
+# Environment files
+.env
+.env.*
+!.env.example

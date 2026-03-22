@@ -5,16 +5,12 @@ import { prisma } from "../lib/prisma.js";
 
 const normalizeBaseUrl = (value = "") => String(value).replace(/\/+$/, "");
 
-const productionHostedBaseUrl = "https://easykotha.onrender.com";
-const isRenderRuntime = process.env.RENDER === "true";
-const fallbackBaseUrl = isRenderRuntime ? productionHostedBaseUrl : "";
-
 const externalBaseUrl = normalizeBaseUrl(
   process.env.OAUTH_BASE_URL ||
   process.env.RENDER_EXTERNAL_URL ||
   process.env.PUBLIC_BACKEND_URL ||
   process.env.BACKEND_URL ||
-  fallbackBaseUrl
+  ""
 );
 
 const googleCallbackUrl =
@@ -28,13 +24,6 @@ const facebookCallbackUrl =
   (externalBaseUrl
     ? `${externalBaseUrl}/api/oauth/facebook/callback`
     : "/api/oauth/facebook/callback");
-
-console.log("[OAuth Debug] GOOGLE_CALLBACK_URL env:", process.env.GOOGLE_CALLBACK_URL || "(empty)");
-console.log("[OAuth Debug] OAUTH_BASE_URL env:", process.env.OAUTH_BASE_URL || "(empty)");
-console.log("[OAuth Debug] RENDER_EXTERNAL_URL env:", process.env.RENDER_EXTERNAL_URL || "(empty)");
-console.log("[OAuth Debug] BACKEND_URL env:", process.env.BACKEND_URL || "(empty)");
-console.log("[OAuth Debug] Resolved googleCallbackUrl:", googleCallbackUrl);
-console.log("[OAuth Debug] Resolved facebookCallbackUrl:", facebookCallbackUrl);
 
 // ---------------- GOOGLE STRATEGY ----------------
 passport.use(

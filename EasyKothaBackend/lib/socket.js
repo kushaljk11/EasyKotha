@@ -16,8 +16,6 @@ const allowedOrigins = [
   normalizeOrigin(process.env.FRONTEND_URL || ""),
   normalizeOrigin(process.env.CLIENT_URL || ""),
   ...configuredOrigins,
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
 ].filter(Boolean);
 
 const app = express();
