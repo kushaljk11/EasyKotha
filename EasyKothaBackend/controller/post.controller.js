@@ -187,8 +187,10 @@ export const getAllPosts = async (req, res) => {
       include: {
         author: {
           select: {
+            id: true,
             name: true,
             email: true,
+            profileImage: true,
           },
         },
       },
@@ -225,8 +227,10 @@ export const getPostById = async (req, res) => {
       include: {
         author: {
           select: {
+            id: true,
             name: true,
             email: true,
+            profileImage: true,
           },
         },
       },

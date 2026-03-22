@@ -35,6 +35,9 @@ const allowedOrigins = [
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const sessions = new Map();
 
+// Needed for correct https protocol handling behind Render/other proxies.
+app.set("trust proxy", 1);
+
 const SYSTEM_PROMPT = `
 You are EasyKotha Helper, a friendly and helpful virtual assistant for EasyKotha — a platform that helps users find rooms and rental accommodations.
 
@@ -89,6 +92,7 @@ app.use(cors({
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
@@ -103,7 +107,6 @@ app.use("/api/auth", authRoutes); // Keep support for /api/auth/login etc
 app.use("/api/messages", messagerouter);
 app.use("/api/oauth", Oauthrouter);
 app.use("/api/payment", paymentRouter);
-app.use(passport.initialize());
 
 app.post("/api/chat", async (req, res) => {
   const { message, sessionId } = req.body;

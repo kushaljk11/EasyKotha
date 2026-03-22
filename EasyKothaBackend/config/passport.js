@@ -3,13 +3,46 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { prisma } from "../lib/prisma.js";
 
+const normalizeBaseUrl = (value = "") => String(value).replace(/\/+$/, "");
+
+const productionHostedBaseUrl = "https://easykotha.onrender.com";
+const isRenderRuntime = process.env.RENDER === "true";
+const fallbackBaseUrl = isRenderRuntime ? productionHostedBaseUrl : "";
+
+const externalBaseUrl = normalizeBaseUrl(
+  process.env.OAUTH_BASE_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  process.env.PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  fallbackBaseUrl
+);
+
+const googleCallbackUrl =
+  process.env.GOOGLE_CALLBACK_URL ||
+  (externalBaseUrl
+    ? `${externalBaseUrl}/api/oauth/google/callback`
+    : "/api/oauth/google/callback");
+
+const facebookCallbackUrl =
+  process.env.FACEBOOK_CALLBACK_URL ||
+  (externalBaseUrl
+    ? `${externalBaseUrl}/api/oauth/facebook/callback`
+    : "/api/oauth/facebook/callback");
+
+console.log("[OAuth Debug] GOOGLE_CALLBACK_URL env:", process.env.GOOGLE_CALLBACK_URL || "(empty)");
+console.log("[OAuth Debug] OAUTH_BASE_URL env:", process.env.OAUTH_BASE_URL || "(empty)");
+console.log("[OAuth Debug] RENDER_EXTERNAL_URL env:", process.env.RENDER_EXTERNAL_URL || "(empty)");
+console.log("[OAuth Debug] BACKEND_URL env:", process.env.BACKEND_URL || "(empty)");
+console.log("[OAuth Debug] Resolved googleCallbackUrl:", googleCallbackUrl);
+console.log("[OAuth Debug] Resolved facebookCallbackUrl:", facebookCallbackUrl);
+
 // ---------------- GOOGLE STRATEGY ----------------
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/oauth/google/callback",
+      callbackURL: googleCallbackUrl,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -39,7 +72,7 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "/api/oauth/facebook/callback",
+      callbackURL: facebookCallbackUrl,
       profileFields: ["id", "displayName", "emails"], // request email
     },
     async (accessToken, refreshToken, profile, done) => {

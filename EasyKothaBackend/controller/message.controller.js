@@ -58,12 +58,17 @@ export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
     const myId = Number(req.user.id);
+    const parsedUserToChatId = Number(userToChatId);
+
+    if (!Number.isInteger(parsedUserToChatId)) {
+      return res.status(400).json({ error: "Invalid chat user id" });
+    }
 
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { senderId: myId, receiverId: Number(userToChatId) },
-          { senderId: Number(userToChatId), receiverId: myId },
+          { senderId: myId, receiverId: parsedUserToChatId },
+          { senderId: parsedUserToChatId, receiverId: myId },
         ],
       },
       orderBy: {
@@ -83,6 +88,28 @@ export const sendMessage = async (req, res) => {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
     const senderId = Number(req.user.id);
+    const parsedReceiverId = Number(receiverId);
+
+    if (!Number.isInteger(parsedReceiverId)) {
+      return res.status(400).json({ error: "Invalid receiver id" });
+    }
+
+    if (senderId === parsedReceiverId) {
+      return res.status(400).json({ error: "You cannot chat with yourself" });
+    }
+
+    if (!text?.trim() && !image) {
+      return res.status(400).json({ error: "Message text or image is required" });
+    }
+
+    const receiverExists = await prisma.user.findUnique({
+      where: { id: parsedReceiverId },
+      select: { id: true },
+    });
+
+    if (!receiverExists) {
+      return res.status(404).json({ error: "Receiver not found" });
+    }
 
     let imageUrl;
     if (image) {
@@ -94,13 +121,13 @@ export const sendMessage = async (req, res) => {
     const newMessage = await prisma.message.create({
       data: {
         senderId,
-        receiverId: Number(receiverId),
-        text,
+        receiverId: parsedReceiverId,
+        text: text?.trim() || null,
         image: imageUrl,
       },
     });
 
-    const receiverSocketId = getReceiverSocketId(receiverId);
+    const receiverSocketId = getReceiverSocketId(parsedReceiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
       io.to(receiverSocketId).emit("notification", {
