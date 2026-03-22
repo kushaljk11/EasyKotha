@@ -17,6 +17,11 @@ import {
   getRecentSearches,
 } from "../controller/post.controller.js";
 import { authMiddleware, adminOnly } from "../middleware/auth.Middleware.js";
+import {
+  getSimilarPosts,
+  getUserRecommendations
+} from "../controller/post.controller.js";
+
 
 const postrouter = express.Router();
 
@@ -65,4 +70,7 @@ postrouter.delete("/deletepost/:id", authMiddleware, deletePost);
 // Admin approves/rejects post
 postrouter.patch("/posts/:id/status", authMiddleware, adminOnly, updatePostStatus);
 
+postrouter.get("/posts/:id/recommendations", getSimilarPosts);
+
+postrouter.get("/recommendations/user", authMiddleware, getUserRecommendations);
 export default postrouter;

@@ -6,6 +6,7 @@ import {
   postApprovedTemplate,
   postRejectedTemplate,
 } from "../utils/emailtemplates/postTemplates.js";
+import { getSimilarPostIds } from "../utils/recommendation.js";
 
 const emitNotification = (userId, payload) => {
   const receiverSocketId = getReceiverSocketId(userId);
@@ -704,3 +705,67 @@ export const getRecentSearches = async (req, res) => {
   }
 };
 
+export const getSimilarPosts = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const similarIds = getSimilarPostIds(id);
+
+    if (!similarIds.length) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const posts = await prisma.post.findMany({
+      where: {
+        id: { in: similarIds },
+        status: "approved"
+      },
+      include: {
+        author: {
+          select: { name: true, profileImage: true }
+        }
+      }
+    });
+
+    res.json({ success: true, data: posts });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const getUserRecommendations = async (req, res) => {
+  try {
+    const userId = Number(req.user.id);
+
+    // Get user's saved posts
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { savedPosts: true }
+    });
+
+    if (!user || user.savedPosts.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    let recommendedIds = new Set();
+
+    user.savedPosts.forEach(post => {
+      const similar = getSimilarPostIds(post.id);
+      similar.forEach(id => recommendedIds.add(id));
+    });
+
+    const posts = await prisma.post.findMany({
+      where: {
+        id: { in: Array.from(recommendedIds) },
+        status: "approved"
+      },
+      take: 10
+    });
+
+    res.json({ success: true, data: posts });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
