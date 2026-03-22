@@ -7,7 +7,10 @@ import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { User, Mail, Lock, Phone, UserCircle } from "lucide-react";
 
 const API_ORIGIN =
-  import.meta.env.VITE_API_ORIGIN || "https://easykotha.onrender.com";
+  import.meta.env.VITE_API_ORIGIN ||
+  (import.meta.env.VITE_API_BASE_URL
+    ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "")
+    : "https://easykotha.onrender.com");
 
 export default function Register() {
   const [name, setName] = useState("");

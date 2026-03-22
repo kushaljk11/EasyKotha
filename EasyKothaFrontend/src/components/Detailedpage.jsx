@@ -24,6 +24,8 @@ import {
   Store
 } from "lucide-react";
 import Topbar from "./Topbar";
+import TenantLayout from "../tenants/TenantLayout";
+import LandlordLayout from "../landlord/LandlordLayout";
 
 const Detailpage = () => {
   const { id } = useParams();
@@ -45,6 +47,25 @@ const Detailpage = () => {
     routeId && routeId !== "undefined" && routeId !== "null"
       ? routeId
       : fallbackId;
+  const isTenantView = authUser?.role === "TENANT";
+  const isLandlordView = authUser?.role === "LANDLORD";
+  const isDashboardView = isTenantView || isLandlordView;
+  const homePath = isLandlordView ? "/landlord/dashboard" : isTenantView ? "/tenant/dashboard" : "/";
+  const explorePath = isLandlordView ? "/landlord/explore" : "/tenant/explore";
+  const currentUserId = authUser?.id ?? authUser?._id ?? null;
+  const hostUserId = post?.author?.id ?? post?.author?._id ?? post?.authorId ?? null;
+
+  const renderWithinRoleLayout = (content) => {
+    if (isTenantView) {
+      return <TenantLayout>{content}</TenantLayout>;
+    }
+
+    if (isLandlordView) {
+      return <LandlordLayout>{content}</LandlordLayout>;
+    }
+
+    return content;
+  };
 
   // Icon mapping for amenities
   const amenityIcons = {
@@ -152,21 +173,28 @@ const Detailpage = () => {
       return;
     }
 
-    if (authUser._id === post.author?._id) {
+    if (!hostUserId) {
+      toast.error("Host information not available");
+      return;
+    }
+
+    if (currentUserId !== null && String(currentUserId) === String(hostUserId)) {
       toast.error("You cannot chat with yourself");
       return;
     }
 
-    if (post.author) {
-      setSelectedUser(post.author);
-      navigate("/chat");
-    } else {
-      toast.error("Host information not available");
-    }
+    setSelectedUser({
+      ...(post.author || {}),
+      id: hostUserId,
+      _id: hostUserId,
+      name: post.author?.name || "Landlord",
+      email: post.author?.email || "",
+    });
+    navigate("/chat");
   };
 
   if (loading) {
-    return (
+    return renderWithinRoleLayout(
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#19545c]"></div>
       </div>
@@ -174,25 +202,25 @@ const Detailpage = () => {
   }
 
   if (!post) {
-    return (
+    return renderWithinRoleLayout(
       <div className="min-h-screen bg-white flex flex-col items-center justify-center py-20">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Property Not Found</h2>
-        <Link to="/tenant/explore" className="text-blue-600 font-bold hover:underline">Back to Explore</Link>
+        <Link to={explorePath} className="text-blue-600 font-bold hover:underline">Back to Explore</Link>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <Topbar />
+  return renderWithinRoleLayout(
+    <div className={`${isDashboardView ? "text-[#1a1a1a]" : "min-h-screen bg-white text-[#1a1a1a]"}`}>
+      {!isDashboardView && <Topbar />}
 
       <div className="w-full px-4 md:px-6 py-6">
         
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-6">
-          <Link to="/" className="hover:text-[#19545c]">Nepal</Link>
+          <Link to={homePath} className="hover:text-[#19545c]">Nepal</Link>
           <ChevronRight size={12} />
-          <Link to="/tenant/explore" className="hover:text-[#19545c]">{post.district || "Location"}</Link>
+          <Link to={explorePath} className="hover:text-[#19545c]">{post.district || "Location"}</Link>
           <ChevronRight size={12} />
           <span className="text-gray-900 font-bold">{post.city}</span>
         </nav>

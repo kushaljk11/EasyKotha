@@ -6,7 +6,10 @@ import { Mail, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 
 const API_ORIGIN =
-  import.meta.env.VITE_API_ORIGIN || "https://easykotha.onrender.com";
+  import.meta.env.VITE_API_ORIGIN ||
+  (import.meta.env.VITE_API_BASE_URL
+    ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "")
+    : "https://easykotha.onrender.com");
 
 export default function Login() {
   const [email, setEmail] = useState("");

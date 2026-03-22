@@ -18,13 +18,13 @@ const HomePage = () => {
   const backPath = useMemo(() => {
     if (authUser?.role === "ADMIN") return "/admin/dashboard";
     if (authUser?.role === "LANDLORD") return "/landlord/dashboard";
-    return "/";
+    return "/tenant/dashboard";
   }, [authUser?.role]);
 
   const backLabel = useMemo(() => {
     if (authUser?.role === "ADMIN") return "Back to Admin Dashboard";
     if (authUser?.role === "LANDLORD") return "Back to Landlord Dashboard";
-    return "Back to Home";
+    return "Back to Tenant Dashboard";
   }, [authUser?.role]);
 
   const handleBack = () => {
