@@ -258,26 +258,25 @@ export default function Landing() {
       <Topbar />
       {/* Landing page hero section */}
       <div
-        className="HeroSection relative flex flex-col items-center justify-center bg-cover bg-center"
+        className="HeroSection relative flex w-full flex-col items-center justify-start bg-cover bg-center py-7 sm:py-10 md:min-h-[82vh] md:justify-center"
         style={{
           backgroundImage:
             "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.55) 100%), url('/abouthero.webp')",
-          minHeight: "82vh",
         }}
       >
-        <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-8">
-          <h1 className="text-white text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight">
+        <div className="relative z-10 flex w-full max-w-6xl flex-col items-center px-4 text-center sm:px-8">
+          <h1 className="text-white text-[1.9rem] font-semibold leading-snug sm:text-5xl sm:leading-tight lg:text-6xl">
             Find your perfect space in{" "}
             <span className="text-green-300 font-bold">Nepal.</span>
           </h1>
-          <p className="text-white/90 mt-4 max-w-3xl text-sm sm:text-base lg:text-lg">
+          <p className="text-white/90 mt-3 max-w-3xl text-sm sm:mt-4 sm:text-base lg:text-lg">
             From sunny flats in Baneshwor to cozy rooms in Lakeside, trust
             EasyKotha for your next move.
           </p>
 
-          <div className="mt-8 w-full max-w-5xl">
-            <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div className="mt-6 w-full max-w-5xl sm:mt-8">
+            <div className="bg-white rounded-2xl shadow-2xl p-3.5 sm:p-6 flex flex-col gap-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                 <div
                   ref={suggestionBoxRef}
                   className="relative flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-4 lg:col-span-5"
@@ -376,7 +375,7 @@ export default function Landing() {
                 </button>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold text-green-800">
+              <div className="flex flex-col justify-center gap-2.5 text-xs font-semibold text-green-800 sm:flex-row sm:gap-6 sm:text-sm">
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur rounded-lg px-4 py-2 shadow">
                   <FaUserCheck className="text-green-800" />
                   Verified Landlords
@@ -396,7 +395,7 @@ export default function Landing() {
       </div>
 
       {/* Popular searches (bridges hero and next section) */}
-      <div className="PopularCategories w-[94%] sm:w-[92%] md:w-[95%] max-w-6xl mx-auto bg-gray-100 text-black px-3 py-2.5 sm:px-4 sm:py-3 md:px-6 md:py-5 shadow-2xl border border-gray-200 -mt-14 md:-mt-10 relative z-20">
+      <div className="PopularCategories w-[94%] sm:w-[92%] md:w-[95%] max-w-6xl mx-auto bg-gray-100 text-black px-3 py-2.5 sm:px-4 sm:py-3 md:px-6 md:py-5 shadow-2xl border border-gray-200 mt-4 md:-mt-10 relative z-20">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-5">
           <h2 className="text-center md:text-left text-base sm:text-lg md:text-2xl font-semibold text-red-600 leading-tight whitespace-nowrap">
             Popular Searches

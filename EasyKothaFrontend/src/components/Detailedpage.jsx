@@ -47,8 +47,9 @@ const Detailpage = () => {
     routeId && routeId !== "undefined" && routeId !== "null"
       ? routeId
       : fallbackId;
-  const isTenantView = authUser?.role === "TENANT";
-  const isLandlordView = authUser?.role === "LANDLORD";
+  const normalizedRole = String(authUser?.role || "").trim().toUpperCase();
+  const isTenantView = normalizedRole === "TENANT";
+  const isLandlordView = normalizedRole === "LANDLORD";
   const isDashboardView = isTenantView || isLandlordView;
   const homePath = isLandlordView ? "/landlord/dashboard" : isTenantView ? "/tenant/dashboard" : "/";
   const explorePath = isLandlordView ? "/landlord/explore" : "/tenant/explore";

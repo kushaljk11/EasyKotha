@@ -7,6 +7,7 @@ import axiosInstance from "../api/axios";
 const Search = ({ 
   placeholder = "Find your next home...", 
   className = "", 
+  inputClassName = "",
   value: externalValue, 
   onChange: externalOnChange,
   onSuggestionClick,
@@ -118,7 +119,7 @@ const Search = ({
         <input
           type="text"
           placeholder={placeholder}
-          className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium"
+          className={`w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium ${inputClassName}`}
           value={search}
           onChange={handleChange}
           onFocus={() => {

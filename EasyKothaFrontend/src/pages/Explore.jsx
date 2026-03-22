@@ -207,29 +207,30 @@ const Explore = () => {
       <div className="h-screen flex-1 overflow-y-auto bg-white">
       <TenantTopbar />
 
-      <div className="bg-gray-50/30 pb-20 p-4 md:p-8">
+      <div className="bg-gray-50/30 pb-16 p-3 sm:p-4 md:p-8">
         {/* Horizontal Search & Filter Bar */}
-        <div className="w-full bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100">
-          <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+        <div className="w-full rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 md:p-6 mb-4 md:mb-6">
+          <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 xl:grid-cols-12 xl:items-end">
             {/* Search Bar Component */}
-            <div className="md:col-span-3">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
+            <div className="sm:col-span-2 xl:col-span-3">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
                 <SearchIcon size={12} /> Search Property
               </label>
               <Search 
                 placeholder="Find your next home..." 
                 className="w-full"
+                inputClassName="py-2.5 text-sm"
               />
             </div>
 
             {/* City Search */}
-            <div ref={cityInputRef} className="md:col-span-3 relative">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400 mb-4">
+            <div ref={cityInputRef} className="relative sm:col-span-1 xl:col-span-3">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
                 <MapPin size={12} /> City
               </label>
               <input
                 type="text"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium outline-none transition-all focus:border-green-800 focus:bg-white focus:ring-2 focus:ring-green-800/20"
                 value={city}
                 onChange={(e) => {
                   setCity(e.target.value);
@@ -260,12 +261,12 @@ const Explore = () => {
             </div>
 
             {/* Property Type */}
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
+            <div className="sm:col-span-1 xl:col-span-2">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
                 <MapPin size={12} /> Property Type
               </label>
               <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium capitalize"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium capitalize outline-none transition-all focus:border-green-800 focus:bg-white focus:ring-2 focus:ring-green-800/20"
                 value={roomType}
                 onChange={(e) => setRoomType(e.target.value)}
               >
@@ -277,12 +278,12 @@ const Explore = () => {
             </div>
 
             {/* Sort */}
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-400  mb-4">
+            <div className="sm:col-span-1 xl:col-span-2">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
                 <Filter size={12} /> Sort By
               </label>
               <select
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-800/20 focus:bg-white focus:border-green-800 transition-all outline-none text-sm font-medium"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium outline-none transition-all focus:border-green-800 focus:bg-white focus:ring-2 focus:ring-green-800/20"
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
               >
@@ -293,10 +294,10 @@ const Explore = () => {
             </div>
 
             {/* Button */}
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2 xl:col-span-2">
               <button
                 type="submit"
-                className="w-full bg-green-800 text-white px-4 py-3 rounded-xl font-semibold text-xs hover:bg-green-900 transition shadow-xl shadow-green-800/10 active:scale-[0.98]"
+                className="w-full rounded-xl bg-green-800 px-4 py-2.5 text-sm font-semibold text-white transition shadow-lg shadow-green-800/10 hover:bg-green-900 active:scale-[0.98]"
               >
                 Apply
               </button>
@@ -307,7 +308,7 @@ const Explore = () => {
         {/* Listings Section */}
         <div className="w-full">
           <div className="mb-4 px-2">
-            <h2 className="text-3xl font-semibold text-green-800 tracking-tight">All Rooms</h2>
+            <h2 className="text-[2rem] sm:text-3xl font-semibold text-green-800 tracking-tight">All Rooms</h2>
             <p className="text-gray-500 text-sm mt-1 font-medium ">Found {posts.length} properties matching your criteria</p>
           </div>
 
@@ -323,63 +324,63 @@ const Explore = () => {
                 posts.map((post) => {
                   const postId = post?._id || post?.id || post?.postId;
                   return (
-                  <div key={postId || post.title} className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row border border-gray-100 group overflow-hidden">
+                  <div key={postId || post.title} className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 hover:shadow-xl md:flex-row">
                     {/* Image Container - Reduced height matching parent */}
-                    <div className="relative w-full md:w-72 lg:w-80 h-56 md:h-auto shrink-0 overflow-hidden">
+                    <div className="relative h-52 w-full shrink-0 overflow-hidden sm:h-56 md:h-auto md:w-72 lg:w-80">
                       <img
                         src={post.images?.[0] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                       />
-                      <div className="absolute top-4 left-4 flex gap-2">
-                         <span className="bg-green-800 text-white text-[9px] font-semibold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
+                      <div className="absolute left-3 top-3 flex gap-1.5 sm:gap-2">
+                         <span className="rounded-lg bg-green-800 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-white shadow-lg sm:px-2.5 sm:py-1.5">
                           {post.type.replace("_", " ")}
                         </span>
-                        <span className="bg-green-500 text-white text-[9px] font-semibold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
+                        <span className="rounded-lg bg-green-500 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-white shadow-lg sm:px-2.5 sm:py-1.5">
                           Available Now
                         </span>
                       </div>
                     </div>
 
                     {/* Content Container */}
-                    <div className="flex-1 p-6 flex flex-col justify-between">
+                    <div className="flex flex-1 flex-col justify-between p-4 sm:p-5 md:p-6">
                       <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                          <div className="flex-1 mr-8">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 sm:pr-5">
                             <div className="flex items-center gap-2 text-black font-semibold text-sm mb-2">
                               <MapPin size={12} /> {post.district}, {post.city}
                             </div>
-                            <h3 className="text-xl md:text-2xl font-semibold text-gray-900 line-clamp-1 group-hover:text-green-800 transition-colors">
+                            <h3 className="line-clamp-2 text-xl font-semibold text-gray-900 transition-colors group-hover:text-green-800 md:line-clamp-1 md:text-2xl">
                               {post.title}
                             </h3>
                           </div>
-                          <div className="text-right">
-                             <p className="text-[22px] font-semibold text-red-800 leading-none">NPR {post.price?.toLocaleString() || "0"}</p>
-                             <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Per Month</p>
+                          <div className="text-left sm:text-right">
+                             <p className="text-[1.7rem] font-semibold leading-none text-red-800">NPR {post.price?.toLocaleString() || "0"}</p>
+                             <p className="mt-1 text-[9px] font-semibold uppercase tracking-widest text-gray-400">Per Month</p>
                           </div>
                         </div>
 
-                        <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed font-medium mt-1">
+                        <p className="mt-1 text-sm font-medium leading-relaxed text-gray-500 line-clamp-2">
                           {post.content}
                         </p>
 
-                        <div className="flex items-center gap-6 mt-2">
-                           <div className="flex items-center gap-2 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg">
+                        <div className="mt-3 flex flex-wrap items-center gap-2.5 sm:gap-3">
+                           <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-gray-400">
                                 <Users size={14} />
                                 <span className="text-[9px] font-semibold uppercase tracking-wider">{post.tenantType}</span>
                            </div>
-                           <div className="flex items-center gap-2 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg">
+                           <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-gray-400">
                                 <Home size={14} />
                                 <span className="text-[9px] font-semibold uppercase tracking-wider">{post.furnishing}</span>
                            </div>
-                           <div className="flex items-center gap-2 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg">
+                           <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-gray-400">
                                 <Clock size={14} />
                                 <span className="text-[9px] font-semibold uppercase tracking-wider">{new Date(post.createdAt).toLocaleDateString()}</span>
                            </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-50 mt-4">
+                      <div className="mt-4 flex flex-col gap-3 border-t border-gray-50 pt-4 sm:flex-row sm:items-center sm:justify-between">
                          <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-green-800/10 border border-green-800/20 flex items-center justify-center text-green-800 text-[10px] font-semibold shadow-inner">
                                {post.author?.name?.charAt(0) || "U"}
@@ -389,10 +390,10 @@ const Explore = () => {
                                <p className="text-xs text-black font-semibold">Verified Owner</p>
                             </div>
                          </div>
-                         <div className="flex items-center gap-3">
+                         <div className="flex w-full items-center gap-3 sm:w-auto">
                             <button 
                               onClick={() => postId && handleToggleSave(postId)}
-                              className={`w-10 h-10 flex items-center justify-center border rounded-xl transition-all ${
+                              className={`h-10 w-10 shrink-0 flex items-center justify-center border rounded-xl transition-all ${
                                 isSaved(postId) 
                                   ? "bg-red-50 border-red-100 text-red-500 shadow-inner" 
                                   : "bg-white border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50"
@@ -403,7 +404,7 @@ const Explore = () => {
                             {postId ? (
                               <Link 
                                   to={`/posts/${postId}`}
-                                  className="bg-green-800 hover:bg-green-900 text-white px-5 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+                                  className="w-full rounded-xl bg-green-800 px-5 py-2.5 text-center text-sm font-semibold text-white transition-all hover:bg-green-900 active:scale-[0.98] sm:w-auto"
                                 >
                                   View Property
                                 </Link>

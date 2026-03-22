@@ -191,8 +191,8 @@ export default function ProfilePage() {
   if (!authUser || (loading && !displayedUser)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-[#19545c] text-lg animate-pulse flex items-center gap-2 font-bold">
-           <div className="w-3 h-3 bg-[#19545c] rounded-full"></div>
+        <div className="text-green-800 text-lg animate-pulse flex items-center gap-2 font-bold">
+          <div className="w-3 h-3 bg-green-800 rounded-full"></div>
            Loading Profile...
         </div>
       </div>
@@ -224,14 +224,14 @@ export default function ProfilePage() {
             <>
               <button
                 onClick={() => navigate("/chat")}
-                className="p-3 bg-[#19545c]/5 text-[#19545c] rounded-xl hover:bg-[#19545c]/10 transition-all shadow-sm border border-[#19545c]/10"
+                className="p-3 bg-green-800/5 text-green-800 rounded-xl hover:bg-green-800/10 transition-all shadow-sm border border-green-800/10"
                 title="Messages"
               >
                 <FaComments className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-5 py-2.5 bg-[#19545c] text-white rounded-xl font-bold text-sm tracking-wide hover:bg-[#154e54] transition-all shadow-lg shadow-[#19545c]/20"
+                className="px-5 py-2.5 bg-green-800 text-white rounded-xl font-bold text-sm tracking-wide hover:bg-green-700 transition-all shadow-lg shadow-green-800/20"
               >
                 Edit Profile
               </button>
@@ -246,7 +246,7 @@ export default function ProfilePage() {
           ) : (
             <button
               onClick={handleMessageUser}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#19545c] text-white rounded-xl font-bold text-sm hover:bg-[#154e54] transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-green-800 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all"
             >
               <FaComments /> Message User
             </button>
@@ -270,7 +270,7 @@ export default function ProfilePage() {
                 {isOwnProfile && isEditing && (
                   <label
                     htmlFor="profile-upload"
-                    className="absolute -bottom-2 -right-2 bg-white p-2.5 rounded-xl border border-slate-100 cursor-pointer shadow-lg hover:bg-slate-50 transition-all text-[#19545c]"
+                    className="absolute -bottom-2 -right-2 bg-white p-2.5 rounded-xl border border-slate-100 cursor-pointer shadow-lg hover:bg-slate-50 transition-all text-green-800"
                   >
                     <FaCamera className="w-4 h-4" />
                     <input
@@ -290,10 +290,10 @@ export default function ProfilePage() {
                 </h2>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-semibold text-slate-400">
                   <span className="flex items-center gap-1.5 uppercase tracking-widest text-[10px]">
-                    <FaUser className="text-[#19545c]" /> {displayedUser?.role}
+                    <FaUser className="text-green-800" /> {displayedUser?.role}
                   </span>
                   <span className="flex items-center gap-1.5 uppercase tracking-widest text-[10px]">
-                    <FaMapMarkerAlt className="text-[#19545c]" /> {displayedUser?.city || "Nepal"}
+                    <FaMapMarkerAlt className="text-green-800" /> {displayedUser?.city || "Nepal"}
                   </span>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                 {/* Full Name */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#19545c] uppercase tracking-widest pl-1">Full Name</label>
+                  <label className="text-xs font-bold text-green-800 uppercase tracking-widest pl-1">Full Name</label>
                   <div className="relative group">
                     <input
                       type="text"
@@ -332,7 +332,7 @@ export default function ProfilePage() {
                       value={formData.name}
                       onChange={handleChange}
                       disabled={!isEditing}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 outline-none focus:border-[#19545c] focus:ring-4 focus:ring-[#19545c]/5 transition-all font-medium disabled:bg-slate-50 disabled:text-slate-500"
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 outline-none focus:border-green-800 focus:ring-4 focus:ring-green-800/5 transition-all font-medium disabled:bg-slate-50 disabled:text-slate-500"
                       placeholder="Enter full name"
                       required
                     />
@@ -341,7 +341,7 @@ export default function ProfilePage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#19545c] uppercase tracking-widest pl-1">Email Address</label>
+                  <label className="text-xs font-bold text-green-800 uppercase tracking-widest pl-1">Email Address</label>
                   <div className="relative">
                     <input
                       type="email"
@@ -358,28 +358,28 @@ export default function ProfilePage() {
 
                 {/* District */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#19545c] uppercase tracking-widest pl-1">District</label>
+                  <label className="text-xs font-bold text-green-800 uppercase tracking-widest pl-1">District</label>
                   <input
                     type="text"
                     name="district"
                     value={formData.district}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 outline-none focus:border-[#19545c] focus:ring-4 focus:ring-[#19545c]/5 transition-all font-medium disabled:bg-slate-50"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 outline-none focus:border-green-800 focus:ring-4 focus:ring-green-800/5 transition-all font-medium disabled:bg-slate-50"
                     placeholder="e.g. Kathmandu"
                   />
                 </div>
 
                 {/* City */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#19545c] uppercase tracking-widest pl-1">City</label>
+                  <label className="text-xs font-bold text-green-800 uppercase tracking-widest pl-1">City</label>
                   <input
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 outline-none focus:border-[#19545c] focus:ring-4 focus:ring-[#19545c]/5 transition-all font-medium disabled:bg-slate-50"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 outline-none focus:border-green-800 focus:ring-4 focus:ring-green-800/5 transition-all font-medium disabled:bg-slate-50"
                     placeholder="e.g. Thamel"
                   />
                 </div>
@@ -388,7 +388,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-3 py-3 bg-[#19545c] text-white font-semibold rounded-xl hover:bg-[#154e54] transition-all shadow-lg shadow-[#19545c]/20 disabled:opacity-50"
+                  className="px-3 py-3 bg-green-800 text-white font-semibold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-800/20 disabled:opacity-50"
                 >
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
@@ -404,10 +404,10 @@ export default function ProfilePage() {
 
             {/* Account Meta Information */}
           <div className="pt-10 border-t border-slate-100 space-y-6">
-            <h3 className="text-xs font-semibold text-[#19545c] uppercase tracking-[0.2em]">Account Information</h3>
+            <h3 className="text-xs font-semibold text-green-800 uppercase tracking-[0.2em]">Account Information</h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-[#19545c]/5 p-5 rounded-2xl border border-[#19545c]/10">
+              <div className="bg-green-800/5 p-5 rounded-2xl border border-green-800/10">
                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Member Strategy</p>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -415,16 +415,16 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="bg-[#19545c]/5 p-5 rounded-2xl border border-[#19545c]/10">
+              <div className="bg-green-800/5 p-5 rounded-2xl border border-green-800/10">
                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Member Priority</p>
                 <span className="text-sm font-bold text-slate-700 tracking-tight">
                   {displayedUser?.createdAt ? new Date(displayedUser.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "Jan 18, 2026"}
                 </span>
               </div>
 
-              <div className="bg-[#19545c]/5 p-5 rounded-2xl border border-[#19545c]/10">
+              <div className="bg-green-800/5 p-5 rounded-2xl border border-green-800/10">
                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Platform Rank</p>
-                <span className="px-3 py-1 bg-[#19545c] text-white rounded-lg text-[10px] font-semibold uppercase tracking-wider inline-block">
+                <span className="px-3 py-1 bg-green-800 text-white rounded-lg text-[10px] font-semibold uppercase tracking-wider inline-block">
                   {displayedUser?.role || "Tenant"}
                 </span>
               </div>

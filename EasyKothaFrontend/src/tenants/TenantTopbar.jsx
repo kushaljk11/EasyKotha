@@ -1,35 +1,92 @@
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useSidebarStore } from "../store/useSidebarStore";
-import { LogOut, User, Bell, LayoutDashboard, Compass, Heart, Bookmark, MessageSquare, Menu } from "lucide-react";
+import { LogOut, User, Bell, MessageSquare, Menu, CalendarCheck2, CircleCheckBig, Info } from "lucide-react";
+
+const getNotificationTarget = (link, role) => {
+  if (!link || link === "/admin/bookings") {
+    return role === "LANDLORD" ? "/landlord/bookings" : "/tenant/bookings";
+  }
+
+  return link;
+};
+
+const getNotificationIcon = (notification) => {
+  const type = String(notification?.type || "").toLowerCase();
+  const title = String(notification?.title || "").toLowerCase();
+  const message = String(notification?.message || "").toLowerCase();
+
+  if (type.includes("booking") || title.includes("booking") || message.includes("booking")) {
+    return CalendarCheck2;
+  }
+
+  if (message.includes("approved") || message.includes("confirmed")) {
+    return CircleCheckBig;
+  }
+
+  return Info;
+};
 
 export default function TenantTopbar() {
-  const { authUser, logout } = useAuthStore();
-  const { pathname } = useLocation();
+  const { authUser, logout, socket } = useAuthStore();
   const { unreadMessages } = useChatStore();
   const { toggleSidebar } = useSidebarStore();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const notificationRef = useRef(null);
+  const isNotificationOpenRef = useRef(false);
 
   const totalUnread = Object.values(unreadMessages || {}).reduce((sum, count) => sum + count, 0);
+  const normalizedRole = String(authUser?.role || "TENANT").trim().toUpperCase();
 
-  const navLinks = [
-    { name: "Browse", path: "/tenant/explore", icon: Compass },
-    {
-      name: "Dashboard",
-      path: authUser?.role === "LANDLORD" ? "/landlord/dashboard" : "/tenant/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      name: authUser?.role === "LANDLORD" ? "My Listings" : "My Booking",
-      path: authUser?.role === "LANDLORD" ? "/landlord/listings" : "/tenant/bookings",
-      icon: Bookmark,
-    },
-    {
-      name: authUser?.role === "LANDLORD" ? "Bookings" : "Saved Posts",
-      path: authUser?.role === "LANDLORD" ? "/landlord/bookings" : "/tenant/saved",
-      icon: authUser?.role === "LANDLORD" ? LayoutDashboard : Heart,
-    },
-  ];
+  useEffect(() => {
+    isNotificationOpenRef.current = isNotificationOpen;
+  }, [isNotificationOpen]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (payload) => {
+      const nextNotification = {
+        id: payload?.id || `tenant-notif-${Date.now()}`,
+        title: payload?.title || "Notification",
+        message: payload?.message || "You have a new update",
+        type: payload?.type || "generic",
+        link: getNotificationTarget(payload?.link, normalizedRole),
+        createdAt: payload?.createdAt || new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [nextNotification, ...prev].slice(0, 20));
+      if (!isNotificationOpenRef.current) {
+        setUnreadNotificationCount((prev) => prev + 1);
+      }
+    };
+
+    socket.on("notification", handleNotification);
+    return () => socket.off("notification", handleNotification);
+  }, [socket, normalizedRole]);
+
+  const toggleNotificationPanel = () => {
+    setIsNotificationOpen((prev) => {
+      const next = !prev;
+      if (next) setUnreadNotificationCount(0);
+      return next;
+    });
+  };
 
   return (
     <div className="sticky top-0 z-30 flex w-full items-center border-b border-gray-100 bg-white px-4 py-3 shadow-sm md:px-6">
@@ -43,28 +100,7 @@ export default function TenantTopbar() {
           <Menu size={20} />
         </button>
 
-        <Link to="/" className="group flex items-center gap-2.5">
-          <img src="/EasyKothaColoured-02.png" alt="Logo" className="h-9 w-9 object-contain transition-transform group-hover:scale-105" />
-          <span className="text-xl font-semibold tracking-tighter text-green-800">Easy Kotha</span>
-        </Link>
       </div>
-
-      <nav className="hidden items-center gap-10 lg:flex">
-        {navLinks.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`flex items-center gap-2 text-sm font-semibold transition-all ${
-              pathname === link.path
-                ? "border-b-2 border-green-800 pb-1 -mb-1 text-green-800"
-                : "text-gray-400 hover:border-b-2 hover:border-green-700/50 hover:pb-1 hover:-mb-1 hover:text-green-800"
-            }`}
-          >
-            <link.icon size={16} strokeWidth={2.5} />
-            {link.name}
-          </Link>
-        ))}
-      </nav>
 
       <div className="flex flex-1 items-center justify-end gap-1">
         <Link
@@ -80,10 +116,67 @@ export default function TenantTopbar() {
           )}
         </Link>
 
-        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-green-50 hover:text-green-800">
-          <Bell size={20} />
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-red-500" />
-        </button>
+        <div className="relative" ref={notificationRef}>
+          <button
+            type="button"
+            onClick={toggleNotificationPanel}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-green-50 hover:text-green-800"
+            title="Notifications"
+          >
+            <Bell size={20} />
+            {unreadNotificationCount > 0 && (
+              <span className="absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-green-800 px-1 text-[10px] font-semibold text-white">
+                {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+              </span>
+            )}
+          </button>
+
+          {isNotificationOpen && (
+            <div className="absolute right-0 z-50 mt-2 w-80 max-w-[92vw] rounded-xl border border-gray-200 bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-800">Notifications</p>
+                <button
+                  type="button"
+                  onClick={() => setNotifications([])}
+                  className="text-xs font-semibold text-green-800 hover:underline"
+                >
+                  Clear all
+                </button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <p className="px-4 py-6 text-sm text-slate-500">No notifications yet.</p>
+                ) : (
+                  notifications.map((notification) => {
+                    const NotificationIcon = getNotificationIcon(notification);
+                    return (
+                      <Link
+                        key={notification.id}
+                        to={notification.link}
+                        onClick={() => setIsNotificationOpen(false)}
+                        className="block border-b border-gray-50 px-4 py-3 hover:bg-green-50/50"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 rounded-lg bg-green-100 p-1.5 text-green-800">
+                            <NotificationIcon size={14} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-800">{notification.title}</p>
+                            <p className="mt-0.5 text-xs text-slate-600">{notification.message}</p>
+                            <p className="mt-1 text-[10px] text-slate-400">
+                              {new Date(notification.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         {authUser ? (
           <div className="group relative flex items-center gap-4 border-l border-gray-100 pl-5">

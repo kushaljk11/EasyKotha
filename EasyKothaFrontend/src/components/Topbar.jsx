@@ -17,8 +17,20 @@ export default function Topbar() {
   return (
     <div className="topbar sticky top-0 z-50 border border-green-200 bg-white shadow-md">
       <div className="flex items-center justify-between gap-3 p-3">
-        <div className="h-12 w-12 flex items-center">
-          <img src="/EasyKothaColoured-02.png" alt="Logo" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="md:hidden inline-flex items-center justify-center rounded-lg border border-green-200 p-2 text-green-800 hover:bg-green-50"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+          </button>
+
+          <div className="h-12 w-12 flex items-center">
+            <img src="/EasyKothaColoured-02.png" alt="Logo" />
+          </div>
         </div>
 
         <div className="hidden md:flex items-center gap-6 text-base font-medium">
@@ -48,15 +60,7 @@ export default function Topbar() {
           )}
         </div>
 
-        <button
-          type="button"
-          className="md:hidden inline-flex items-center justify-center rounded-lg border border-green-200 p-2 text-green-800 hover:bg-green-50"
-          onClick={() => setIsMenuOpen((prev) => !prev)}
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMenuOpen}
-        >
-          {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-        </button>
+        <div className="w-10 md:hidden" aria-hidden="true" />
       </div>
 
       {isMenuOpen && (

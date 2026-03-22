@@ -74,7 +74,7 @@ export default function TenantSidebar() {
         <nav className="px-4 py-4">
           <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">MAIN MENU</p>
           <div className="space-y-2">
-            <MenuItem to="/" icon={FaHome} label="Home" active={pathname === "/"} onClick={closeSidebar} />
+            {/* <MenuItem to="/" icon={FaHome} label="Home" active={pathname === "/"} onClick={closeSidebar} /> */}
             <MenuItem
               to="/tenant/dashboard"
               icon={FaThLarge}
