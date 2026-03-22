@@ -33,6 +33,7 @@ const Detailpage = () => {
   const location = useLocation();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState([]);
   const { setSelectedUser } = useChatStore();
   const { authUser } = useAuthStore();
   const [visitDate, setVisitDate] = useState("");
@@ -102,8 +103,20 @@ const Detailpage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchPost();
+    const fetchRecommendations = async () => {
+      if (!postId) return;
+
+      try {
+        const res = await axiosInstance.get(`/posts/${postId}/recommendations`);
+        setRecommendations(res.data.data || []);
+      } catch (err) {
+        console.error("Recommendation error:", err);
+      }
+    };
+
+    fetchRecommendations();
   }, [postId]);
 
   const handleBooking = async () => {
@@ -496,6 +509,34 @@ const Detailpage = () => {
           </div>
 
         </div>
+
+        {/* 🔥 RECOMMENDATIONS SECTION */}
+        {recommendations.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-xl font-bold mb-6">Similar Properties</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recommendations.map((rec) => (
+                <Link key={rec.id} to={`/posts/${rec.id}`}>
+                  <div className="border rounded-xl p-4 hover:shadow-lg transition">
+                    <img
+                      src={rec.images?.[0]}
+                      className="h-40 w-full object-cover rounded-lg mb-3"
+                      alt={rec.title}
+                    />
+                    <h3 className="font-semibold">{rec.title}</h3>
+                    <p className="text-sm text-gray-500">
+                      {rec.city}, {rec.district}
+                    </p>
+                    <p className="text-[#19545c] font-bold">
+                      NPR {rec.price}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ export default function TenantDashboard() {
 	const { authUser } = useAuthStore();
 	const [loading, setLoading] = useState(true);
 	const [bookings, setBookings] = useState([]);
+	const [recommended, setRecommended] = useState([]);
 
 	useEffect(() => {
 		const fetchBookings = async () => {
@@ -39,6 +40,19 @@ export default function TenantDashboard() {
 		};
 
 		fetchBookings();
+	}, []);
+
+	useEffect(() => {
+		const fetchRecommendations = async () => {
+			try {
+				const res = await axiosInstance.get("/recommendations/user");
+				setRecommended(res.data.data || []);
+			} catch (err) {
+				console.error("Failed to load recommendations:", err);
+			}
+		};
+
+		fetchRecommendations();
 	}, []);
 
 	const stats = useMemo(() => {
@@ -142,6 +156,35 @@ export default function TenantDashboard() {
 					</div>
 					<p className="mt-1 text-rose-600">You can explore more options from the tenant explore page.</p>
 				</div>
+			)}
+
+			{/* 🔥 RECOMMENDED FOR YOU */}
+			{recommended.length > 0 && (
+				<section className="mt-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+					<h3 className="text-lg font-semibold text-gray-900 mb-4">
+						Recommended for You
+					</h3>
+
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+						{recommended.map((post) => (
+							<Link key={post.id} to={`/posts/${post.id}`}>
+								<div className="border rounded-lg p-3 hover:shadow transition">
+									<img
+										src={post.images?.[0]}
+										className="h-28 w-full object-cover rounded mb-2"
+										alt={post.title}
+									/>
+									<p className="text-sm font-semibold line-clamp-1">
+										{post.title}
+									</p>
+									<p className="text-xs text-gray-500">
+										{post.city}
+									</p>
+								</div>
+							</Link>
+						))}
+					</div>
+				</section>
 			)}
 		</TenantLayout>
 	);
