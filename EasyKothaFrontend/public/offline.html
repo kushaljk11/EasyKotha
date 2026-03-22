@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#166534" />
+    <title>EasyKotha Offline</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --primary: #166534;
+        --text: #0f172a;
+        --muted: #475569;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 10% 20%, #dcfce7 0%, transparent 35%),
+          radial-gradient(circle at 90% 80%, #dbeafe 0%, transparent 30%),
+          var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 24px;
+      }
+
+      .card {
+        width: min(560px, 100%);
+        border-radius: 18px;
+        padding: 28px;
+        background: var(--surface);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e2e8f0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .brand img {
+        width: 42px;
+        height: 42px;
+        object-fit: contain;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--primary);
+      }
+
+      p {
+        margin: 0.45rem 0;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .actions {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      a,
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .ghost {
+        background: #ecfdf5;
+        color: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="brand">
+        <img src="/logo.png" alt="EasyKotha" />
+        <h1>You are offline</h1>
+      </div>
+      <p>EasyKotha could not reach the internet right now.</p>
+      <p>Previously visited pages and cached images may still work. Reconnect and refresh to continue everything normally.</p>
+      <div class="actions">
+        <button class="primary" onclick="window.location.reload()">Try again</button>
+        <a class="ghost" href="/">Go to home</a>
+      </div>
+    </main>
+  </body>
+</html>

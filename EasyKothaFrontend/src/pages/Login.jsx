@@ -54,14 +54,15 @@ export default function Login() {
   }
 
   return (
-    <div className="h-screen w-full flex flex-col md:flex-row items-center md:items-stretch justify-center md:justify-start overflow-hidden font-sans">
+    <div className="h-dvh w-full flex flex-col md:flex-row items-center md:items-stretch justify-center md:justify-start overflow-hidden font-sans">
       {/* LEFT SIDE - FORM */}
       <div
-        className="w-full md:w-1/2 relative flex flex-col items-center justify-center p-8 lg:p-12 bg-green-800"
+        className="w-full md:w-1/2 relative flex flex-col items-center justify-center overflow-hidden p-8 lg:p-12 bg-green-800"
       >
-        {/* Logo */}
-        <div className="absolute top-8 left-8 hidden md:block">
-          <img src="/logo.png" alt="Logo" className="h-16 w-auto" />
+        {/* Brand */}
+        <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm">
+          <img src="/EasyKothaColoured-02.png" alt="EasyKotha" className="h-8 w-8 object-contain" />
+          <span className="text-sm font-semibold text-white tracking-wide">EasyKotha</span>
         </div>
 
         <div className="w-full max-w-sm">

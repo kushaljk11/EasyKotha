@@ -1,7 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.jsx'
+
+registerSW({
+  immediate: true,
+  onOfflineReady() {
+    console.info('EasyKotha is ready to work offline.')
+  },
+  onNeedRefresh() {
+    console.info('New EasyKotha version available. Refresh to update.')
+  },
+})
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

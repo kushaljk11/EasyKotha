@@ -32,7 +32,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 font-semibold">
+    <div className="h-dvh flex flex-col bg-gray-50 font-semibold">
       {/* Topbar */}
       {authUser?.role === "TENANT" && <TenantTopbar />}
       {authUser?.role === "ADMIN" && <AdminTopbar />}
@@ -66,14 +66,26 @@ const HomePage = () => {
         </div>
 
         <div className="flex h-[calc(100%-68px)] overflow-hidden rounded-2xl border border-[#dbe5ef] bg-white/30">
-        {/* Sidebar */}
-          <div className="m-3 hidden w-[310px] shrink-0 rounded-2xl border border-gray-200/70 bg-white shadow-md md:block">
+          {/* Sidebar */}
+          <div
+            className={`m-3 shrink-0 rounded-2xl border border-gray-200/70 bg-white shadow-md ${
+              selectedUser ? "hidden md:block md:w-[310px]" : "w-[calc(100%-24px)] md:w-[310px]"
+            }`}
+          >
             <Sidebar />
           </div>
 
           {/* Chat Content */}
-          <div className="m-3 flex-1 overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-md">
-            {!selectedUser ? <NoChatSelected onBack={handleBack} backLabel={backLabel} /> : <ChatContainer />}
+          <div
+            className={`m-3 flex-1 overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-md ${
+              selectedUser ? "block" : "hidden md:block"
+            }`}
+          >
+            {!selectedUser ? (
+              <NoChatSelected onBack={handleBack} backLabel={backLabel} />
+            ) : (
+              <ChatContainer />
+            )}
           </div>
         </div>
       </div>

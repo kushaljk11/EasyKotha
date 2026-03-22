@@ -202,9 +202,9 @@ const Explore = () => {
 
   return (
     <>
-    <div className="flex min-h-screen bg-[#f8fafc]">
+    <div className="flex min-h-dvh bg-[#f8fafc]">
       <TenantSidebar />
-      <div className="h-screen flex-1 overflow-y-auto bg-white">
+      <div className="h-dvh flex-1 overflow-y-auto bg-white">
       <TenantTopbar />
 
       <div className="bg-gray-50/30 pb-16 p-3 sm:p-4 md:p-8">
