@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import React, { useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import AuthProvider from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -42,24 +43,19 @@ import TenantMessage from "./tenants/Message";
 import TenantProfile from "./tenants/Profile";
 import NotFound from "./pages/NotFound";
 
-const App = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+function AnimatedRouteContainer() {
+  const location = useLocation();
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  if (isCheckingAuth && !authUser)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
-      </div>
-    );
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Toaster position="top-center" reverseOrder={false} />
-        <Routes>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <Routes location={location}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Landing />} />
@@ -344,6 +340,29 @@ const App = () => {
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+const App = () => {
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (isCheckingAuth && !authUser)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Toaster position="top-center" reverseOrder={false} />
+        <AnimatedRouteContainer />
         <Chatbot/>
       </BrowserRouter>
     </AuthProvider>

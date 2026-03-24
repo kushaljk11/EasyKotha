@@ -1,5 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";// import { useChatStore } from "../store/useChatStore";
+import { AnimatePresence, motion } from "motion/react";
 import { useSidebarStore } from "../store/useSidebarStore";
 import {
   FaThLarge,
@@ -54,19 +55,135 @@ export default function Sidebar() {
   
   return (
     <>
-      {/* Overlay for mobile */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={closeSidebar}
-        />
-      )}
-      
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-gray-100 text-slate-900 border-r border-gray-300 flex flex-col shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0 md:h-screen md:sticky md:top-0
-      `}>
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={closeSidebar}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.aside
+            className="fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-y-auto border-r border-gray-300 bg-gray-100 text-black md:hidden"
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+          >
+            {/* Header with logo */}
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/EasyKothaColoured-02.png"
+                  alt="EasyKotha"
+                  className="h-10 w-10 rounded-md object-contain"
+                />
+                <div>
+                  <div className="font-semibold leading-5 text-black">EasyKotha</div>
+                  <div className="text-[11px] text-slate-500 tracking-wide">ADMIN PANEL</div>
+                </div>
+              </div>
+              <button
+                className="md:hidden p-2 text-slate-600 hover:bg-gray-200 rounded-lg"
+                onClick={closeSidebar}
+              >
+                <FaTimes />
+              </button>
+            </div>
+          <hr  className="border-gray-300"/>
+          <br />
+            <nav className="px-4">
+              <p className="text-[11px] font-semibold text-slate-500 tracking-wider mb-2">
+                MAIN MENU
+              </p>
+              <div className="space-y-2">
+                <MenuItem
+                  to="/admin/dashboard"
+                  icon={FaThLarge}
+                  label="Overview"
+                  active={pathname.includes("/admin/dashboard")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/users"
+                  icon={FaUsers}
+                  label="User Management"
+                  active={pathname.includes("/admin/users")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/properties"
+                  icon={FaShieldAlt}
+                  label="Property Verification"
+                  active={pathname.includes("/admin/properties")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/approvals"
+                  icon={FaCheckCircle}
+                  label="Post Approvals"
+                  active={pathname.includes("/admin/approvals")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/bookings"
+                  icon={FaCalendarAlt}
+                  label="Bookings"
+                  active={pathname.includes("/admin/bookings")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/payments"
+                  icon={FaMoneyCheckAlt}
+                  label="Payment"
+                  active={pathname.includes("/admin/payments")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/logs"
+                  icon={FaHistory}
+                  label="Manage Log"
+                  active={pathname.includes("/admin/logs")}
+                  onClick={closeSidebar}
+                />
+                <MenuItem
+                  to="/admin/settings"
+                  icon={FaCog}
+                  label="Settings"
+                  active={pathname.includes("/admin/settings")}
+                  onClick={closeSidebar}
+                />
+              </div>
+
+              <div className="my-4 border-t border-gray-300" />
+
+              <p className="text-[11px] font-semibold text-slate-500 tracking-wider mb-2">
+                INTELLIGENCE
+              </p>
+              <Link
+                to="/admin/ai-insights"
+                onClick={closeSidebar}
+                className="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50"
+              >
+                <span className="flex items-center gap-2 text-sm text-slate-700">
+                  <FaStar className="text-green-800" />
+                  AI Insights
+                </span>
+                <span className="h-2 w-2 bg-green-800 rounded-full" />
+              </Link>
+            </nav>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-gray-300 bg-gray-100 text-black md:flex">
         {/* Header with logo */}
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
@@ -76,7 +193,7 @@ export default function Sidebar() {
               className="h-10 w-10 rounded-md object-contain"
             />
             <div>
-              <div className="font-semibold leading-5 text-slate-900">EasyKotha</div>
+              <div className="font-semibold leading-5 text-black">EasyKotha</div>
               <div className="text-[11px] text-slate-500 tracking-wide">ADMIN PANEL</div>
             </div>
           </div>

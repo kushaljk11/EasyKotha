@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useSidebarStore } from "../store/useSidebarStore";
-import { LogOut, User, Bell, MessageSquare, Menu, CalendarCheck2, CircleCheckBig, Info } from "lucide-react";
+import { LogOut, User, BellDot, MessageCircleMore, Menu, CalendarCheck2, CircleCheckBig, Info } from "lucide-react";
+import UserAvatar from "../components/UserAvatar";
+import LanguageDropdown from "../components/LanguageDropdown";
 
 const getNotificationTarget = (link, role) => {
   if (!link || link === "/admin/bookings") {
@@ -34,9 +36,11 @@ export default function TenantTopbar() {
   const { unreadMessages } = useChatStore();
   const { toggleSidebar } = useSidebarStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const notificationRef = useRef(null);
+  const profileRef = useRef(null);
   const isNotificationOpenRef = useRef(false);
 
   const totalUnread = Object.values(unreadMessages || {}).reduce((sum, count) => sum + count, 0);
@@ -51,10 +55,18 @@ export default function TenantTopbar() {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setIsNotificationOpen(false);
       }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
   }, []);
 
   useEffect(() => {
@@ -99,16 +111,17 @@ export default function TenantTopbar() {
         >
           <Menu size={20} />
         </button>
-
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-1">
+        <LanguageDropdown />
+
         <Link
           to="/chat"
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-gray-50 hover:text-green-800"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-green-100 bg-green-50/50 text-green-800 transition-all hover:bg-green-100"
           title="Messages"
         >
-          <MessageSquare size={20} />
+          <MessageCircleMore size={20} />
           {totalUnread > 0 && (
             <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
               {totalUnread > 9 ? "9+" : totalUnread}
@@ -120,10 +133,10 @@ export default function TenantTopbar() {
           <button
             type="button"
             onClick={toggleNotificationPanel}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-green-50 hover:text-green-800"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-green-100 bg-green-50/50 text-green-800 transition-all hover:bg-green-100"
             title="Notifications"
           >
-            <Bell size={20} />
+            <BellDot size={20} />
             {unreadNotificationCount > 0 && (
               <span className="absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-green-800 px-1 text-[10px] font-semibold text-white">
                 {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
@@ -179,32 +192,47 @@ export default function TenantTopbar() {
         </div>
 
         {authUser ? (
-          <div className="group relative flex items-center gap-4 border-l border-gray-100 pl-5">
+          <div ref={profileRef} className="relative flex items-center gap-4 border-l border-gray-100 pl-5">
             <div className="hidden text-right sm:block">
               <p className="text-xs font-semibold text-gray-900">{authUser.name}</p>
-              <p className="mt-1 text-xs font-bold capitalize text-gray-400">{authUser.role.toLowerCase()} Account</p>
+              <p className="mt-1 text-xs font-semibold capitalize text-gray-400">{authUser.role.toLowerCase()} Account</p>
             </div>
 
-            <div className="relative cursor-pointer">
-              <img
-                src={authUser.profileImage || "/sadmin.png"}
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              className="rounded-full p-0.5"
+              aria-expanded={isProfileOpen}
+              aria-label="Open profile menu"
+            >
+              <UserAvatar
+                src={authUser?.profileImage}
+                name={authUser?.name}
                 alt="Avatar"
-                className="h-10 w-10 rounded-full border-2 border-gray-100 object-cover shadow-sm transition-all group-hover:border-green-400"
+                sizeClass="h-10 w-10"
+                className="border-2 border-gray-100 shadow-sm transition-all hover:border-green-400"
               />
+            </button>
 
-              <div className="invisible absolute right-0 top-full z-40 mt-3 w-52 translate-y-2 rounded-2xl border border-gray-100 bg-white py-2 opacity-0 shadow-2xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-50 hover:text-green-700">
+            {isProfileOpen && (
+              <div className="absolute right-0 top-full z-50 mt-3 w-52 rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsProfileOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-green-700"
+                >
                   <User size={16} className="opacity-60" /> Profile Settings
                 </Link>
                 <div className="mx-2 my-1 h-px bg-gray-50" />
                 <button
+                  type="button"
                   onClick={logout}
-                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 transition-colors hover:bg-red-50"
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
                 >
                   <LogOut size={16} className="opacity-60" /> Logout
                 </button>
               </div>
-            </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-3">

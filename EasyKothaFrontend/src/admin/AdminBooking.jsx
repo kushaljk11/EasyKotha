@@ -3,14 +3,9 @@ import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import axios from "../api/axios";
 import { 
-  FaCalendarCheck, 
-  FaUser, 
-  FaHome, 
-  FaClock, 
   FaSearch, 
   FaFilter, 
   FaEllipsisV,
-  FaCheckCircle,
   FaArrowRight
 } from "react-icons/fa";
 
@@ -39,13 +34,13 @@ export default function AdminBookings() {
   }, []);
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-gray-50/50">
       <Sidebar />
-      <div className="flex-1 bg-gray-50/50 min-h-screen">
+      <div className="flex-1 min-w-0">
         <Topbar />
-        <div className="p-4 md:p-8">
-          <div className="mb-8 text-left">
-            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 tracking-tight">
+        <div className="p-3 sm:p-4 md:p-8">
+          <div className="mb-6 text-left md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
               Booking History
             </h1>
             <p className="text-slate-500 text-sm mt-1">
@@ -54,7 +49,7 @@ export default function AdminBookings() {
           </div>
 
           <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="p-4 md:p-6 border-b border-gray-50 flex flex-col md:flex-row gap-4">
+            <div className="p-3 sm:p-4 md:p-6 border-b border-gray-50 flex flex-col md:flex-row gap-3 md:gap-4">
               <div className="relative flex-1 text-left">
                 <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
@@ -63,65 +58,65 @@ export default function AdminBookings() {
                   className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green-800/10"
                 />
               </div>
-              <button className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-semibold text-gray-600">
+              <button className="flex w-full items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-semibold text-gray-600 md:w-auto">
                 <FaFilter /> Filters
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
+            <div className="-mx-3 overflow-x-auto px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+              <table className="min-w-[760px] w-full text-left md:min-w-full">
                 <thead>
                   <tr className="bg-gray-50/50 border-b border-gray-100">
-                    <th className="px-6 py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">ID / Date</th>
-                    <th className="px-6 py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Property</th>
-                    <th className="px-6 py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Parties Involved</th>
-                    <th className="px-6 py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Amount</th>
-                    <th className="px-6 py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Status</th>
-                    <th className="px-6 py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-right">Action</th>
+                    <th className="px-3 py-3 md:px-6 md:py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">ID / Date</th>
+                    <th className="px-3 py-3 md:px-6 md:py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Property</th>
+                    <th className="px-3 py-3 md:px-6 md:py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Parties Involved</th>
+                    <th className="px-3 py-3 md:px-6 md:py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Amount</th>
+                    <th className="px-3 py-3 md:px-6 md:py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Status</th>
+                    <th className="px-3 py-3 md:px-6 md:py-4 text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {loading ? (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center text-gray-400">Loading bookings...</td>
+                      <td colSpan="6" className="px-3 py-10 md:px-6 md:py-12 text-center text-gray-400 text-sm">Loading bookings...</td>
                     </tr>
                   ) : bookings.length > 0 ? (
                     bookings.map((booking) => (
                       <tr key={booking.id ?? booking._id} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="px-6 py-4">
+                        <td className="px-3 py-3 md:px-6 md:py-4">
                           <p className="text-xs font-semibold text-slate-800 line-clamp-1">{getBookingDisplayId(booking)}</p>
                           <p className="text-[10px] font-semibold text-gray-400 mt-0.5">
                             {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : "N/A"}
                           </p>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <img src={booking.post?.images?.[0] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=100"} className="w-10 h-10 rounded-lg object-cover" alt="" />
+                        <td className="px-3 py-3 md:px-6 md:py-4">
+                          <div className="flex items-center gap-2.5 md:gap-3">
+                            <img src={booking.post?.images?.[0] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=100"} className="w-9 h-9 md:w-10 md:h-10 rounded-lg object-cover" alt="" />
                             <div>
-                              <p className="text-xs font-semibold text-slate-800 line-clamp-1">{booking.post?.title}</p>
-                              <p className="text-[10px] font-semibold text-gray-400 truncate max-w-30">{booking.post?.city}</p>
+                              <p className="text-xs font-semibold text-slate-800 line-clamp-1 max-w-[170px] md:max-w-[220px]">{booking.post?.title}</p>
+                              <p className="text-[10px] font-semibold text-gray-400 truncate max-w-[150px] md:max-w-[220px]">{booking.post?.city}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-left">
+                        <td className="px-3 py-3 md:px-6 md:py-4 text-left">
                           <div className="flex flex-col gap-0.5">
-                            <div className="text-[10px] font-semibold flex items-center gap-1.5">
+                            <div className="text-[10px] font-semibold flex items-center gap-1.5 max-w-[190px] md:max-w-[260px]">
                               <span className="text-blue-600 truncate">{booking.user?.name || "Tenant"}</span>
                               <FaArrowRight className="text-gray-300 text-[8px]" />
                               <span className="text-green-800 truncate">{booking.post?.author?.name || "Landlord"}</span>
                             </div>
-                            <p className="text-[9px] font-semibold text-gray-400 truncate">
+                            <p className="text-[9px] font-semibold text-gray-400 truncate max-w-[190px] md:max-w-[260px]">
                               {booking.user?.email || "No tenant email"}
                             </p>
-                            <p className="text-[9px] font-semibold text-gray-400 truncate">
+                            <p className="text-[9px] font-semibold text-gray-400 truncate max-w-[190px] md:max-w-[260px]">
                               {booking.post?.author?.email || "No landlord email"}
                             </p>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-left">
+                        <td className="px-3 py-3 md:px-6 md:py-4 text-left">
                           <p className="text-xs font-semibold text-slate-800">रू {booking.totalPrice?.toLocaleString?.() || "0"}</p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 py-3 md:px-6 md:py-4">
                           <span className={`text-[9px] font-semibold px-2.5 py-1 rounded-md tracking-wider uppercase ${
                             booking.status === 'approved' 
                               ? 'bg-green-50 text-green-600' 
@@ -132,7 +127,7 @@ export default function AdminBookings() {
                             {booking.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-3 py-3 md:px-6 md:py-4 text-right">
                           <button className="p-2 text-gray-400 hover:text-green-800">
                             <FaEllipsisV />
                           </button>
@@ -141,7 +136,7 @@ export default function AdminBookings() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center text-gray-400">No bookings found in history.</td>
+                      <td colSpan="6" className="px-3 py-10 md:px-6 md:py-12 text-center text-gray-400 text-sm">No bookings found in history.</td>
                     </tr>
                   )}
                 </tbody>

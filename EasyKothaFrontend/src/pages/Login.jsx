@@ -60,9 +60,9 @@ export default function Login() {
         className="w-full md:w-1/2 relative flex flex-col items-center justify-center overflow-hidden p-8 lg:p-12 bg-green-800"
       >
         {/* Brand */}
-        <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm">
-          <img src="/EasyKothaColoured-02.png" alt="EasyKotha" className="h-8 w-8 object-contain" />
-          <span className="text-sm font-semibold text-white tracking-wide">EasyKotha</span>
+        <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 rounded-xl  px-3 py-2 backdrop-blur-sm">
+          <img src="/logo.png" alt="EasyKotha" className="h-10 w-10 object-contain" />
+          <span className="text-xl font-semibold text-white tracking-wide">EasyKotha</span>
         </div>
 
         <div className="w-full max-w-sm">

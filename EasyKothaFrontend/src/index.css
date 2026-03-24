@@ -26,7 +26,16 @@ canvas {
 button,
 a,
 [role="button"] {
+	cursor: pointer;
 	touch-action: manipulation;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+	cursor: not-allowed;
 }
 
 @supports (padding: max(0px)) {

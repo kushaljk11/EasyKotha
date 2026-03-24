@@ -42,6 +42,23 @@ const PaymentForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const submitGatewayForm = (url, fields) => {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = url;
+
+    Object.entries(fields || {}).forEach(([key, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = String(value ?? "");
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -60,6 +77,8 @@ const PaymentForm = () => {
         ...formData,
         amount: finalAmount,
         productId,
+        successUrl: `${window.location.origin}/payment-success`,
+        failureUrl: `${window.location.origin}/payment-failure`,
         tenantId: authUser?.id || authUser?._id || null,
         tenantName: authUser?.name || tenantNameFromQuery || formData.customerName || "",
         tenantEmail: authUser?.email || tenantEmailFromQuery || formData.customerEmail || "",
@@ -73,7 +92,14 @@ const PaymentForm = () => {
         },
       });
 
-      if (response.data?.url) {
+      if (
+        response.data?.gateway === "esewa" &&
+        response.data?.method === "POST" &&
+        response.data?.url &&
+        response.data?.fields
+      ) {
+        submitGatewayForm(response.data.url, response.data.fields);
+      } else if (response.data?.url) {
         window.location.href = response.data.url;
       } else {
         toast.error("Payment gateway URL is invalid. Please try again.");
@@ -112,7 +138,7 @@ const PaymentForm = () => {
               <Sparkles size={14} className="mr-1.5" />
               Secure Checkout
             </div>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Complete Your Payment</h1>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-black sm:text-4xl">Complete Your Payment</h1>
             <p className="mt-2 text-sm text-slate-600 sm:text-base">
               Final step to confirm your room booking. Fill details and continue to your gateway.
             </p>
@@ -225,7 +251,7 @@ const PaymentForm = () => {
           </div>
 
           <aside className="rounded-3xl border border-green-100 bg-white/90 p-6 shadow-md backdrop-blur lg:col-span-2">
-            <h2 className="text-lg font-bold text-slate-900">Summary</h2>
+            <h2 className="text-lg font-bold text-black">Summary</h2>
             <p className="mt-1 text-sm text-slate-500">Review before checkout.</p>
 
             <div className="mt-5 space-y-4">

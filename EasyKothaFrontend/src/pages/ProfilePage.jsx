@@ -205,7 +205,7 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1 text-left">
-            <h1 className="text-2xl font-semibold text-slate-900  flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-black  flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}
                 className="p-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm"

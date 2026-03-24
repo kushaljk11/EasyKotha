@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../api/axios";
 import { Search as SearchIcon, MapPin, Home, Filter, Clock, Heart, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { motion } from "motion/react";
 import TenantTopbar from "../tenants/TenantTopbar";
 import TenantSidebar from "../tenants/TenantSidebar";
 import Search from "../components/Search";
@@ -295,12 +296,15 @@ const Explore = () => {
 
             {/* Button */}
             <div className="sm:col-span-2 xl:col-span-2">
-              <button
+              <motion.button
                 type="submit"
                 className="w-full rounded-xl bg-green-800 px-4 py-2.5 text-sm font-semibold text-white transition shadow-lg shadow-green-800/10 hover:bg-green-900 active:scale-[0.98]"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 Apply
-              </button>
+              </motion.button>
             </div>
           </form>
         </div>
@@ -324,7 +328,14 @@ const Explore = () => {
                 posts.map((post) => {
                   const postId = post?._id || post?.id || post?.postId;
                   return (
-                  <div key={postId || post.title} className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 hover:shadow-xl md:flex-row">
+                  <motion.div
+                    key={postId || post.title}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 hover:shadow-xl md:flex-row"
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    whileHover={{ y: -3 }}
+                  >
                     {/* Image Container - Reduced height matching parent */}
                     <div className="relative h-52 w-full shrink-0 overflow-hidden sm:h-56 md:h-auto md:w-72 lg:w-80">
                       <img
@@ -391,16 +402,19 @@ const Explore = () => {
                             </div>
                          </div>
                          <div className="flex w-full items-center gap-3 sm:w-auto">
-                            <button 
+                            <motion.button 
                               onClick={() => postId && handleToggleSave(postId)}
                               className={`h-10 w-10 shrink-0 flex items-center justify-center border rounded-xl transition-all ${
                                 isSaved(postId) 
                                   ? "bg-red-50 border-red-100 text-red-500 shadow-inner" 
                                   : "bg-white border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50"
                               }`}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.94 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
                             >
                                 <Heart size={18} fill={isSaved(postId) ? "currentColor" : "none"} />
-                            </button>
+                            </motion.button>
                             {postId ? (
                               <Link 
                                   to={`/posts/${postId}`}
@@ -420,7 +434,7 @@ const Explore = () => {
                          </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                   );
                 })
               ) : (
@@ -436,7 +450,7 @@ const Explore = () => {
           {totalPages > 1 && (
             <div className="mt-12 flex justify-center gap-2">
               {[...Array(totalPages)].map((_, i) => (
-                <button
+                <motion.button
                   key={i}
                   onClick={() => setPage(i + 1)}
                   className={`w-10 h-10 rounded-xl font-semibold transition-all text-xs ${
@@ -444,9 +458,12 @@ const Explore = () => {
                       ? "bg-green-800 text-white shadow-xl shadow-green-800/20"
                       : "bg-white text-gray-400 border border-gray-100 hover:bg-gray-50"
                   }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
                   {i + 1}
-                </button>
+                </motion.button>
               ))}
             </div>
           )}

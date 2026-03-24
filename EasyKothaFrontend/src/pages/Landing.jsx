@@ -21,21 +21,22 @@ import {
   getProvinces,
 } from "../utils/locationUtils";
 
-function LocationCard({ imageSrc, locationName, to }) {
+function LocationCard({ imageSrc, locationName, onClick }) {
   return (
-    <Link
-      to={to}
-      className="LocationCard flex flex-col items-center gap-2 cursor-pointer group"
+    <button
+      type="button"
+      onClick={onClick}
+      className="LocationCard group w-full rounded-xl border border-green-100 bg-white p-2 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <img
-        className="h-24 w-32 rounded-lg object-cover transition-transform duration-200 group-hover:scale-105"
+        className="w-full rounded-lg object-cover transition-transform duration-200 group-hover:scale-[1.03] aspect-4/3"
         src={imageSrc}
         alt={locationName}
       />
-      <h3 className="text-md text-green-800 font-medium group-hover:text-green-600">
+      <h3 className="pt-2 text-center text-sm font-semibold text-green-800 group-hover:text-green-700 sm:text-base">
         {locationName}
       </h3>
-    </Link>
+    </button>
   );
 }
 
@@ -49,21 +50,22 @@ function WhyEasyKothaCard({ icon, title, description }) {
   );
 }
 
-function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, to }) {
+function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, onClick }) {
   return (
-    <Link
-      to={to}
-      className="FeaturedListingCard w-full max-w-sm border border-green-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 mx-auto"
+    <button
+      type="button"
+      onClick={onClick}
+      className="FeaturedListingCard w-full overflow-hidden rounded-xl border border-green-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
     >
-      <img className="h-48 w-full object-cover" src={imageSrc} alt={title} />
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-green-800">{title}</h3>
-        <p className="text-sm text-gray-600">{location}</p>
-        <p className="text-md font-bold text-green-900 mt-2">
+      <img className="h-32 w-full object-cover sm:h-40" src={imageSrc} alt={title} />
+      <div className="p-3 sm:p-4">
+        <h3 className="line-clamp-2 text-base font-semibold text-green-800 sm:text-lg">{title}</h3>
+        <p className="mt-0.5 line-clamp-1 text-xs text-gray-600 sm:text-sm">{location}</p>
+        <p className="mt-2 text-base font-bold text-green-900 sm:text-xl">
           Rs. {pricePerMonth} / month
         </p>
       </div>
-    </Link>
+    </button>
   );
 }
 
@@ -123,7 +125,38 @@ export default function Landing() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locationOptions, setLocationOptions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [featuredRooms, setFeaturedRooms] = useState([]);
+  const [isLoadingFeaturedRooms, setIsLoadingFeaturedRooms] = useState(true);
   const suggestionBoxRef = useRef(null);
+
+  useEffect(() => {
+    const fetchFeaturedRooms = async () => {
+      setIsLoadingFeaturedRooms(true);
+      try {
+        const response = await axiosInstance.get("/posts", {
+          params: {
+            status: "approved",
+            page: 1,
+            limit: 4,
+            sort: "latest",
+          },
+        });
+
+        if (response.data?.success) {
+          setFeaturedRooms(Array.isArray(response.data.data) ? response.data.data : []);
+        } else {
+          setFeaturedRooms([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch featured rooms:", error);
+        setFeaturedRooms([]);
+      } finally {
+        setIsLoadingFeaturedRooms(false);
+      }
+    };
+
+    fetchFeaturedRooms();
+  }, []);
 
   useEffect(() => {
     const loadLocationOptions = async () => {
@@ -221,21 +254,60 @@ export default function Landing() {
     navigate("/login");
   };
 
+  const getExploreBasePath = () => {
+    if (!authUser) return null;
+    if (authUser.role === "LANDLORD") return "/landlord/explore";
+    if (authUser.role === "TENANT") return "/tenant/explore";
+    return "/admin/dashboard";
+  };
+
+  const buildExplorePath = ({ keyword = "", city = "" }) => {
+    const basePath = getExploreBasePath();
+    if (!basePath) return "/login";
+    if (basePath === "/admin/dashboard") return basePath;
+
+    const params = new URLSearchParams();
+    const normalizedKeyword = keyword.trim();
+
+    if (normalizedKeyword) {
+      params.set("search", normalizedKeyword);
+    }
+
+    if (city) {
+      if (authUser?.role === "TENANT") {
+        params.set("city", city);
+      }
+
+      if (!normalizedKeyword) {
+        params.set("search", city);
+      }
+    }
+
+    return params.toString() ? `${basePath}?${params.toString()}` : basePath;
+  };
+
+  const handleLocationClick = (city) => {
+    const target = buildExplorePath({ city });
+    navigateWithAuthCheck(target);
+  };
+
+  const handleFeaturedRoomClick = (room) => {
+    if (!authUser) {
+      navigate("/register");
+      return;
+    }
+
+    const roomCity = room?.city || room?.district || "";
+    const roomTitle = room?.title || "";
+    const target = buildExplorePath({ keyword: roomTitle, city: roomCity });
+    navigate(target);
+  };
+
   const handleSearchSubmit = () => {
-    const keyword = searchTerm.trim();
-    const queryParams = new URLSearchParams();
-
-    if (keyword) {
-      queryParams.set("search", keyword);
-    }
-
-    if (selectedLocation) {
-      queryParams.set("city", selectedLocation);
-    }
-
-    const target = queryParams.toString()
-      ? `/explore?${queryParams.toString()}`
-      : "/explore";
+    const target = buildExplorePath({
+      keyword: searchTerm,
+      city: selectedLocation,
+    });
 
     navigateWithAuthCheck(target);
   };
@@ -401,17 +473,17 @@ export default function Landing() {
             Popular Searches
           </h2>
           <div className="flex flex-wrap md:flex-nowrap items-center cursor-pointer justify-center md:justify-start gap-0 text-xs sm:text-sm md:text-[20px] font-medium text-gray-800 whitespace-nowrap">
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Furnished Room</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "furnished room" }))}>Furnished Room</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Shared Room</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "shared room" }))}>Shared Room</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Single Room</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "single room" }))}>Single Room</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Pet-Friendly</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "pet friendly" }))}>Pet-Friendly</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Budget Rooms</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "budget rooms" }))}>Budget Rooms</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline">Nearby Locations</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "nearby location" }))}>Nearby Locations</button>
           </div>
         </div>
       </div>
@@ -450,30 +522,36 @@ export default function Landing() {
         <h2 className="text-3xl md:text-3xl font-semibold text-center">
           <span className="text-green-800 font-semibold">Explore </span>by Location
         </h2>
-        <div className="LocationsGrid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 md:gap-8">
+        <div className="LocationsGrid grid w-full max-w-6xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 md:gap-6">
           <LocationCard
             imageSrc="https://imgs.search.brave.com/GAIYvtELr_GBXvpe7yW6Cz4yl7g-lidMwk8wj79C1-4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/ZWFydGh0cmVra2Vy/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTYvMDIvS2F0/aG1hbmR1LWZyb20t/SGlnaC5qcGcub3B0/aW1hbC5qcGc"
             locationName="Kathmandu"
+            onClick={() => handleLocationClick("Kathmandu")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/ze4G9XolbChWJjIwSpDNaU624HhLigRyqZ48tHsCk2Y/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZi5i/c3RhdGljLmNvbS94/ZGF0YS9pbWFnZXMv/aG90ZWwvc3F1YXJl/NjAwLzU1NDc3MjAz/OS53ZWJwP2s9ZDRl/NDU4OGNjZjM2MWZl/YTUzY2ZhMzYwODY1/YTczNzg3NzZkN2Ey/MGIyYTU0ZmI5MDM4/ODk5ZjA1ZmZmNGQ3/OCZvPQ"
             locationName="Itahari"
+            onClick={() => handleLocationClick("Itahari")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/mUqepwjm1-jjqQvKZdF1-Qxx0jT7o9FKXdXDfFuH5Po/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dHJla2tpbmdhZHZp/c29yLmNvbS9pbWFn/ZS8xMDI0L3RyZWtf/bWVkaWEvcGxhY2Vz/L2RoYXJhbi9EaGFy/YW4uanBn"
             locationName="Dharan"
+            onClick={() => handleLocationClick("Dharan")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/GkiPcAl6KnRuamx0dISXq-QBYRXy-c9NlVuHmI1cfDA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cGlnZW9udHJhdmVs/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTgvMTEvYmly/YXRuYWdhci1nYXRl/LTIzMDYyMDE3MDgy/NjI3LTEwMDB4MC5q/cGc"
             locationName="Biratnagar"
+            onClick={() => handleLocationClick("Biratnagar")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/9yMX6V_cbbmggXZ1OiW5rQ2cxHqJl7rPDzSFQuZt5-o/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9lbmds/aXNoLm5lcGFsbmV3/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMjUvMDIvMzM0/OTg4Mjk5XzExMzk0/NzI3ODY3NDk3Nzdf/ODgyNzE5NjcyMjE1/Mjc3MTI3Ml9uLmpw/Zw"
             locationName="Damak"
+            onClick={() => handleLocationClick("Damak")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/yGv11ms-TJXfycSLDgs7vuj3iw52lyIXV9bGT8PtSi0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aHVt/YnMuZHJlYW1zdGlt/ZS5jb20vYi9uZXBh/bC1kb21hay1jaXR5/LWpoYXBhLWJpc2hh/bC1tYXJnLXJvYWQt/ZGlzdHJpY3QtY2xv/c2VzdC10by1yYWRo/YS1rcmlzaG5hLXRl/bXBsZS1qdW5jdGlv/bi0xOTIzNjg3MDYu/anBn"
             locationName="Kerkha"
+            onClick={() => handleLocationClick("Kerkha")}
           />
         </div>
       </div>
@@ -484,31 +562,26 @@ export default function Landing() {
         <h2 className="text-3xl md:text-3xl font-semibold text-center">
           <span className="text-green-800 font-semibold">Featured </span>Listings
         </h2>
-        <div className="FeaturedListingsGrid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8 w-full max-w-7xl">
-          <FeaturedListingCard
-            imageSrc="https://imgs.search.brave.com/54S1fefN_7he89-JO8FAEd0jRlR0GLFKCfjb2CGEZSY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/bW9zLmNtcy5mdXR1/cmVjZG4ubmV0LzRG/amhZTkQyZHQzQWdC/WHR3c040RzkuanBn"
-            title="Cozy Furnished Room"
-            location="Kathmandu, Nepal"
-            pricePerMonth="15000"
-          />
-          <FeaturedListingCard
-            imageSrc="https://imgs.search.brave.com/NZZ_03Z2_WlHgak8EglKhfu270DLjT76dSQkUS7Fr1g/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aHVt/YnMuZHJlYW1zdGlt/ZS5jb20vYi9zcGFj/aW91cy1yb29tLWJv/eC1tYW55LWJvb2tz/LWNhcnBldC1iaWct/d2luZG93LWZpcmVw/bGFjZS0zMzk4NTc5/OC5qcGc"
-            title="Spacious Shared Room"
-            location="Biratnagar, Nepal"
-            pricePerMonth="12000"
-          />
-          <FeaturedListingCard
-            imageSrc="https://imgs.search.brave.com/Y79SbOTmzudX7O9xbFtuJPsWxKSMhabCQz5J62-nuL8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2FmLzBh/L2E3L2FmMGFhNzA5/MGVmNTRiOWY5YmJk/MmJkNTRhZTcyMzE5/LmpwZw"
-            title="Modern Studio Apartment"
-            location="Dharan, Nepal"
-            pricePerMonth="20000"
-          />
-          <FeaturedListingCard
-            imageSrc="https://imgs.search.brave.com/BMJuApEK5zKLhMq3_q_xkzNPMeEZ3-HW6KiqXzsfR1s/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMuZXJtLWFzc2V0/cy5jb20vcjMtMC0x/LTEwNDkvZHluYW1p/Y2ltYWdlcy90aHVt/Ym5haWxzL3VrLWVy/bS9IMjUxMTEwMTAz/NDI5NjE4LzEvMzUw/LmpwZz9tb2RpZmll/ZD0yMDI1MTExMDEy/NDUxMQ"
-            title="Affordable Single Room"
-            location="Itahari, Nepal"
-            pricePerMonth="10000"
-          />
+        <div className="FeaturedListingsGrid grid w-full max-w-7xl grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4 md:gap-6">
+          {isLoadingFeaturedRooms && (
+            <p className="col-span-full text-center text-sm font-medium text-slate-500">Loading available rooms...</p>
+          )}
+
+          {!isLoadingFeaturedRooms && featuredRooms.length === 0 && (
+            <p className="col-span-full text-center text-sm font-medium text-slate-500">No rooms available at the moment.</p>
+          )}
+
+          {!isLoadingFeaturedRooms &&
+            featuredRooms.map((room) => (
+              <FeaturedListingCard
+                key={room.id || room._id || `${room.title}-${room.createdAt}`}
+                imageSrc={getPostPreviewImage(room.images)}
+                title={room.title || "Available Room"}
+                location={`${room.city || "Unknown city"}, ${room.district || "Unknown district"}`}
+                pricePerMonth={Number(room.price || 0).toLocaleString()}
+                onClick={() => handleFeaturedRoomClick(room)}
+              />
+            ))}
         </div>
       </div>
 
@@ -571,7 +644,7 @@ export default function Landing() {
 
       {/* looking for a room section */}
       <div className="LookingForARoomSection flex flex-col lg:flex-row justify-between gap-4 items-stretch text-white p-4 sm:p-6 md:p-10 mb-10 rounded-lg mx-4 sm:mx-8 lg:mx-24">
-        <div className="bg-green-400 p-6 md:p-10 rounded-lg flex-1 flex flex-col items-center">
+        <div className="bg-green-800 p-6 md:p-10 rounded-lg flex-1 flex flex-col items-center">
           <h1 className="text-2xl font-semibold text-center mt-3">
             Looking for a Room?
           </h1>
@@ -579,16 +652,16 @@ export default function Landing() {
             Start your search and find your perfect room today.
           </p>
           <p className="text-center">It's fast, easy, and free</p>
-          <button className="text-white bg-green-800 px-4 py-2 mt-4 rounded-xl">
+          <button className="text-green-800 bg-white px-4 py-2 mt-4 rounded-xl">
             Find Room
           </button>
         </div>
 
-        <div className="bg-blue-400 p-6 md:p-10 rounded-lg flex-1 flex flex-col items-center">
-          <h1 className="text-2xl font-semibold text-center mt-3">
+        <div className="bg-gray-100 p-6 md:p-10 border border-green-200 rounded-lg flex-1 flex flex-col items-center">
+          <h1 className="text-2xl text-green-800 font-semibold text-center mt-3">
             Have a Room to Rent?
           </h1>
-          <p className="text-center">
+          <p className="text-center text-green-800">
             List your property for free and connect with thousand of potential
             tenants
           </p>
@@ -605,10 +678,10 @@ export default function Landing() {
           <div className="image shrink-0 w-full md:w-2/5 flex justify-center relative">
             <div className="absolute w-56 sm:w-64 md:w-96 h-48 sm:h-56 md:h-80 bg-white rounded-3xl -z-10 top-1 sm:top-2 md:top-4 left-0"></div>
 
-            <div className="relative w-48 sm:w-56 md:w-80 h-56 sm:h-64 md:h-96 bg-teal-500 rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden">
+            <div className="relative w-48 sm:w-56 md:w-80 h-56 sm:h-64 md:h-96 bg-gray-100 rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden">
               {/* Phone mockup with image */}
               <img
-                src="/EasyKothaColoured-02.png"
+                src="/mobile.png"
                 alt="Mobile App Preview"
                 className="w-full h-full object-cover"
               />
@@ -711,7 +784,7 @@ export default function Landing() {
       </div>
 
       {/* browse listings section */}
-      <div className="bg-gray-300 px-4 py-8 md:p-8 flex flex-col items-center gap-2">
+      <div className="bg-gray-100 px-4 py-8 md:p-8 flex flex-col items-center gap-2">
         <h1 className="text-2xl md:text-4xl text-green-800 font-bold text-center">
           Ready to find the Perfect Rent?
         </h1>
@@ -720,7 +793,7 @@ export default function Landing() {
           Explore our listings and find your ideal rentals today.
         </p>
 
-        <button className="bg-green-800 hover:bg-blue-500 text-white hover:text-white py-2 md:py-3 px-6 rounded-lg">
+        <button className="bg-green-800 hover:bg-green-700 cursor-pointer text-white hover:text-white py-2 md:py-3 px-6 rounded-lg">
           Browse Listings
         </button>
       </div>

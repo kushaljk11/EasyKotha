@@ -89,7 +89,7 @@ export default function Message() {
       <div className="grid h-[calc(100vh-210px)] min-h-[520px] grid-cols-1 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:grid-cols-[340px_1fr]">
         <section className="border-r border-slate-200 bg-white">
           <div className="border-b border-slate-200 p-4">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-slate-900">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-black">
               <FaEnvelope className="text-green-800" />
               Conversations
             </h2>
@@ -124,7 +124,7 @@ export default function Message() {
                     {(user.name || "U").slice(0, 1).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900">{user.name || "Unnamed"}</p>
+                    <p className="truncate font-medium text-black">{user.name || "Unnamed"}</p>
                     <p className="truncate text-xs text-slate-500">{user.email || "No email"}</p>
                   </div>
                 </button>
@@ -134,7 +134,7 @@ export default function Message() {
 
         <section className="flex h-full flex-col bg-slate-50">
           <div className="border-b border-slate-200 bg-white p-4">
-            <h3 className="flex items-center gap-2 font-semibold text-slate-900">
+            <h3 className="flex items-center gap-2 font-semibold text-black">
               <FaUser className="text-green-800" />
               {activeUser?.name || "Select a conversation"}
             </h3>

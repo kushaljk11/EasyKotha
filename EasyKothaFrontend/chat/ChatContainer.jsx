@@ -1,6 +1,7 @@
 import { useChatStore } from "../src/store/useChatStore";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./Messageinput";
 import MessageSkeleton from "./components/skeletons/MessageSkeleton";
@@ -65,9 +66,12 @@ const ChatContainer = () => {
           const isDelivered = onlineUsers.includes(String(message.receiverId));
           
           return (
-            <div
+            <motion.div
               key={message._id || index}
               className={`flex ${isMyMessage ? "justify-end" : "justify-start"} message-animate`}
+              initial={{ opacity: 0, x: isMyMessage ? 28 : -28, y: 6 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ duration: 0.25, delay: Math.min(index * 0.015, 0.12), ease: "easeOut" }}
             >
               <div className={`flex gap-3 max-w-[80%] ${isMyMessage ? "flex-row-reverse" : "flex-row"}`}>
                 <div className="shrink-0 self-end mb-1">
@@ -118,7 +122,7 @@ const ChatContainer = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
         <div ref={messageEndRef} />
@@ -128,12 +132,21 @@ const ChatContainer = () => {
         <MessageInput />
       </div>
 
-      {showProfileModal && (
-        <ProfileModal
-          user={profileToShow}
-          onClose={() => setShowProfileModal(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showProfileModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+          >
+            <ProfileModal
+              user={profileToShow}
+              onClose={() => setShowProfileModal(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

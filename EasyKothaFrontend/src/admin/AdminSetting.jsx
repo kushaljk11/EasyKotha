@@ -24,7 +24,7 @@ export default function AdminSettings() {
         <Topbar />
         <div className="p-4 md:p-8">
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
               Settings
             </h1>
             <p className="text-slate-500 text-sm mt-1">

@@ -41,7 +41,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: '/offline.html',
+        // Keep SPA routes (including /login?token=...) working after OAuth redirects.
+        navigateFallback: '/index.html',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.+\.(png|jpg|jpeg|svg|webp|gif)$/i,

@@ -33,7 +33,7 @@ export default function Aboutus() {
 
             <main className="mx-auto mt-10 grid w-11/12 max-w-6xl gap-6 pb-14  lg:grid-cols-3">
                 <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-                    <h2 className="text-2xl font-semibold text-slate-900">Who We Are</h2>
+                    <h2 className="text-2xl font-semibold text-black">Who We Are</h2>
                     <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
                         Welcome to EasyKotha, your trusted platform for finding the perfect
                         rental accommodation. We are dedicated to simplifying the rental
@@ -53,7 +53,7 @@ export default function Aboutus() {
                 </article>
 
                 <aside className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-slate-900">What We Promise</h3>
+                    <h3 className="text-lg font-semibold text-black">What We Promise</h3>
                     <ul className="mt-4 space-y-3 text-sm text-slate-600">
                         <li className="rounded-lg border border-green-100 bg-green-50 px-3 py-2">Verified and relevant listings</li>
                         <li className="rounded-lg border border-green-100 bg-green-50 px-3 py-2">Fast tenant-landlord connection</li>

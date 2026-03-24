@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useSidebarStore } from "../store/useSidebarStore";
+import UserAvatar from "../components/UserAvatar";
+import LanguageDropdown from "../components/LanguageDropdown";
 
 export default function Topbar() {
   const { authUser, logout, socket } = useAuthStore();
@@ -30,7 +32,11 @@ export default function Topbar() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -69,6 +75,7 @@ export default function Topbar() {
         {/* Mobile Hamburger & Search Bar */}
         <div className="flex items-center gap-4 flex-1">
           <button 
+            type="button"
             onClick={toggleSidebar}
             className="p-2 text-green-800 hover:bg-green-800/5 rounded-lg md:hidden"
             aria-label="Toggle Sidebar"
@@ -90,8 +97,10 @@ export default function Topbar() {
 
         {/* Right Icons */}
         <div className="flex items-center gap-2 md:gap-4">
+          <LanguageDropdown />
+
           {/* Mobile Search Icon (only visible when the search input is hidden) */}
-          <button className="sm:hidden p-2 text-green-800 hover:bg-green-800/5 rounded-lg">
+          <button type="button" className="sm:hidden p-2 text-green-800 hover:bg-green-800/5 rounded-lg">
             <FaSearch className="text-lg" />
           </button>
 
@@ -166,24 +175,29 @@ export default function Topbar() {
             ref={dropdownRef}
           >
             <button 
-              onClick={() => setIsOpen(!isOpen)}
+              type="button"
+              onClick={() => setIsOpen((prev) => !prev)}
               className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer focus:outline-none"
+              aria-expanded={isOpen}
+              aria-label="Open profile menu"
             >
-              <img
-                src={authUser?.profileImage || "/sadmin.png"}
+              <UserAvatar
+                src={authUser?.profileImage}
+                name={authUser?.name}
                 alt="User"
-                className="h-8 w-8 md:h-9 md:w-9 rounded-full object-cover border-2 border-green-800/20"
+                sizeClass="h-8 w-8 md:h-9 md:w-9"
+                className="border-2 border-green-800/20"
               />
             </button>
 
             {/* Hover Box */}
             {isOpen && (
-              <div className="absolute right-0 mt-1 w-56 md:w-60 bg-white rounded-xl shadow-xl border border-blue-800/10 py-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 mt-1 w-56 md:w-60 bg-white rounded-xl shadow-xl border border-green-200 py-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                  <p className="text-sm font-bold text-blue-800 truncate">
+                  <p className="text-sm font-semibold text-green-800 truncate">
                     {authUser?.name || "Admin User"}
                   </p>
-                  <p className="text-[10px] font-bold text-green-800 uppercase tracking-widest mt-0.5">
+                  <p className="text-xs font-medium text-green-700 mt-0.5">
                     {authUser?.role === "ADMIN" ? "Super Admin" : authUser?.role || "Admin"}
                   </p>
                 </div>
@@ -191,16 +205,16 @@ export default function Topbar() {
                 <div className="py-1">
                   <Link
                     to="/profile"
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-green-50 transition-colors"
                   >
-                    <FaUser className="text-blue-800/60" />
+                    <FaUser className="text-green-700" />
                     <span>My Profile</span>
                   </Link>
                   <Link
                     to="/admin/settings"
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-green-50 transition-colors"
                   >
-                    <FaCog className="text-blue-800/60" />
+                    <FaCog className="text-green-700" />
                     <span>Settings</span>
                   </Link>
                 </div>

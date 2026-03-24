@@ -80,7 +80,7 @@ export default function PostApproval() {
       <Sidebar />
       <div className="flex-1 bg-gray-50/50 min-h-screen overflow-x-hidden">
         <Topbar />
-        <div className="p-4 md:p-6 text-slate-900">
+        <div className="p-4 md:p-6 text-black">
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-semibold text-green-800">Post Approval Queue</h1>
             <p className="text-gray-500 mt-1">Review and approve new property listings from users.</p>
@@ -176,7 +176,7 @@ export default function PostApproval() {
                     </div>
                   </div>
                   <div className="p-6">
-                    <h2 className="text-lg font-semibold text-slate-900 leading-tight">{selectedPost.title}</h2>
+                    <h2 className="text-lg font-semibold text-black leading-tight">{selectedPost.title}</h2>
                     <div className="flex items-center gap-2 mt-1">
                        <FaMapMarkerAlt className="text-green-800 text-xs" />
                        <p className="text-xs text-slate-500 font-bold">{selectedPost.address || `${selectedPost.city}, ${selectedPost.district}`}</p>

@@ -4,13 +4,14 @@ import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.jsx'
 
-registerSW({
+const updateSW = registerSW({
   immediate: true,
   onOfflineReady() {
     console.info('EasyKotha is ready to work offline.')
   },
   onNeedRefresh() {
-    console.info('New EasyKotha version available. Refresh to update.')
+    console.info('New EasyKotha version available. Updating now...')
+    updateSW(true)
   },
 })
 

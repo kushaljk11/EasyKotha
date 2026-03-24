@@ -76,7 +76,7 @@ const PaymentSuccess = () => {
         style={{ background: "linear-gradient(165deg, #f8fafc 0%, #ecfeff 100%)" }}
       >
         <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-md">
-          <h1 className="text-2xl font-bold text-slate-900">Could not verify payment</h1>
+          <h1 className="text-2xl font-bold text-black">Could not verify payment</h1>
           <p className="mt-2 text-sm text-slate-500">
             Your payment may still be processing. Keep this reference for support.
           </p>
@@ -117,7 +117,7 @@ const PaymentSuccess = () => {
               <CheckCircle2 size={42} className="text-emerald-700" />
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Payment Successful</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-black sm:text-4xl">Payment Successful</h1>
             <p className="mt-2 max-w-xl text-sm text-slate-600 sm:text-base">
               Your transaction is verified and your booking payment has been completed.
             </p>

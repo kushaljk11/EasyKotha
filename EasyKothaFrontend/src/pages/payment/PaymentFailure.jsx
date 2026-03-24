@@ -47,7 +47,7 @@ const PaymentFailure = () => {
             <XCircle size={42} className="text-rose-600" />
           </div>
 
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Payment Failed</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-black">Payment Failed</h1>
           <p className="mt-2 text-sm text-slate-600 sm:text-base">
             Your payment could not be completed this time. You can retry now or return later.
           </p>

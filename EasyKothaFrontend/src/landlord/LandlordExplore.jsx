@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../api/axios";
 import { MapPin, Home, Filter, Clock } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 import LandlordLayout from "./LandlordLayout";
 import Search from "../components/Search";
 
@@ -221,12 +222,15 @@ export default function LandlordExplore() {
           </div>
 
           <div className="md:col-span-2">
-            <button
+            <motion.button
               type="submit"
               className="w-full rounded-xl bg-green-800 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-900"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
             >
               Apply Filters
-            </button>
+            </motion.button>
           </div>
         </form>
       </div>
@@ -243,7 +247,7 @@ export default function LandlordExplore() {
 
         {!loading && filteredPosts.length === 0 && (
           <div className="col-span-full rounded-3xl border-2 border-dashed border-gray-200 py-20 text-center">
-            <h3 className="text-2xl font-semibold text-slate-900">No properties found</h3>
+            <h3 className="text-2xl font-semibold text-black">No properties found</h3>
             <p className="mt-2 text-slate-500">Try adjusting your filters to find more results.</p>
           </div>
         )}
@@ -255,10 +259,14 @@ export default function LandlordExplore() {
             const firstImage = imageUrls[0] || "";
 
             return (
-              <article
+              <motion.article
                 key={postId || `${post.title}-${post.createdAt}`}
                 className="cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
                 onClick={() => postId && navigate(`/posts/${postId}`)}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                whileHover={{ y: -3 }}
               >
                 <div className="aspect-video bg-slate-100">
                   {firstImage ? (
@@ -279,7 +287,7 @@ export default function LandlordExplore() {
 
                 <div className="space-y-3 p-5">
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">{post.title}</h3>
+                    <h3 className="line-clamp-2 text-lg font-semibold text-black">{post.title}</h3>
                       <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                       {post.status || "approved"}
                     </span>
@@ -303,7 +311,7 @@ export default function LandlordExplore() {
                     Posted by: {post.author?.name || "Unknown landlord"}
                   </p>
                 </div>
-              </article>
+              </motion.article>
             );
           })}
       </div>
@@ -311,7 +319,7 @@ export default function LandlordExplore() {
       {totalPages > 1 && (
         <div className="mt-6 flex justify-center gap-2">
           {[...Array(totalPages)].map((_, index) => (
-            <button
+            <motion.button
               key={index}
               onClick={() => setPage(index + 1)}
               className={`h-10 w-10 rounded-xl text-xs font-semibold transition-all ${
@@ -319,9 +327,12 @@ export default function LandlordExplore() {
                   ? "bg-green-800 text-white"
                   : "border border-gray-200 bg-white text-slate-500 hover:bg-gray-50"
               }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
             >
               {index + 1}
-            </button>
+            </motion.button>
           ))}
         </div>
       )}

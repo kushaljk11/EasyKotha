@@ -2,10 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
 	FaCalendarAlt,
-	FaCheckCircle,
+	FaDownload,
+	FaHistory,
 	FaClock,
 	FaFilter,
 	FaHome,
+	FaMapMarkerAlt,
+	FaMoneyBillWave,
+	FaRegClock,
 } from "react-icons/fa";
 import axiosInstance from "../api/axios";
 import { useAuthStore } from "../store/useAuthStore";
@@ -17,6 +21,40 @@ const statusStyles = {
 	rejected: "bg-rose-100 text-rose-700",
 	cancelled: "bg-slate-200 text-slate-700",
 };
+
+function getPostId(post) {
+	return post?.id || post?._id || post?.postId || "";
+}
+
+function getBookingPostId(booking) {
+	return (
+		getPostId(booking?.post) ||
+		booking?.postId ||
+		booking?.propertyId ||
+		""
+	);
+}
+
+function getPostImage(post) {
+	const rawImages = post?.images;
+
+	if (Array.isArray(rawImages) && rawImages.length > 0) {
+		return rawImages[0];
+	}
+
+	if (typeof rawImages === "string" && rawImages.trim()) {
+		try {
+			const parsed = JSON.parse(rawImages);
+			if (Array.isArray(parsed) && parsed.length > 0) {
+				return parsed[0];
+			}
+		} catch {
+			return rawImages;
+		}
+	}
+
+	return "";
+}
 
 export default function Booking() {
 	const navigate = useNavigate();
@@ -73,7 +111,7 @@ export default function Booking() {
 			total: bookings.length,
 			approved: bookings.filter((booking) => booking.status === "approved").length,
 			pending: bookings.filter((booking) => booking.status === "pending").length,
-			rejected: bookings.filter((booking) => booking.status === "rejected").length,
+			cancelled: bookings.filter((booking) => booking.status === "cancelled").length,
 		};
 	}, [bookings]);
 
@@ -87,155 +125,170 @@ export default function Booking() {
 		[bookings]
 	);
 
+	const tabs = useMemo(
+		() => [
+			{ key: "all", label: "All Bookings", count: stats.total },
+			{ key: "approved", label: "Confirmed", count: stats.approved },
+			{ key: "pending", label: "Pending", count: stats.pending },
+			{ key: "cancelled", label: "Completed", count: stats.cancelled },
+		],
+		[stats]
+	);
+
+	const hasNoData = !loading && bookings.length === 0;
+
+	const getBookingPostLink = (booking) => {
+		const postId = getBookingPostId(booking);
+		if (postId) return `/posts/${postId}`;
+
+		const params = new URLSearchParams();
+		if (booking?.post?.title) params.set("search", booking.post.title);
+		if (booking?.post?.city) params.set("city", booking.post.city);
+
+		return params.toString() ? `/tenant/explore?${params.toString()}` : "/tenant/explore";
+	};
+
 	return (
 		<TenantLayout title="My Bookings">
-			<section className="rounded-2xl border border-green-100 bg-white p-6 shadow-sm">
-				<h2 className="text-xl font-bold text-slate-900">Booking History</h2>
-				<p className="mt-2 text-sm text-slate-600">See all requests you made and track which ones are approved.</p>
-			</section>
-
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-				<StatCard label="Total Requests" value={stats.total} icon={FaCalendarAlt} tone="text-blue-700 bg-blue-50" />
-				<StatCard label="Approved" value={stats.approved} icon={FaCheckCircle} tone="text-emerald-700 bg-emerald-50" />
-				<StatCard label="Pending" value={stats.pending} icon={FaClock} tone="text-amber-700 bg-amber-50" />
-				<StatCard label="Rejected" value={stats.rejected} icon={FaFilter} tone="text-rose-700 bg-rose-50" />
-			</div>
-
-			<section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-				<div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 p-5">
-					<h3 className="text-lg font-semibold text-gray-900">All My Booking Requests</h3>
-					<select
-						value={statusFilter}
-						onChange={(e) => setStatusFilter(e.target.value)}
-						className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
-					>
-						<option value="all">All statuses</option>
-						<option value="approved">Approved</option>
-						<option value="pending">Pending</option>
-						<option value="rejected">Rejected</option>
-						<option value="cancelled">Cancelled</option>
-					</select>
+			<section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+				<div className="flex flex-wrap items-start justify-between gap-4">
+					<div>
+						<h2 className="text-2xl font-semibold text-black">My Bookings</h2>
+						<p className="mt-1 text-sm text-slate-600">Manage your visits, room reservations, and lease history.</p>
+					</div>
+					<div className="flex items-center gap-2">
+						<button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+							<FaFilter className="text-slate-500" />
+							Filter
+						</button>
+						<button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+							<FaDownload className="text-slate-500" />
+							Export Log
+						</button>
+					</div>
 				</div>
 
-				<div className="divide-y divide-slate-200">
-					{loading && (
-						<div className="px-6 py-10 text-center text-sm text-slate-500">Loading bookings...</div>
-					)}
+				<div className="mt-6 flex flex-wrap items-center gap-6 border-b border-slate-200 pb-3">
+					{tabs.map((tab) => {
+						const active = statusFilter === tab.key;
+						return (
+							<button
+								key={tab.key}
+								type="button"
+								onClick={() => setStatusFilter(tab.key)}
+								className={`border-b-2 pb-2 text-sm font-semibold transition ${active ? "border-green-800 text-green-800" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+							>
+								{tab.label} ({tab.count})
+							</button>
+						);
+					})}
+				</div>
 
-					{!loading && filteredBookings.length === 0 && (
-						<div className="px-6 py-10 text-center text-sm text-slate-500">
-							No bookings found for this filter.
+				<div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+					{loading ? (
+						<div className="py-20 text-center text-sm text-slate-500">Loading bookings...</div>
+					) : hasNoData ? (
+						<div className="flex min-h-[280px] flex-col items-center justify-center text-center">
+							<div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+								<FaHistory className="text-3xl" />
+							</div>
+							<p className="text-2xl font-semibold text-black">No bookings found</p>
+							<p className="mt-2 text-sm text-slate-500">You haven&apos;t made any bookings yet.</p>
+							<Link
+								to="/tenant/explore"
+								className="mt-6 inline-flex rounded-2xl bg-green-800 px-8 py-3 text-base font-semibold text-white shadow hover:bg-green-700"
+							>
+								Explore Properties
+							</Link>
 						</div>
-					)}
+					) : filteredBookings.length === 0 ? (
+						<div className="py-16 text-center text-sm text-slate-500">No bookings found for this tab.</div>
+					) : (
+						<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+							{filteredBookings.map((booking) => (
+								<article key={booking.id} className="h-full rounded-2xl border border-slate-200 p-4 shadow-sm">
+									{(() => {
+										const postId = getBookingPostId(booking);
+										const postLink = getBookingPostLink(booking);
+										return (
+											<>
+									<div className="flex items-start gap-4">
+										<div className="h-20 w-24 overflow-hidden rounded-xl bg-slate-100 sm:h-24 sm:w-28">
+											{getPostImage(booking.post) ? (
+												<img src={getPostImage(booking.post)} alt={booking.post?.title || "Property"} className="h-full w-full object-cover" />
+											) : (
+												<div className="flex h-full w-full items-center justify-center text-slate-400">
+													<FaHome className="text-lg" />
+												</div>
+											)}
+										</div>
 
-					{!loading &&
-						filteredBookings.map((booking) => (
-							<article key={booking.id} className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
-								<div className="flex items-start gap-4">
-									<div className="h-16 w-16 overflow-hidden rounded-lg bg-slate-100">
-										{booking.post?.images?.[0] ? (
-											<img src={booking.post.images[0]} alt={booking.post?.title || "Property"} className="h-full w-full object-cover" />
-										) : (
-											<div className="flex h-full w-full items-center justify-center text-slate-400">
-												<FaHome />
-											</div>
+										<div className="min-w-0 flex-1">
+											<p className="line-clamp-2 text-lg font-semibold text-black">{booking.post?.title || "Deleted post"}</p>
+											<p className="mt-1 inline-flex items-center gap-2 text-sm text-slate-500">
+												<FaMapMarkerAlt className="text-green-700" />
+												{booking.post?.district || "Unknown district"}, {booking.post?.city || "Unknown city"}
+											</p>
+											<p className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
+												<FaRegClock className="text-slate-400" />
+												Requested on {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : "N/A"}
+											</p>
+										</div>
+									</div>
+
+									<div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+										<div className="rounded-xl bg-slate-50 px-3 py-2">
+											<p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Visit Schedule</p>
+											<p className="mt-1 inline-flex items-center gap-2 text-xs font-semibold text-slate-700">
+												<FaCalendarAlt className="text-green-700" />
+												{booking.startDate ? new Date(booking.startDate).toLocaleString() : "N/A"}
+											</p>
+										</div>
+										<div className="rounded-xl bg-slate-50 px-3 py-2">
+											<p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Current Status</p>
+											<span className={`mt-1 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[booking.status] || "bg-slate-100 text-slate-700"}`}>
+												{booking.status || "unknown"}
+											</span>
+										</div>
+									</div>
+
+									<div className="mt-4 flex flex-wrap items-center gap-2">
+										<Link
+											to={postLink}
+											className="inline-flex items-center rounded-xl bg-green-800 px-4 py-2 text-xs font-semibold text-white hover:bg-green-700"
+										>
+											View Post
+											{!postId && <span className="ml-2 rounded-md bg-white/20 px-1.5 py-0.5 text-[10px]">Suggested</span>}
+										</Link>
+										{booking.status === "approved" && (
+											<button
+												type="button"
+												onClick={() => handleStartPayment(booking)}
+												className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-xs font-semibold text-green-800 hover:bg-green-100"
+											>
+												<FaMoneyBillWave />
+												Pay Now
+											</button>
 										)}
 									</div>
-									<div>
-										<p className="text-base font-semibold text-slate-900">{booking.post?.title || "Deleted post"}</p>
-										<p className="text-sm text-slate-500">{booking.post?.district}, {booking.post?.city}</p>
-										<p className="mt-1 text-xs text-slate-500">
-											Requested on {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : "N/A"}
-										</p>
-									</div>
-								</div>
-
-								<div className="flex flex-wrap items-center gap-3 md:justify-end">
-									<div className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">
-										Visit: {booking.startDate ? new Date(booking.startDate).toLocaleString() : "N/A"}
-									</div>
-									<span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[booking.status] || "bg-slate-100 text-slate-700"}`}>
-										{booking.status || "unknown"}
-									</span>
-									{booking.status === "approved" && (
-										<button
-											type="button"
-											onClick={() => handleStartPayment(booking)}
-											className="rounded-lg bg-green-700 px-3 py-2 text-xs font-semibold text-white hover:bg-green-600"
-										>
-											Pay Now
-										</button>
-									)}
-								</div>
-							</article>
-						))}
-				</div>
-			</section>
-
-			<section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
-				<div className="border-b border-emerald-100 bg-emerald-50 p-5">
-					<h3 className="text-lg font-semibold text-emerald-800">Approved Bookings</h3>
-					<p className="text-sm text-emerald-700">These visits have been approved by landlords.</p>
+										</>
+										);
+									})()}
+								</article>
+							))}
+						</div>
+					)}
 				</div>
 
-				{loading && <div className="px-6 py-8 text-sm text-slate-500">Loading approved bookings...</div>}
-
-				{!loading && approvedBookings.length === 0 && (
-					<div className="px-6 py-8 text-sm text-slate-500">No approved bookings yet.</div>
-				)}
-
-				{!loading && approvedBookings.length > 0 && (
-					<div className="divide-y divide-emerald-100">
-						{approvedBookings.map((booking) => (
-							<div key={`approved-${booking.id}`} className="flex flex-col gap-2 p-5 md:flex-row md:items-center md:justify-between">
-								<div>
-									<p className="font-semibold text-slate-900">{booking.post?.title || "Deleted post"}</p>
-									<p className="text-sm text-slate-600">{booking.post?.district}, {booking.post?.city}</p>
-								</div>
-								<div className="flex items-center gap-3">
-									<div className="text-sm text-slate-700">
-										Visit Date: {booking.startDate ? new Date(booking.startDate).toLocaleString() : "N/A"}
-									</div>
-									<button
-										type="button"
-										onClick={() => handleStartPayment(booking)}
-										className="rounded-lg bg-green-700 px-4 py-2 text-xs font-semibold text-white hover:bg-green-600"
-									>
-										Pay Now
-									</button>
-								</div>
-							</div>
-						))}
+				{!hasNoData && approvedBookings.length > 0 && (
+					<div className="mt-6 flex justify-center">
+						<button type="button" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-8 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+							View Past History
+							<FaClock className="text-slate-400" />
+						</button>
 					</div>
 				)}
 			</section>
-
-			{!loading && bookings.length === 0 && (
-				<div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-					<p className="text-slate-700">You have not made any booking request yet.</p>
-					<Link to="/tenant/explore" className="mt-3 inline-flex rounded-lg bg-green-800 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
-						Go to Explore
-					</Link>
-				</div>
-			)}
 		</TenantLayout>
-	);
-}
-
-function StatCard({ label, value, icon: Icon, tone }) {
-	return (
-		<article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
-			<div className="flex items-start justify-between">
-				<div>
-					<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-					<p className="mt-2 text-3xl font-bold text-green-800">{value}</p>
-				</div>
-				{Icon && (
-					<div className={`rounded-lg p-2 ${tone || "text-green-700 bg-green-50"}`}>
-						<Icon className="text-base" />
-					</div>
-				)}
-			</div>
-		</article>
 	);
 }

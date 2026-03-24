@@ -272,7 +272,7 @@ export default function LandlordListings() {
 
                   <div className="space-y-3 p-5">
                     <div className="flex items-start justify-between gap-3">
-                      <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">
+                      <h3 className="line-clamp-2 text-lg font-semibold text-black">
                         {post.title}
                       </h3>
                       <span

@@ -56,15 +56,15 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex font-sans bg-gray-50">
+    <div className="h-dvh w-full overflow-hidden bg-slate-100 font-sans md:flex">
       {/* LEFT SIDE - FORM */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-12">
-        <h1 className="text-4xl font-extrabold text-green-800 mb-2 text-center">
-          Create Account
-        </h1>
-        <p className="text-gray-600 mb-8 text-center">
-          Join thousands finding their perfect home with Sajilo
-        </p>
+      <div className="flex h-full w-full flex-col items-center justify-center p-6 md:w-1/2 md:p-10 lg:p-12">
+        <div className="mb-6 text-center">
+          <h1 className="mt-3 text-4xl font-semibold text-green-800">Create Account</h1>
+          <p className="mt-2 text-gray-600">
+            Join thousands finding their perfect home with EasyKotha
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5">
           {/* Name */}
@@ -178,13 +178,11 @@ export default function Register() {
       </div>
 
       {/* RIGHT SIDE - IMAGE */}
-      <div className="hidden md:flex w-1/2 bg-green-800 justify-center items-center relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+      <div className="relative hidden h-full w-1/2 items-center justify-center overflow-hidden bg-green-800 md:flex">
         <img
           src="/register.png"
           alt="home illustration"
-          className="w-full transform hover:scale-105 transition-transform duration-500"
+          className="h-full w-full object-cover"
         />
       </div>
     </div>

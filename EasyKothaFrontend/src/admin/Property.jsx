@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import Topbar from "./Topbar";
 import Sidebar from "./Sidebar";
 import axios from "../api/axios";
@@ -176,7 +177,7 @@ export default function Property() {
               <div>
                 <p className="text-xs font-semibold text-slate-500">Total Inventory</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl md:text-2xl font-semibold text-slate-900">{counts.total}</span>
+                  <span className="text-xl md:text-2xl font-semibold text-black">{counts.total}</span>
                   <span className="text-[10px] md:text-xs font-semibold text-green-600">Live</span>
                 </div>
               </div>
@@ -189,7 +190,7 @@ export default function Property() {
               <div>
                 <p className="text-xs font-semibold text-slate-500">Active Listings</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl md:text-2xl font-semibold text-slate-900">{counts.active}</span>
+                  <span className="text-xl md:text-2xl font-semibold text-black">{counts.active}</span>
                   <span className="text-[10px] md:text-xs font-semibold text-green-600">Approved</span>
                 </div>
               </div>
@@ -202,7 +203,7 @@ export default function Property() {
               <div>
                 <p className="text-xs font-semibold text-slate-500">Pending Listings</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl md:text-2xl font-semibold text-slate-900">{counts.pending}</span>
+                  <span className="text-xl md:text-2xl font-semibold text-black">{counts.pending}</span>
                   <span className="text-[10px] md:text-xs font-semibold text-red-600">Waiting</span>
                 </div>
               </div>
@@ -286,34 +287,43 @@ export default function Property() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button
+                            <motion.button
                               onClick={() => handleOpenEdit(post)}
                               disabled={updatingId === post.id}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30"
                               title="Edit"
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.94 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
                             >
                               <FaEdit />
-                            </button>
-                            <button
+                            </motion.button>
+                            <motion.button
                               onClick={() => handleDeactivate(post.id)}
                               disabled={updatingId === post.id}
                               className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-30"
                               title="Deactivate"
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.94 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
                             >
                               {updatingId === post.id ? (
                                 <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
                               ) : (
                                 <FaPowerOff />
                               )}
-                            </button>
-                            <button 
+                            </motion.button>
+                            <motion.button 
                               onClick={() => handleDeletePost(post.id)}
                               disabled={updatingId === post.id}
                               className="p-2 text-slate-400 hover:text-red-600 transition-colors disabled:opacity-30"
                               title="Delete"
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.94 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
                             >
                               <FaTrash />
-                            </button>
+                            </motion.button>
                           </div>
                         </td>
                       </tr>
@@ -360,9 +370,22 @@ export default function Property() {
         </div>
       </div>
 
-      {editModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
+      <AnimatePresence>
+        {editModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.24, ease: "easeOut" }}
+          >
+            <motion.div
+              className="w-full max-w-2xl rounded-2xl bg-white shadow-xl"
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+            >
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
               <h2 className="text-lg font-bold text-slate-800">Edit Listing</h2>
               <button
@@ -454,25 +477,32 @@ export default function Property() {
               </label>
 
               <div className="flex justify-end gap-2 md:col-span-2">
-                <button
+                <motion.button
                   type="button"
                   onClick={() => setEditModalOpen(false)}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="submit"
                   disabled={updatingId === editForm.id}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-40"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
                   {updatingId === editForm.id ? "Saving..." : "Save Changes"}
-                </button>
+                </motion.button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
