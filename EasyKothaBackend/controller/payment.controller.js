@@ -236,6 +236,8 @@ export const initiatePayment = async (req, res) => {
     landlordId,
     landlordName,
     landlordEmail,
+    successUrl,
+    failureUrl,
   } = req.body;
 
   if (!paymentGateway) {
@@ -257,6 +259,13 @@ export const initiatePayment = async (req, res) => {
   }
 
   try {
+    const resolvedSuccessUrl = isValidHttpUrl(successUrl)
+      ? String(successUrl).trim()
+      : getEnvUrl("SUCCESS_URL");
+    const resolvedFailureUrl = isValidHttpUrl(failureUrl)
+      ? String(failureUrl).trim()
+      : getEnvUrl("FAILURE_URL");
+
     const requesterTenantId = Number(req.user.id);
     const tenantRecord = await prisma.user.findUnique({
       where: { id: requesterTenantId },
@@ -306,16 +315,18 @@ export const initiatePayment = async (req, res) => {
     };
 
     let paymentUrl;
+    let esewaPayload = null;
     let paymentConfig;
 
     if (normalizedGateway === "esewa") {
       const missingEsewaEnv = getMissingEnv([
-        "FAILURE_URL",
-        "SUCCESS_URL",
         "ESEWA_MERCHANT_ID",
         "ESEWA_SECRET",
         "ESEWA_PAYMENT_URL",
       ]);
+
+      if (!resolvedSuccessUrl) missingEsewaEnv.push("SUCCESS_URL (or request.successUrl)");
+      if (!resolvedFailureUrl) missingEsewaEnv.push("FAILURE_URL (or request.failureUrl)");
 
       if (missingEsewaEnv.length) {
         return res.status(400).json({
@@ -325,12 +336,12 @@ export const initiatePayment = async (req, res) => {
 
       const paymentData = {
         amount: numericAmount,
-        failure_url: getEnvUrl("FAILURE_URL"),
+        failure_url: resolvedFailureUrl,
         product_delivery_charge: "0",
         product_service_charge: "0",
         product_code: normalizeEnvValue(process.env.ESEWA_MERCHANT_ID),
         signed_field_names: "total_amount,transaction_uuid,product_code",
-        success_url: getEnvUrl("SUCCESS_URL"),
+        success_url: resolvedSuccessUrl,
         tax_amount: "0",
         total_amount: numericAmount,
         transaction_uuid: productId,
@@ -339,15 +350,12 @@ export const initiatePayment = async (req, res) => {
       const signatureString = `total_amount=${paymentData.total_amount},transaction_uuid=${paymentData.transaction_uuid},product_code=${paymentData.product_code}`;
       const signature = generateHmacSha256Hash(signatureString, normalizeEnvValue(process.env.ESEWA_SECRET));
 
-      const esewaPayload = { ...paymentData, signature };
-      const esewaSearchParams = new URLSearchParams();
-      Object.entries(esewaPayload).forEach(([key, value]) => {
-        esewaSearchParams.append(key, String(value ?? ""));
-      });
-
-      paymentUrl = `${getEnvUrl("ESEWA_PAYMENT_URL")}?${esewaSearchParams.toString()}`;
+      esewaPayload = { ...paymentData, signature };
+      paymentUrl = getEnvUrl("ESEWA_PAYMENT_URL");
     } else {
-      const missingKhaltiEnv = getMissingEnv(["SUCCESS_URL", "KHALTI_PAYMENT_URL"]);
+      const missingKhaltiEnv = getMissingEnv(["KHALTI_PAYMENT_URL"]);
+
+      if (!resolvedSuccessUrl) missingKhaltiEnv.push("SUCCESS_URL (or request.successUrl)");
 
       if (missingKhaltiEnv.length) {
         return res.status(400).json({
@@ -371,7 +379,7 @@ export const initiatePayment = async (req, res) => {
       paymentConfig = {
         url: getEnvUrl("KHALTI_PAYMENT_URL"),
         data: {
-          return_url: getEnvUrl("SUCCESS_URL"),
+          return_url: resolvedSuccessUrl,
           website_url: getEnvUrl("WEBSITE_URL") || "https://easykotha.onrender.com",
           amount: Math.round(numericAmount * 100),
           purchase_order_id: productId,
@@ -401,7 +409,12 @@ export const initiatePayment = async (req, res) => {
         data: transactionData,
       });
 
-      return res.send({ url: paymentUrl });
+      return res.send({
+        gateway: "esewa",
+        url: paymentUrl,
+        method: "POST",
+        fields: esewaPayload,
+      });
     }
 
     if (!paymentConfig || !isValidHttpUrl(paymentConfig.url)) {

@@ -52,8 +52,10 @@ export const register = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        password: user.password,
         role: user.role,
+        district: user.district,
+        city: user.city,
+        profileImage: user.profileImage,
       },
       token,
     });
@@ -123,6 +125,9 @@ export const login = async (req, res) => {
         email: updatedUser.email,
         role: updatedUser.role,
         status: updatedUser.status,
+        district: updatedUser.district,
+        city: updatedUser.city,
+        profileImage: updatedUser.profileImage,
         savedPosts: user.savedPosts || [],
       },
     });

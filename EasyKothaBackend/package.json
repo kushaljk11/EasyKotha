@@ -13,8 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/translate": "^9.3.0",
     "@google/generative-ai": "^0.24.1",
-    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
