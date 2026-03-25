@@ -14,6 +14,12 @@ if (!JWT_SECRET) {
   throw new Error("Missing JWT_SECRET in environment variables.");
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+const normalizeEmail = (email = "") => email.trim().toLowerCase();
+
+const isValidEmail = (email = "") => EMAIL_REGEX.test(email);
+
 /**
  * Creates a signed login token used by the frontend for authenticated requests.
  */
@@ -33,7 +39,13 @@ export const register = async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields are required." });
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({ message: "Please provide a valid email address." });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser)
       return res.status(409).json({ message: "Email already registered." });
 
@@ -41,8 +53,8 @@ export const register = async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: normalizedEmail,
         password: hashedPassword,
         role: role || "TENANT",
       },
@@ -97,7 +109,11 @@ export const login = async (req, res) => {
 
   try {
     // Normalizes email format so login checks remain consistent.
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({ message: "Please provide a valid email address." });
+    }
 
     const user = await prisma.user.findUnique({ 
       where: { email: normalizedEmail },
