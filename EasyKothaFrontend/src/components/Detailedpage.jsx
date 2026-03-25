@@ -34,6 +34,7 @@ const Detailpage = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState([]);
+  const [activeImage, setActiveImage] = useState("");
   const { setSelectedUser } = useChatStore();
   const { authUser } = useAuthStore();
   const [visitDate, setVisitDate] = useState("");
@@ -88,6 +89,14 @@ const Detailpage = () => {
     Parking: Store,
   };
 
+  const fallbackGalleryImages = [
+    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?q=80&w=800&auto=format&fit=crop",
+  ];
+
   useEffect(() => {
     const fetchPost = async () => {
       if (!postId) {
@@ -127,6 +136,17 @@ const Detailpage = () => {
 
     fetchRecommendations();
   }, [postId]);
+
+  useEffect(() => {
+    const onEscCloseViewer = (event) => {
+      if (event.key === "Escape") {
+        setActiveImage("");
+      }
+    };
+
+    window.addEventListener("keydown", onEscCloseViewer);
+    return () => window.removeEventListener("keydown", onEscCloseViewer);
+  }, []);
 
   const handleBooking = async () => {
     if (!authUser) {
@@ -247,6 +267,17 @@ const Detailpage = () => {
     );
   }
 
+  const galleryImages = Array.isArray(post.images)
+    ? post.images.filter((image) => typeof image === "string" && image.trim())
+    : [];
+
+  const displayImages = galleryImages.length
+    ? galleryImages
+    : fallbackGalleryImages;
+
+  const mainImage = displayImages[0] || fallbackGalleryImages[0];
+  const sideImages = displayImages.slice(1, 5);
+
   return renderWithinRoleLayout(
     <div
       className={`${isDashboardView ? "text-[#1a1a1a]" : "min-h-screen bg-white text-[#1a1a1a]"}`}
@@ -272,12 +303,10 @@ const Detailpage = () => {
           {/* Main Large Image */}
           <div className="md:col-span-2 md:row-span-2 relative group cursor-pointer">
             <img
-              src={
-                post.images?.[0] ||
-                "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2000&auto=format&fit=crop"
-              }
+              src={mainImage}
               className="w-full h-full object-cover hover:brightness-110 transition-all duration-300"
               alt="Main Property"
+              onClick={() => setActiveImage(mainImage)}
             />
             <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">
               {post.type?.replace("_", " ")}
@@ -286,27 +315,43 @@ const Detailpage = () => {
 
           {/* Side Grid */}
           <div className="md:col-span-2 grid grid-cols-2 gap-2 h-full">
-            {(post.images?.length > 1
-              ? post.images.slice(1, 5)
-              : [1, 2, 3, 4]
-            ).map((img, idx) => (
+            {sideImages.map((img, idx) => (
               <div
                 key={idx}
                 className="relative group overflow-hidden cursor-pointer bg-gray-50"
               >
                 <img
-                  src={
-                    typeof img === "string"
-                      ? img
-                      : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop"
-                  }
+                  src={img}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   alt={`View ${idx + 1}`}
+                  onClick={() => setActiveImage(img)}
                 />
               </div>
             ))}
           </div>
         </div>
+
+        {activeImage && (
+          <div
+            className="fixed inset-0 z-120 flex items-center justify-center bg-black/85 p-4"
+            onClick={() => setActiveImage("")}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveImage("")}
+              className="absolute right-5 top-5 rounded-lg bg-white/10 px-3 py-2 text-xs font-bold uppercase tracking-wide text-white hover:bg-white/20"
+            >
+              Close
+            </button>
+
+            <img
+              src={activeImage}
+              alt="Preview"
+              className="max-h-[88vh] w-auto max-w-[96vw] rounded-xl object-contain shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            />
+          </div>
+        )}
 
         {/* Main Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

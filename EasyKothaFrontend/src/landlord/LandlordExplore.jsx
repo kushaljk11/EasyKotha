@@ -5,18 +5,62 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import LandlordLayout from "./LandlordLayout";
 import Search from "../components/Search";
+import { API_ORIGIN } from "../config/env";
 
 const isLikelyImageUrl = (value) => /^https?:\/\//i.test(value);
+const isDataImage = (value) => /^data:image\//i.test(value);
+const isUploadPath = (value) => /^(\/?uploads[\\/])/i.test(value);
+
+const toAbsoluteUploadUrl = (value) => {
+  const normalizedPath = String(value || "")
+    .replace(/^\/+/, "")
+    .replace(/\\/g, "/");
+
+  if (!normalizedPath) return "";
+  return API_ORIGIN ? `${API_ORIGIN}/${normalizedPath}` : `/${normalizedPath}`;
+};
 
 const normalizeImageUrls = (images) => {
   if (!images) return [];
 
   const rawList = Array.isArray(images) ? images : [images];
 
-  return rawList
-    .flatMap((item) => String(item || "").split(/\r?\n|,/))
+  const parsedList = rawList.flatMap((item) => {
+    if (Array.isArray(item)) return item;
+
+    const value = String(item || "").trim();
+    if (!value) return [];
+
+    if (value.startsWith("[") && value.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [value];
+      } catch {
+        return [value];
+      }
+    }
+
+    return [value];
+  });
+
+  return parsedList
+    .flatMap((item) => {
+      const value = String(item || "").trim();
+      if (!value) return [];
+      if (isDataImage(value)) return [value];
+      if (value.includes("\n") || value.includes("\r")) {
+        return value.split(/\r?\n/);
+      }
+      return value.includes(",") ? value.split(",") : [value];
+    })
     .map((item) => item.trim())
-    .filter((item) => item && isLikelyImageUrl(item));
+    .map((item) => {
+      if (isLikelyImageUrl(item) || isDataImage(item)) return item;
+      if (/^\/\//.test(item)) return `https:${item}`;
+      if (isUploadPath(item)) return toAbsoluteUploadUrl(item);
+      return "";
+    })
+    .filter(Boolean);
 };
 
   const getPostId = (post) => post?.id ?? post?._id;
@@ -261,19 +305,19 @@ export default function LandlordExplore() {
             return (
               <motion.article
                 key={postId || `${post.title}-${post.createdAt}`}
-                className="cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                className="cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md flex flex-col"
                 onClick={() => postId && navigate(`/posts/${postId}`)}
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.28, ease: "easeOut" }}
                 whileHover={{ y: -3 }}
               >
-                <div className="aspect-video bg-slate-100">
+                <div className="relative h-44 sm:h-48 bg-slate-100 shrink-0 overflow-hidden">
                   {firstImage ? (
                     <img
                       src={firstImage}
                       alt={post.title}
-                      className="h-full w-full object-cover"
+                      className="block h-full w-full object-cover"
                       onError={(event) => {
                         event.currentTarget.style.display = "none";
                       }}
@@ -285,7 +329,7 @@ export default function LandlordExplore() {
                   )}
                 </div>
 
-                <div className="space-y-3 p-5">
+                <div className="relative z-10 flex flex-1 flex-col space-y-3 bg-white p-5">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="line-clamp-2 text-lg font-semibold text-black">{post.title}</h3>
                       <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">

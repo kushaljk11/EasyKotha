@@ -179,7 +179,7 @@ export default function Login() {
         }}
       >
         <div className="absolute bottom-12 right-12 text-right opacity-10 pointer-events-none">
-          <h3 className="text-green-800 text-6xl font-black italic tracking-tighter">SAJILO</h3>
+          <h3 className="text-green-800 text-6xl font-black italic tracking-tighter">EasyKotha</h3>
         </div>
       </div>
     </div>
