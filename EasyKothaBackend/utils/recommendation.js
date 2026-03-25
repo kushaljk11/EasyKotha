@@ -13,7 +13,9 @@ try {
   console.log("⚠️ Recommendation file not found");
 }
 
-// Get similar posts
+/**
+ * Returns ids of the most similar listings for a given listing id.
+ */
 export const getSimilarPostIds = (postId, topN = 6) => {
   if (!similarity[postId]) return [];
 

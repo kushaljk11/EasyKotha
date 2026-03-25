@@ -15,7 +15,11 @@ const emitNotification = (userId, payload) => {
   }
 };
 
-//create post
+/**
+ * Creates a new property listing.
+ * The listing is saved immediately and returned to the user.
+ * Email alerts are sent after response so slow email servers do not freeze submit buttons.
+ */
 export const createPost = async (req, res) => {
   try {
     const {
@@ -36,7 +40,7 @@ export const createPost = async (req, res) => {
     const normalizedCity = String(city || "").trim();
     const normalizedDistrict = String(district || normalizedCity || "N/A").trim();
 
-    // Basic validation
+    /** Required fields for a valid listing submission. */
     if (!title || !price || !normalizedCity) {
       return res.status(400).json({
         success: false,
@@ -79,40 +83,43 @@ export const createPost = async (req, res) => {
 
     admins.forEach((admin) => emitNotification(admin.id, pendingPayload));
 
-    // Attempt to send email notifications without blocking the response
-    try {
-      const user = await prisma.user.findUnique({ where: { id: Number(req.user.id) } });
-
-      // Notify Admin
-      if (process.env.ADMIN_EMAIL) {
-        await sendEmail({
-          to: process.env.ADMIN_EMAIL,
-          subject: "Post Created - Pending Approval",
-          text: `The new post "${title}" has been created and is pending your approval.`,
-        });
-      }
-
-      // Notify User
-      if (user && user.email) {
-        await sendEmail({
-          to: user.email,
-          subject: "Post Created - Pending Approval",
-          html: postPendingTemplate(savedPost),
-        });
-      }
-    } catch (emailError) {
-      console.error(
-        "Email notification error in createPost:",
-        emailError.message,
-      );
-      // We continue since the post is already saved successfully
-    }
-
     res.status(201).json({
       success: true,
       message: "Post created successfully",
       data: savedPost,
     });
+
+    /** Send email notifications in the background. */
+    Promise.resolve()
+      .then(async () => {
+        try {
+          const user = await prisma.user.findUnique({ where: { id: Number(req.user.id) } });
+
+          if (process.env.ADMIN_EMAIL) {
+            await sendEmail({
+              to: process.env.ADMIN_EMAIL,
+              subject: "Post Created - Pending Approval",
+              text: `The new post "${title}" has been created and is pending your approval.`,
+            });
+          }
+
+          if (user && user.email) {
+            await sendEmail({
+              to: user.email,
+              subject: "Post Created - Pending Approval",
+              html: postPendingTemplate(savedPost),
+            });
+          }
+        } catch (emailError) {
+          console.error(
+            "Email notification error in createPost:",
+            emailError.message,
+          );
+        }
+      })
+      .catch(() => {
+        /** The detailed email error is already logged in the block above. */
+      });
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({
@@ -123,7 +130,9 @@ export const createPost = async (req, res) => {
   }
 };
 
-//get all posts with filters and pagination
+/**
+ * Returns listing results with optional filters and pagination.
+ */
 export const getAllPosts = async (req, res) => {
   try {
     const { 
@@ -218,7 +227,9 @@ export const getAllPosts = async (req, res) => {
   }
 };
 
-//get post by id
+/**
+ * Returns details for one listing by id.
+ */
 export const getPostById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -257,7 +268,10 @@ export const getPostById = async (req, res) => {
   }
 };
 
-//update post
+/**
+ * Updates listing details.
+ * Allowed for the listing owner and admins.
+ */
 export const updatePost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -324,7 +338,9 @@ export const updatePost = async (req, res) => {
   }
 };
 
-//save the posts
+/**
+ * Toggles a listing in the user's saved list.
+ */
 export const savePost = async (req, res) => {
   try {
     const userId = Number(req.user.id);
@@ -370,7 +386,9 @@ export const savePost = async (req, res) => {
   }
 };
 
-// get saved posts
+/**
+ * Returns all listings saved by the current user.
+ */
 export const getSavedPosts = async (req, res) => {
   try {
     const userId = Number(req.user.id);
@@ -408,7 +426,10 @@ export const getSavedPosts = async (req, res) => {
   }
 };
 
-//delete post
+/**
+ * Deletes a listing and related booking records.
+ * Allowed for listing owner and admins.
+ */
 export const deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -423,7 +444,7 @@ export const deletePost = async (req, res) => {
       });
     }
 
-    // Allow deletion if the user is the author OR an ADMIN
+    /** Access control: only the owner or admin can delete. */
     if (post.authorId !== userId && userRole !== "ADMIN") {
       return res.status(403).json({
         success: false,
@@ -431,17 +452,10 @@ export const deletePost = async (req, res) => {
       });
     }
 
-    // Prisma handles cascading or we do it manually if needed.
-    // In schema.prisma, there are no explicit onDelete: Cascade, 
-    // but Booking model refers to Post.
-    
-    // 1. Delete associated bookings
+    /** Remove related bookings first to keep data consistent. */
     await prisma.booking.deleteMany({ where: { postId } });
 
-    // 2. Remove from users' savedPosts (Prisma handles this via disconnect if we delete the post, or we can just delete the post)
-    // Actually, when a post is deleted, it will be removed from the join table in a many-to-many relationship automatically.
-
-    // 3. Delete the post
+    /** Delete the listing record. */
     await prisma.post.delete({ where: { id: postId } });
 
     res.status(200).json({
@@ -493,7 +507,7 @@ export const updatePostStatus = async (req, res) => {
       }
     });
 
-    // Send email to post author if they exist
+    /** Email is optional; listing status update should still succeed if email fails. */
     if (post.author && post.author.email) {
       try {
         await sendEmail({
@@ -509,7 +523,7 @@ export const updatePostStatus = async (req, res) => {
           `Email notification failed for post ${postId}:`,
           emailError.message,
         );
-        // We don't fail the entire request if just the email fails
+        /** Keep API successful even when email delivery fails. */
       }
     }
 
@@ -528,7 +542,9 @@ export const updatePostStatus = async (req, res) => {
   }
 };
 
-//to count the post
+/**
+ * Returns total number of listings.
+ */
 export const countPosts = async (req, res) => {
   try {
     const totalPosts = await prisma.post.count();
@@ -545,7 +561,9 @@ export const countPosts = async (req, res) => {
   }
 };
 
-//to count the pending approval posts
+/**
+ * Returns number of listings waiting for admin review.
+ */
 export const countPendingPosts = async (req, res) => {
   try {
     const pendingPosts = await prisma.post.count({ where: { status: "pending" } });
@@ -562,7 +580,9 @@ export const countPendingPosts = async (req, res) => {
   }
 };
 
-//to count appoved posts
+/**
+ * Returns number of approved listings.
+ */
 export const countApprovedPosts = async (req, res) => {
   try {
     const approvedPosts = await prisma.post.count({ where: { status: "approved" } });
@@ -579,11 +599,11 @@ export const countApprovedPosts = async (req, res) => {
   }
 };
 
+/**
+ * Returns the list of listing categories supported by the platform.
+ */
 export const getRoomTypes = async (req, res) => {
   try {
-    // In Prisma, we don't have easy access to enum values like Mongoose schema
-    // We can hardcode them or use a query if they were in a separate table.
-    // For now, I'll return the expected ones based on schema.prisma
     const roomTypes = ["room", "flat", "house", "hostel", "pg", "shared_room", "office", "others"];
     res.status(200).json({
       success: true,
@@ -598,7 +618,9 @@ export const getRoomTypes = async (req, res) => {
   }
 };
 
-// get landlord posts
+/**
+ * Returns all listings created by the signed-in landlord.
+ */
 export const getLandlordPosts = async (req, res) => {
   try {
     const landlordId = Number(req.user.id);
@@ -620,6 +642,10 @@ export const getLandlordPosts = async (req, res) => {
   }
 };
 
+/**
+ * Returns quick listing suggestions for search input.
+ * Also stores the searched keyword for personalization.
+ */
 export const getPostSuggestions = async (req, res) => {
   try {
     const { query } = req.query;
@@ -628,7 +654,7 @@ export const getPostSuggestions = async (req, res) => {
       return res.status(200).json({ success: true, data: [] });
     }
 
-    // Log the keyword
+    /** Saves the typed keyword for future suggestion history. */
     await prisma.searchLog.create({
       data: {
         keyword: query,
@@ -636,7 +662,7 @@ export const getPostSuggestions = async (req, res) => {
       }
     });
 
-    // Find related posts (approved and matching search)
+    /** Suggests only approved listings that match the typed value. */
     const suggestions = await prisma.post.findMany({
       where: {
         status: "approved",
@@ -670,6 +696,9 @@ export const getPostSuggestions = async (req, res) => {
   }
 };
 
+/**
+ * Returns recent unique search keywords for the logged-in user.
+ */
 export const getRecentSearches = async (req, res) => {
   try {
     const userId = Number(req.user.id);
@@ -680,7 +709,7 @@ export const getRecentSearches = async (req, res) => {
       select: { keyword: true }
     });
     
-    // Get unique keywords (case insensitive handle)
+    /** Keeps only unique keywords while ignoring letter case. */
     const uniqueKeywords = [];
     const seen = new Set();
     
@@ -705,6 +734,9 @@ export const getRecentSearches = async (req, res) => {
   }
 };
 
+/**
+ * Returns similar approved listings for a selected listing id.
+ */
 export const getSimilarPosts = async (req, res) => {
   try {
     const { id } = req.params;
@@ -734,11 +766,14 @@ export const getSimilarPosts = async (req, res) => {
   }
 };
 
+/**
+ * Builds personalized recommendations from the user's saved listings.
+ */
 export const getUserRecommendations = async (req, res) => {
   try {
     const userId = Number(req.user.id);
 
-    // Get user's saved posts
+    /** Uses saved listings as the starting point for recommendations. */
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { savedPosts: true }

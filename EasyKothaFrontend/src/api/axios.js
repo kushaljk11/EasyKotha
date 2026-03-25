@@ -1,4 +1,3 @@
-// src/api/axios.js
 import axios from "axios";
 import { API_BASE_URL } from "../config/env";
 
@@ -11,7 +10,9 @@ const axiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach Authorization header from localStorage token
+/**
+ * Adds auth token to every request when user is logged in.
+ */
 axiosInstance.interceptors.request.use((config) => {
   try {
     const token = localStorage.getItem("token");
@@ -19,7 +20,9 @@ axiosInstance.interceptors.request.use((config) => {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-  } catch { /* empty */ }
+  } catch {
+    // Ignore localStorage access errors and continue request.
+  }
   return config;
 });
 

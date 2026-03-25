@@ -14,14 +14,18 @@ if (!JWT_SECRET) {
   throw new Error("Missing JWT_SECRET in environment variables.");
 }
 
-// Generate JWT Token
+/**
+ * Creates a signed login token used by the frontend for authenticated requests.
+ */
 const generateToken = (user) => {
   return jwt.sign({ userId: user.id || user._id, role: user.role }, JWT_SECRET, {
     expiresIn: "7d",
   });
 };
 
-/* ===================== REGISTER ===================== */
+/**
+ * Registers a new account.
+ */
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -62,7 +66,7 @@ export const register = async (req, res) => {
 
     const registeredUser = await prisma.user.findUnique({ where: { email } });
 
-    // Send welcome email
+    // Sends a welcome email after registration when delivery is available.
     try {
       await sendEmail({
         to: registeredUser.email,
@@ -79,7 +83,9 @@ export const register = async (req, res) => {
   }
 };
 
-/* ===================== LOGIN ===================== */
+/**
+ * Logs a user in and returns profile details with a token.
+ */
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -90,7 +96,7 @@ export const login = async (req, res) => {
   }
 
   try {
-    // Normalize email input for consistency
+    // Normalizes email format so login checks remain consistent.
     const normalizedEmail = email.trim().toLowerCase();
 
     const user = await prisma.user.findUnique({ 
@@ -99,7 +105,7 @@ export const login = async (req, res) => {
     });
     if (!user) return res.status(401).json({ message: "Invalid credentials." });
 
-    // Guard against missing or malformed password (social-login accounts)
+    // Social sign-in users may not have a local password hash.
     if (!user.password || typeof user.password !== "string") {
       return res.status(401).json({ message: "Invalid credentials." });
     }
@@ -108,7 +114,7 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials." });
 
-    // Update last login
+    // Stores last login time for account activity tracking.
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() }
@@ -137,7 +143,9 @@ export const login = async (req, res) => {
   }
 };
 
-/* ===================== LOGOUT ===================== */
+/**
+ * Logs a user out on the client side.
+ */
 export const logout = async (req, res) => {
   try {
     res.json({ message: "Logged out successfully" });
@@ -146,7 +154,9 @@ export const logout = async (req, res) => {
   }
 };
 
-/* ===================== ME / CHECK AUTH ===================== */
+/**
+ * Returns the authenticated user's profile.
+ */
 export const me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -173,7 +183,9 @@ export const me = async (req, res) => {
   }
 };
 
-/* ===================== GET ALL USERS (ADMIN) ===================== */
+/**
+ * Admin endpoint that returns paginated user records.
+ */
 export const getAllUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -228,7 +240,9 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-/* ===================== GET USER BY ID ===================== */
+/**
+ * Returns a single user profile by id.
+ */
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;

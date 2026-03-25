@@ -34,7 +34,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       console.log("Error in checkAuth:", error);
-      // If unauthorized, clear token
+      // Clear stale token when backend rejects session.
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
       }
@@ -118,7 +118,6 @@ export const useAuthStore = create((set, get) => ({
         : false;
 
       toast.success(isSaved ? "Post saved to your list" : "Post removed from list");
-    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       toast.error("Failed to update saved posts");
     }

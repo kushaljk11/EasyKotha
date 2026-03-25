@@ -9,7 +9,9 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET not found in environment variables.");
 }
 
-//authenticate middleware
+/**
+ * Validates bearer token and attaches user identity to request.
+ */
 export const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -34,7 +36,7 @@ export const authMiddleware = (req, res, next) => {
   }
 };
 
-//admin only
+/** Allows access only to admin users. */
 export const adminOnly = (req, res, next) => {
   if (req.user.role !== "ADMIN") {
     return res.status(403).json({
@@ -44,7 +46,7 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
-//admin or self
+/** Allows access to admin users or the owner of the requested account id. */
 export const adminOrSelf = (req, res, next) => {
   const requesterId = req.user.id;      
   const requesterRole = req.user.role;

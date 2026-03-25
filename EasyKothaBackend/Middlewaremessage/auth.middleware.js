@@ -1,9 +1,12 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 
+/**
+ * Validates auth token and loads current user for messaging routes.
+ */
 export const protectRoute = async (req, res, next) => {
   try {
-    // Try to get token from cookies or Authorization header
+    // Accept token from cookie or Authorization header.
     let token = req.cookies?.jwt;
     
     if (!token) {

@@ -16,7 +16,10 @@ const emitNotification = (userId, payload) => {
   }
 };
 
-//get all bookings (for admin)
+/**
+ * Admin view: returns every booking record that still has an attached property.
+ * If a property was deleted later, that booking is skipped from the response.
+ */
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
@@ -42,7 +45,7 @@ export const getAllBookings = async (req, res) => {
       orderBy: { createdAt: "desc" }
     });
 
-    // Filter out bookings where the post has been deleted
+    /** Only send bookings linked to properties that still exist. */
     const validBookings = bookings.filter(booking => booking.post);
 
     res.status(200).json({
@@ -58,7 +61,11 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
-//create booking
+/**
+ * Creates a new booking request for a tenant.
+ * The booking is saved first, then users are notified.
+ * Email is sent in the background so the button does not stay stuck on "submitting".
+ */
 export const createBooking = async (req, res) => {
   try {
     const { postId, startDate, endDate } = req.body;
@@ -80,7 +87,7 @@ export const createBooking = async (req, res) => {
     }
 
     const start = new Date(startDate);
-    // If endDate is missing or same as start, make it +2 hours for a "visit"
+    /** If only one date is provided, treat it as a short visit window. */
     let end = endDate ? new Date(endDate) : new Date(start);
     
     if (start.getTime() === end.getTime()) {
@@ -126,7 +133,7 @@ export const createBooking = async (req, res) => {
     const userData = await prisma.user.findUnique({ where: { id: userId } });
     const postOwner = await prisma.user.findUnique({ where: { id: post.authorId } });
 
-    // Real-time in-app notifications (no SMTP dependency)
+    /** In-app notifications are sent immediately through socket. */
     const admins = await prisma.user.findMany({
       where: { role: "ADMIN" },
       select: { id: true },
@@ -143,29 +150,39 @@ export const createBooking = async (req, res) => {
     const recipientIds = new Set([post.authorId, ...admins.map((admin) => admin.id)]);
     recipientIds.forEach((id) => emitNotification(id, notificationPayload));
 
-    if (postOwner && postOwner.email) {
-      await sendEmail({
-        to: postOwner.email,
-        subject: `New booking request for your post: ${post.title}`,
-        text: `You have a new booking request from ${userData.name} for your post "${post.title}" on ${start.toLocaleDateString()}.`,
-        html: bookingRequestTemplate({ post, user: userData, booking }),
-      });
-    }
-
-    if (userData && userData.email) {
-      await sendEmail({
-        to: userData.email,
-        subject: `Booking request sent for ${post.title}`,
-        text: `Your booking request for "${post.title}" has been sent. The landlord will approve or reject your booking soon.`,
-        html: bookingUserConfirmationTemplate({ post, booking }),
-      });
-    }
-
     res.status(201).json({
       success: true,
       message: "Booking request sent",
       data: booking,
     });
+
+    Promise.resolve()
+      .then(async () => {
+        try {
+          if (postOwner && postOwner.email) {
+            await sendEmail({
+              to: postOwner.email,
+              subject: `New booking request for your post: ${post.title}`,
+              text: `You have a new booking request from ${userData.name} for your post "${post.title}" on ${start.toLocaleDateString()}.`,
+              html: bookingRequestTemplate({ post, user: userData, booking }),
+            });
+          }
+
+          if (userData && userData.email) {
+            await sendEmail({
+              to: userData.email,
+              subject: `Booking request sent for ${post.title}`,
+              text: `Your booking request for "${post.title}" has been sent. The landlord will approve or reject your booking soon.`,
+              html: bookingUserConfirmationTemplate({ post, booking }),
+            });
+          }
+        } catch (emailError) {
+          console.error("Email notification Error in createBooking:", emailError.message);
+        }
+      })
+      .catch(() => {
+        /** The detailed error is already logged in the block above. */
+      });
   } catch (error) {
     console.error("Create Booking Error:", error);
     res.status(500).json({
@@ -176,7 +193,10 @@ export const createBooking = async (req, res) => {
   }
 };
 
-//update booking status
+/**
+ * Updates booking state (approved, rejected, cancelled).
+ * Core database updates happen before response; email follows in the background.
+ */
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -201,56 +221,16 @@ export const updateBookingStatus = async (req, res) => {
       });
     }
 
-    // Email notifications
-    try {
-      if (status === "approved" || status === "rejected") {
-        if (booking.user && booking.user.email) {
-          // Update post availability only on approval
-          if (status === "approved" && booking.post) {
-            await prisma.post.update({
-              where: { id: booking.postId },
-              data: { isAvailable: false }
-            });
-          }
-
-          await sendEmail({
-            to: booking.user.email,
-            subject: `Your booking for "${booking.post?.title || "Property"}" is ${status}`,
-            html: status === "approved" 
-              ? bookingApprovedTemplate({ post: booking.post, booking })
-              : bookingRejectedTemplate({ post: booking.post, booking }),
-          });
-        }
-      } else if (status === "cancelled") {
-        // Logged in user can be tenant or landlord, notify the other party
-        if (booking.post) {
-          await prisma.post.update({
-            where: { id: booking.postId },
-            data: { isAvailable: true }
-          });
-        }
-
-        const postOwner = await prisma.user.findUnique({ where: { id: booking.post?.authorId } });
-        
-        // Notify both parties of cancellation
-        if (booking.user?.email) {
-          await sendEmail({
-            to: booking.user.email,
-            subject: "Booking Cancelled",
-            html: bookingCancelledTemplate({ post: booking.post, booking }),
-          });
-        }
-        
-        if (postOwner?.email) {
-          await sendEmail({
-            to: postOwner.email,
-            subject: "Booking Cancelled",
-            html: bookingCancelledTemplate({ post: booking.post, booking }),
-          });
-        }
-      }
-    } catch (emailError) {
-      console.error("Email notification Error in updateBookingStatus:", emailError.message);
+    if (status === "approved" && booking.post) {
+      await prisma.post.update({
+        where: { id: booking.postId },
+        data: { isAvailable: false }
+      });
+    } else if (status === "cancelled" && booking.post) {
+      await prisma.post.update({
+        where: { id: booking.postId },
+        data: { isAvailable: true }
+      });
     }
 
     const updatedBooking = await prisma.booking.update({
@@ -289,6 +269,49 @@ export const updateBookingStatus = async (req, res) => {
       message: "Booking status updated",
       data: updatedBooking,
     });
+
+    Promise.resolve()
+      .then(async () => {
+        try {
+          if (status === "approved" || status === "rejected") {
+            if (booking.user?.email) {
+              await sendEmail({
+                to: booking.user.email,
+                subject: `Your booking for "${booking.post?.title || "Property"}" is ${status}`,
+                html: status === "approved"
+                  ? bookingApprovedTemplate({ post: booking.post, booking })
+                  : bookingRejectedTemplate({ post: booking.post, booking }),
+              });
+            }
+            return;
+          }
+
+          if (status === "cancelled") {
+            const postOwner = await prisma.user.findUnique({ where: { id: booking.post?.authorId } });
+
+            if (booking.user?.email) {
+              await sendEmail({
+                to: booking.user.email,
+                subject: "Booking Cancelled",
+                html: bookingCancelledTemplate({ post: booking.post, booking }),
+              });
+            }
+
+            if (postOwner?.email) {
+              await sendEmail({
+                to: postOwner.email,
+                subject: "Booking Cancelled",
+                html: bookingCancelledTemplate({ post: booking.post, booking }),
+              });
+            }
+          }
+        } catch (emailError) {
+          console.error("Email notification Error in updateBookingStatus:", emailError.message);
+        }
+      })
+      .catch(() => {
+        /** The detailed error is already logged in the block above. */
+      });
   } catch (error) {
     console.error("Update Booking Status Error:", error);
     res.status(500).json({
@@ -299,14 +322,17 @@ export const updateBookingStatus = async (req, res) => {
   }
 };
 
-// Get bookings for a specific post (only owner or admin)
+/**
+ * Returns bookings for one property.
+ * Access is limited to the property owner and admin users.
+ */
 export const getPostBookings = async (req, res) => {
   try {
     const postId = req.params.postId;
     const requesterId = Number(req.user.id);
     const requesterRole = req.user.role;
 
-    // Find the post
+    /** Check the requested property first. */
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) {
       return res.status(404).json({
@@ -315,7 +341,7 @@ export const getPostBookings = async (req, res) => {
       });
     }
 
-    // Only post owner or admin can view
+    /** Prevent unrelated users from reading private booking data. */
     if (post.authorId !== requesterId && requesterRole !== "ADMIN") {
       return res.status(403).json({
         success: false,
@@ -323,7 +349,7 @@ export const getPostBookings = async (req, res) => {
       });
     }
 
-    // Get all bookings for this post
+    /** Fetch all booking requests for this property. */
     const bookings = await prisma.booking.findMany({
       where: { postId },
       include: { user: { select: { name: true, email: true } } },
@@ -344,12 +370,14 @@ export const getPostBookings = async (req, res) => {
   }
 };
 
-// Get all bookings of the logged-in user
+/**
+ * Returns booking history for the signed-in user.
+ */
 export const getUserBookings = async (req, res) => {
   try {
     const userId = Number(req.user.id);
 
-    // Fetch all bookings made by this user
+    /** Load bookings made by this account. */
     const bookings = await prisma.booking.findMany({
       where: { userId },
       include: {
@@ -377,7 +405,7 @@ export const getUserBookings = async (req, res) => {
       orderBy: { createdAt: "desc" }
     });
 
-    // Filter out bookings where the post has been deleted
+    /** Remove entries whose property no longer exists. */
     const validBookings = bookings.filter(booking => booking.post);
 
     res.status(200).json({
@@ -394,16 +422,18 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
-// Get all bookings for posts owned by the landlord
+/**
+ * Landlord view: returns bookings for properties owned by the signed-in landlord.
+ */
 export const getLandlordBookings = async (req, res) => {
   try {
     const landlordId = Number(req.user.id);
 
-    // 1. Find all posts owned by this landlord
+    /** Step 1: collect all properties owned by this landlord. */
     const myPosts = await prisma.post.findMany({ where: { authorId: landlordId } });
     const postIds = myPosts.map((post) => post.id);
 
-    // 2. Find all bookings for these posts
+    /** Step 2: load bookings related to those properties. */
     const bookings = await prisma.booking.findMany({
       where: { postId: { in: postIds } },
       include: {
@@ -413,7 +443,7 @@ export const getLandlordBookings = async (req, res) => {
       orderBy: { createdAt: "desc" }
     });
 
-    // Filter out bookings where the post has been deleted
+    /** Remove entries whose property record is missing. */
     const validBookings = bookings.filter(booking => booking.post);
 
     res.status(200).json({

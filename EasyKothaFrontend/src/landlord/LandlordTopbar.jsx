@@ -6,9 +6,42 @@ import { useAuthStore } from "../store/useAuthStore";
 import UserAvatar from "../components/UserAvatar";
 import LanguageDropdown from "../components/LanguageDropdown";
 
+const getNotificationTarget = (link, role) => {
+  if (!link) {
+    return role === "ADMIN"
+      ? "/admin/bookings"
+      : role === "TENANT"
+      ? "/tenant/bookings"
+      : "/landlord/bookings";
+  }
+
+  if (
+    link === "/admin/bookings" ||
+    link === "/landlord/bookings" ||
+    link === "/tenant/bookings"
+  ) {
+    return role === "ADMIN"
+      ? "/admin/bookings"
+      : role === "TENANT"
+      ? "/tenant/bookings"
+      : "/landlord/bookings";
+  }
+
+  if (link === "/profile") {
+    return role === "ADMIN"
+      ? "/profile"
+      : role === "TENANT"
+      ? "/tenant/profile"
+      : "/landlord/profile";
+  }
+
+  return link;
+};
+
 export default function LandlordTopbar({ searchPlaceholder = "Search..." }) {
   const { toggleSidebar } = useSidebarStore();
   const { authUser, logout, socket } = useAuthStore();
+  const normalizedRole = String(authUser?.role || "LANDLORD").trim().toUpperCase();
   const [isOpen, setIsOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -47,7 +80,7 @@ export default function LandlordTopbar({ searchPlaceholder = "Search..." }) {
         id: payload?.id || `landlord-notif-${Date.now()}`,
         title: payload?.title || "Notification",
         message: payload?.message || "You have a new update",
-        link: payload?.link || "/landlord/bookings",
+        link: getNotificationTarget(payload?.link, normalizedRole),
         createdAt: payload?.createdAt || new Date().toISOString(),
       };
 
@@ -59,7 +92,7 @@ export default function LandlordTopbar({ searchPlaceholder = "Search..." }) {
 
     socket.on("notification", handleNotification);
     return () => socket.off("notification", handleNotification);
-  }, [socket]);
+  }, [socket, normalizedRole]);
 
   const toggleNotificationPanel = () => {
     setIsNotificationOpen((prev) => {

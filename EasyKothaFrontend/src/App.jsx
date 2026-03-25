@@ -7,7 +7,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-// import TenantDashboard from "./tenants/TenantDashboard";
 import AdminDashboard from "./admin/AdminDashboard";
 import UserManagement from "./admin/UserManagement";
 import Property from "./admin/Property";
@@ -62,7 +61,7 @@ function AnimatedRouteContainer() {
           <Route path="/about" element={<Aboutus />} />
           <Route path="/contact" element={<ContactUs />} />
 
-          {/* Role anusar protected route */}
+          {/* Protected entry point for tenant role. */}
           <Route
             path="/tenant"
             element={

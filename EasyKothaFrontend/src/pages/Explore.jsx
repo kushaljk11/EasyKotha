@@ -22,15 +22,13 @@ const Explore = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authUser, toggleSavePost } = useAuthStore();
-  
-  // Filters state
+
   const [city, setCity] = useState("");
   const [roomType, setRoomType] = useState("");
   const [sort, setSort] = useState("latest");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // City dropdown data
   const [cities, setCities] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
@@ -40,7 +38,6 @@ const Explore = () => {
     fetchRoomTypes();
     loadLocationData();
     
-    // Parse URL params on mount
     const queryParams = new URLSearchParams(location.search);
 
     const cityParam = queryParams.get("city") || queryParams.get("district");
@@ -62,7 +59,7 @@ const Explore = () => {
     };
   }, []);
 
-  // Load all available cities for dropdown
+  /** Loads all available city names from location dataset. */
   const loadLocationData = async () => {
     try {
       setLocationsLoading(true);
@@ -96,7 +93,7 @@ const Explore = () => {
 
   useEffect(() => {
     fetchPosts();
-    // Scroll to top when page changes
+    // Keep users at top after filter/page changes.
     window.scrollTo({ top: 0, behavior: 'smooth' });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city, roomType, sort, page, location.search]);
@@ -148,7 +145,7 @@ const Explore = () => {
     e.preventDefault();
     setPage(1);
     
-    // Sync filters to URL
+    // Keep URL query in sync with selected filters.
     const queryParams = new URLSearchParams(location.search);
     if (city) {
       queryParams.set("city", city);
@@ -209,10 +206,8 @@ const Explore = () => {
       <TenantTopbar />
 
       <div className="bg-gray-50/30 pb-16 p-3 sm:p-4 md:p-8">
-        {/* Horizontal Search & Filter Bar */}
         <div className="w-full rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 md:p-6 mb-4 md:mb-6">
           <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 xl:grid-cols-12 xl:items-end">
-            {/* Search Bar Component */}
             <div className="sm:col-span-2 xl:col-span-3">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
                 <SearchIcon size={12} /> Search Property
@@ -224,7 +219,6 @@ const Explore = () => {
               />
             </div>
 
-            {/* City Search */}
             <div ref={cityInputRef} className="relative sm:col-span-1 xl:col-span-3">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
                 <MapPin size={12} /> City

@@ -55,7 +55,7 @@ const Search = ({
   };
 
   useEffect(() => {
-    // Close suggestions when clicking outside
+    // Hide dropdown when user clicks outside the search box.
     const handleClickOutside = (event) => {
       if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
         setShowSuggestions(false);
@@ -65,7 +65,7 @@ const Search = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Suggestions logic (Keyword Tracking)
+  /** Loads search suggestions after a short debounce. */
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (search.length < 2) {
@@ -135,11 +135,9 @@ const Search = ({
         <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-green-800 text-lg transition-colors" />
       </div>
 
-      {/* Suggestions Dropdown */}
       {showSuggestions && (suggestions.length > 0 || (search.length === 0 && recentSearches.length > 0)) && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-10 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-300">
-          
-          {/* Recent Searches Section */}
+
           {search.length === 0 && recentSearches.length > 0 && (
             <>
               <div className="px-4 py-2 border-b border-gray-50 mb-1">
@@ -158,7 +156,6 @@ const Search = ({
             </>
           )}
 
-          {/* Matching Properties Section */}
           {search.length >= 2 && suggestions.length > 0 && (
             <>
               <div className="px-4 py-2 border-b border-gray-50 mb-1">

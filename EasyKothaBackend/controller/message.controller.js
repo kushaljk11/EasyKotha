@@ -2,6 +2,10 @@ import { prisma } from "../lib/prisma.js";
 import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 
+/**
+ * Returns users that the current user has already chatted with.
+ * This list is used for the chat sidebar.
+ */
 export const getUsersForSidebar = async (req, res) => {
   try {
     const myId = Number(req.user.id);
@@ -39,7 +43,7 @@ export const getUsersForSidebar = async (req, res) => {
       },
     });
 
-    // Keep legacy keys for old chat UI while preserving Prisma fields.
+    // Keeps compatibility fields used by older chat components.
     const normalizedUsers = users.map((user) => ({
       ...user,
       _id: user.id,
@@ -54,6 +58,9 @@ export const getUsersForSidebar = async (req, res) => {
   }
 };
 
+/**
+ * Returns full message history between the current user and one target user.
+ */
 export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
@@ -83,6 +90,9 @@ export const getMessages = async (req, res) => {
   }
 };
 
+/**
+ * Sends a text or image message to another user and emits real-time updates.
+ */
 export const sendMessage = async (req, res) => {
   try {
     const { text, image } = req.body;
@@ -113,7 +123,7 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      // Upload base64 image to cloudinary
+      // Uploads image content and stores the hosted URL.
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }

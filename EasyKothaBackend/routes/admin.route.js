@@ -6,9 +6,12 @@ import { authMiddleware, adminOnly } from "../middleware/auth.Middleware.js";
 
 const adminRouter = express.Router();
 
+/**
+ * Validates auth token and loads user profile for admin route checks.
+ */
 export const protectRoute = async (req, res, next) => {
   try {
-    // Try to get token from cookies or Authorization header
+    // Accept token from cookie or Authorization header.
     let token = req.cookies?.jwt;
     
     if (!token) {

@@ -8,7 +8,9 @@ if (!EMAIL_USER || !EMAIL_PASS) {
   throw new Error("Email credentials not found in environment variables");
 }
 
-// Create transporter
+/**
+ * SMTP transporter used by backend email notifications.
+ */
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST || "smtp.gmail.com",
   port: EMAIL_PORT || 587,
@@ -19,7 +21,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Send email function
+/**
+ * Sends an email using configured SMTP credentials.
+ */
 export const sendEmail = async ({ to, subject, text, html }) => {
   try {
     const info = await transporter.sendMail({

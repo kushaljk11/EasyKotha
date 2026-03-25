@@ -1,10 +1,12 @@
 import multer from "multer";
 import path from "path";
 
-// Configure multer for file uploads
+/**
+ * Stores uploaded files locally before optional cloud upload.
+ */
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Temporary storage before Cloudinary upload
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -12,7 +14,9 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter to accept only images
+/**
+ * Accepts image files only.
+ */
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -27,7 +31,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: fileFilter,
 });
 

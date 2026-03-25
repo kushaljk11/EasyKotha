@@ -6,7 +6,7 @@ import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
-// Auth routes for frontend (Store compatibility)
+/** Primary authentication routes used by the frontend app. */
 router.post('/signup', register);
 router.post('/login', login);
 router.post('/logout', logout);
@@ -14,15 +14,15 @@ router.get('/check', authMiddleware, me);
 router.put('/update-profile', authMiddleware, upload.single('profileImage'), updateProfile);
 router.post('/save-post/:postId', authMiddleware, toggleSavePost);
 
-// Original / legacy routes
+/** Legacy routes kept for backward compatibility. */
 router.post('/register', register);
 router.get('/me', authMiddleware, me);
 router.put('/profile', authMiddleware, upload.single('profileImage'), updateProfile);
 
-// Admin routes
+/** Admin and account-management routes. */
 router.get("/users/count", authMiddleware, adminOnly, countUsers);
 router.get("/users", authMiddleware, adminOnly, getAllUsers);
-router.get("/users/:id", authMiddleware, getUserById); // removed adminOnly
+router.get("/users/:id", authMiddleware, getUserById);
 router.put("/users/:id", authMiddleware, adminOrSelf, updateUser);
 router.delete("/users/:id", authMiddleware, adminOnly, deleteUser);
 

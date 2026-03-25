@@ -44,3 +44,177 @@ textarea:disabled,
 		padding-right: env(safe-area-inset-right);
 	}
 }
+
+@keyframes ekRevealUp {
+	0% {
+		opacity: 0;
+		transform: translateY(18px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes ekFloatSoft {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-4px);
+	}
+}
+
+.ek-reveal-up {
+	opacity: 0;
+	animation: ekRevealUp 700ms ease-out forwards;
+}
+
+.ek-float-soft {
+	animation: ekFloatSoft 3s ease-in-out infinite;
+}
+
+.ek-step-card {
+	opacity: 0;
+	transform: translateY(20px) scale(0.98);
+	filter: blur(2px);
+	transition:
+		opacity 520ms ease,
+		transform 620ms cubic-bezier(0.2, 0.8, 0.2, 1),
+		filter 420ms ease;
+}
+
+.ek-step-card.is-active {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+	filter: blur(0);
+}
+
+@keyframes ekProcessSignal {
+	0% {
+		left: 12.5%;
+		opacity: 0.35;
+	}
+	10% {
+		opacity: 1;
+	}
+	90% {
+		opacity: 1;
+	}
+	100% {
+		left: 87.5%;
+		opacity: 0.35;
+	}
+}
+
+@keyframes ekNodePulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.35);
+	}
+	50% {
+		box-shadow: 0 0 0 8px rgba(22, 163, 74, 0);
+	}
+}
+
+@keyframes ekFlowShift {
+	0% {
+		background-position: 0% 50%;
+	}
+	100% {
+		background-position: 100% 50%;
+	}
+}
+
+.ek-step-number {
+	position: relative;
+	transition: box-shadow 380ms ease, transform 380ms ease;
+}
+
+.ek-step-number.is-active {
+	animation: ekNodePulse 1.4s ease-out 1;
+	box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+}
+
+.ek-process-track {
+	position: relative;
+	height: 20px;
+}
+
+.ek-process-base,
+.ek-process-progress {
+	position: absolute;
+	top: 50%;
+	height: 3px;
+	border-radius: 9999px;
+	transform: translateY(-50%);
+}
+
+.ek-process-base {
+	left: 12.5%;
+	right: 12.5%;
+	background: rgba(22, 163, 74, 0.22);
+}
+
+.ek-process-progress {
+	left: 12.5%;
+	width: 0;
+	background: linear-gradient(90deg, rgba(22, 163, 74, 0.55), rgba(22, 163, 74, 1), rgba(16, 185, 129, 0.5));
+	background-size: 200% 100%;
+	box-shadow: 0 0 12px rgba(22, 163, 74, 0.45);
+	transition: width 1.15s ease-out;
+}
+
+.ek-process-node {
+	position: absolute;
+	top: 50%;
+	height: 12px;
+	width: 12px;
+	border-radius: 9999px;
+	transform: translate(-50%, -50%) scale(0.7);
+	background: #f0fdf4;
+	border: 2px solid rgba(22, 163, 74, 0.8);
+	opacity: 0;
+	transition: opacity 320ms ease, transform 380ms ease;
+}
+
+.ek-process-signal {
+	position: absolute;
+	top: 50%;
+	left: 12.5%;
+	height: 16px;
+	width: 16px;
+	border-radius: 9999px;
+	transform: translate(-50%, -50%);
+	background: #16a34a;
+	box-shadow: 0 0 14px rgba(22, 163, 74, 0.55);
+	opacity: 0;
+}
+
+.ek-process-track.is-active .ek-process-progress {
+	width: 75%;
+	animation: ekFlowShift 2.4s linear infinite;
+}
+
+.ek-process-track.is-active .ek-process-node {
+	opacity: 1;
+	transform: translate(-50%, -50%) scale(1);
+	animation: ekNodePulse 1.8s ease-in-out infinite;
+	animation-delay: var(--node-delay, 0ms);
+}
+
+.ek-process-track.is-active .ek-process-signal {
+	animation: ekProcessSignal 2.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ek-step-card,
+	.ek-step-number,
+	.ek-process-progress,
+	.ek-process-node,
+	.ek-process-signal {
+		animation: none !important;
+		transition-duration: 0ms !important;
+	}
+}

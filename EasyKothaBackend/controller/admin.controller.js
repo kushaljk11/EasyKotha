@@ -1,8 +1,12 @@
 import { prisma } from "../lib/prisma.js";
 
+/**
+ * Returns dashboard data for admin pages, including:
+ * recent activity logs and weekly growth values.
+ */
 export const getAdminStats = async (req, res) => {
   try {
-    // 1. Get recent users
+    // Collects recently registered users.
     const recentUsers = await prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
@@ -16,7 +20,7 @@ export const getAdminStats = async (req, res) => {
       }
     });
 
-    // 2. Get recent posts
+    // Collects recently created listings.
     const recentPosts = await prisma.post.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
@@ -34,7 +38,7 @@ export const getAdminStats = async (req, res) => {
       }
     });
 
-    // 3. Get recent bookings
+    // Collects recent booking activity.
     const recentBookings = await prisma.booking.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
@@ -57,7 +61,7 @@ export const getAdminStats = async (req, res) => {
       }
     });
 
-    // Combine logs
+    // Merges all activity types into one timeline list.
     const logs = [
       ...recentUsers.map(u => ({
         type: "USER",
@@ -91,7 +95,7 @@ export const getAdminStats = async (req, res) => {
       }))
     ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 10);
 
-    // 4. Growth Trends (for Chart)
+    // Builds weekly trend data for dashboard charts.
     const growthData = await Promise.all([3, 2, 1, 0].map(async (weekAgo) => {
       const start = new Date();
       start.setDate(start.getDate() - (weekAgo + 1) * 7);

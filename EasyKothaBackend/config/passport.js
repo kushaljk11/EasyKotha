@@ -25,7 +25,7 @@ const facebookCallbackUrl =
     ? `${externalBaseUrl}/api/oauth/facebook/callback`
     : "/api/oauth/facebook/callback");
 
-// ---------------- GOOGLE STRATEGY ----------------
+/** Google OAuth strategy setup. */
 passport.use(
   new GoogleStrategy(
     {
@@ -55,14 +55,14 @@ passport.use(
   )
 );
 
-// ---------------- FACEBOOK STRATEGY ----------------
+/** Facebook OAuth strategy setup. */
 passport.use(
   new FacebookStrategy(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
       callbackURL: facebookCallbackUrl,
-      profileFields: ["id", "displayName", "emails"], // request email
+      profileFields: ["id", "displayName", "emails"],
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

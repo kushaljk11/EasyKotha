@@ -1,6 +1,9 @@
 import { useAuthStore } from "../store/useAuthStore";
 import { Navigate } from "react-router-dom";
 
+/**
+ * Restricts route access by login state and allowed roles.
+ */
 export default function ProtectedRoute({ children, roles }) {
   const { authUser, isCheckingAuth } = useAuthStore();
 
@@ -14,12 +17,10 @@ export default function ProtectedRoute({ children, roles }) {
   }
 
   if (!authUser) {
-    // If no user and not loading, require login
     return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
   }
 
   if (roles && !roles.includes(authUser.role)) {
-    // If user has wrong role, send them to their correct dashboard
     if (authUser.role === "ADMIN") return <Navigate to="/admin/dashboard" replace />;
     if (authUser.role === "LANDLORD") return <Navigate to="/landlord/dashboard" replace />;
     return <Navigate to="/tenant/dashboard" replace />;

@@ -10,6 +10,7 @@ import {
   FaSearch,
   FaUserCheck,
   FaLock,
+  FaDownload,
 } from "react-icons/fa";
 import axiosInstance from "../api/axios";
 import Footer from "../components/Footer";
@@ -55,9 +56,11 @@ function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, onClick
     <button
       type="button"
       onClick={onClick}
-      className="FeaturedListingCard w-full overflow-hidden rounded-xl border border-green-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+      className="FeaturedListingCard h-full w-full overflow-hidden rounded-xl border border-green-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
     >
-      <img className="h-32 w-full object-cover sm:h-40" src={imageSrc} alt={title} />
+      <div className="h-44 w-full overflow-hidden bg-gray-100 sm:h-52">
+        <img className="h-full! w-full object-cover" src={imageSrc} alt={title} />
+      </div>
       <div className="p-3 sm:p-4">
         <h3 className="line-clamp-2 text-base font-semibold text-green-800 sm:text-lg">{title}</h3>
         <p className="mt-0.5 line-clamp-1 text-xs text-gray-600 sm:text-sm">{location}</p>
@@ -69,10 +72,22 @@ function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, onClick
   );
 }
 
-function HowEasyKothaWorksCard({ title, description, description2, number }) {
+function HowEasyKothaWorksCard({
+  title,
+  description,
+  description2,
+  number,
+  delayMs = 0,
+  isVisible = false,
+}) {
   return (
-    <div className="HowEasyKothaWorksCard flex flex-col items-center text-center gap-2 p-4 border border-green-200 rounded-lg shadow-xl hover:shadow-xl transition-shadow duration-200">
-      <div className="h-12 w-12 bg-green-800 text-white flex items-center justify-center rounded-full">
+    <div
+      className={`HowEasyKothaWorksCard ek-step-card flex flex-col items-center text-center gap-2 border border-green-200 bg-white p-5 rounded-lg shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+        isVisible ? "is-active" : ""
+      }`}
+      style={{ transitionDelay: `${delayMs}ms` }}
+    >
+      <div className={`ek-step-number h-12 w-12 bg-green-800 text-white flex items-center justify-center rounded-full ${isVisible ? "is-active" : ""}`}>
         {number}
       </div>
       <h3 className="text-green-800 text-lg font-semibold">Step {title}</h3>
@@ -128,6 +143,8 @@ export default function Landing() {
   const [featuredRooms, setFeaturedRooms] = useState([]);
   const [isLoadingFeaturedRooms, setIsLoadingFeaturedRooms] = useState(true);
   const suggestionBoxRef = useRef(null);
+  const howItWorksRef = useRef(null);
+  const [isHowItWorksVisible, setIsHowItWorksVisible] = useState(false);
 
   useEffect(() => {
     const fetchFeaturedRooms = async () => {
@@ -244,6 +261,27 @@ export default function Landing() {
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (!howItWorksRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsHowItWorksVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -8% 0px",
+      }
+    );
+
+    observer.observe(howItWorksRef.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   const navigateWithAuthCheck = (path) => {
     if (authUser) {
@@ -586,35 +624,73 @@ export default function Landing() {
       </div>
 
       {/* how easykotha works */}
-      <div className="HowEasyKothaWorksSection flex flex-col items-center mt-20 mb-16 gap-8 bg-gray-50 px-4 py-10 md:p-10">
+      <div
+        ref={howItWorksRef}
+        className="HowEasyKothaWorksSection flex flex-col items-center mt-20 mb-16 gap-8 bg-gray-50 px-4 py-10 md:p-10"
+      >
         <h2 className="text-3xl md:text-4xl font-semibold text-center">
           How <span className="text-green-800 font-semibold">EasyKotha</span> Works
         </h2>
-        <div className="HowEasyKothaWorksGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full max-w-6xl">
-          <HowEasyKothaWorksCard
-            number={1}
-            title="Search Rooms"
-            description="Enter your location and preferences to"
-            description2="findsuitable rooms."
-          />
-          <HowEasyKothaWorksCard
-            number={2}
-            title="Browse Listings"
-            description="View detailed photos and room"
-            description2="Information."
-          />
-          <HowEasyKothaWorksCard
-            number={3}
-            title="Contact Owners"
-            description="Directly communicate with the"
-            description2="room owners."
-          />
-          <HowEasyKothaWorksCard
-            number={4}
-            title="Book for Visit"
-            description="Schedule a visit or book your"
-            description2="perfect room."
-          />
+        <div className="relative w-full max-w-6xl">
+          <div className="pointer-events-none absolute left-16 right-16 top-1/2 hidden -translate-y-1/2 lg:block">
+            <div className={`ek-process-track ${isHowItWorksVisible ? "is-active" : ""}`}>
+              <div className="ek-process-base" />
+              <div className="ek-process-progress" />
+              <div className="ek-process-signal" />
+
+              <div
+                className="ek-process-node"
+                style={{ left: "12.5%", transitionDelay: "120ms", "--node-delay": "0ms" }}
+              />
+              <div
+                className="ek-process-node"
+                style={{ left: "37.5%", transitionDelay: "260ms", "--node-delay": "350ms" }}
+              />
+              <div
+                className="ek-process-node"
+                style={{ left: "62.5%", transitionDelay: "400ms", "--node-delay": "700ms" }}
+              />
+              <div
+                className="ek-process-node"
+                style={{ left: "87.5%", transitionDelay: "540ms", "--node-delay": "1050ms" }}
+              />
+            </div>
+          </div>
+
+          <div className="HowEasyKothaWorksGrid relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full">
+            <HowEasyKothaWorksCard
+              delayMs={0}
+              isVisible={isHowItWorksVisible}
+              number={1}
+              title="Search Rooms"
+              description="Enter your location and preferences to"
+              description2="find suitable rooms."
+            />
+            <HowEasyKothaWorksCard
+              delayMs={140}
+              isVisible={isHowItWorksVisible}
+              number={2}
+              title="Browse Listings"
+              description="View detailed photos and room"
+              description2="information."
+            />
+            <HowEasyKothaWorksCard
+              delayMs={280}
+              isVisible={isHowItWorksVisible}
+              number={3}
+              title="Contact Owners"
+              description="Directly communicate with"
+              description2="room owners."
+            />
+            <HowEasyKothaWorksCard
+              delayMs={420}
+              isVisible={isHowItWorksVisible}
+              number={4}
+              title="Book for Visit"
+              description="Schedule a visit or book"
+              description2="your perfect room."
+            />
+          </div>
         </div>
       </div>
 
@@ -672,114 +748,44 @@ export default function Landing() {
       </div>
 
       {/* Mobile app */}
-      <div className="mobile bg-gray-50 py-10 md:py-16 px-3 sm:px-4">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-6 lg:gap-8">
-          {/* Left: Phone Images */}
-          <div className="image shrink-0 w-full md:w-2/5 flex justify-center relative">
-            <div className="absolute w-56 sm:w-64 md:w-96 h-48 sm:h-56 md:h-80 bg-white rounded-3xl -z-10 top-1 sm:top-2 md:top-4 left-0"></div>
+      <div className="mobile relative overflow-hidden bg-linear-to-r from-[#08132b] via-[#0d1e42] to-[#16284c] px-4 py-9 md:py-13">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-[380px] w-[380px] rounded-full border border-emerald-500/25 motion-safe:animate-pulse md:h-[480px] md:w-[480px]" />
+          <div className="absolute h-[520px] w-[520px] rounded-full border border-cyan-400/10 md:h-[660px] md:w-[660px]" />
+        </div>
 
-            <div className="relative w-48 sm:w-56 md:w-80 h-56 sm:h-64 md:h-96 bg-gray-100 rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden">
-              {/* Phone mockup with image */}
-              <img
-                src="/mobile.png"
-                alt="Mobile App Preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
+          <div className="mb-7 flex h-24 w-24 items-center justify-center rounded-3xl bg-emerald-900/45 text-emerald-300 shadow-[0_0_36px_rgba(16,185,129,0.28)] motion-safe:animate-bounce">
+            <FaDownload className="text-4xl" />
           </div>
 
-          {/* Right: Content Section */}
-          <div className="content w-full md:w-3/5">
-            <span className="bg-green-800 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-1 md:py-2 rounded-full inline-block mb-2 md:mb-4">
-              Coming Soon
+          <h2 className="text-balance text-2xl font-bold text-white sm:text-4xl md:text-5xl">
+            Install EasyKotha on Your Phone
+          </h2>
+          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-300">
+            Works offline, loads instantly, and lives on your home screen. Tap
+            <span className="font-semibold text-white"> Install</span> when prompted.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
+              Offline Ready
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-800 md:mb-3">
-              Join Our App
-            </h2>
-            <p className="text-gray-600 text-xs sm:text-sm md:text-base lg:text-lg mb-4 md:mb-6">
-              Be the first person to know when we launch our mobile app!
-            </p>
-            {/* Features List */}
-            <div className="features space-y-3 md:space-y-4 mb-6 md:mb-8">
-              <div className="flex items-start gap-2 md:gap-3">
-                <div className="bg-green-800 text-white rounded-lg p-1.5 md:p-2 shrink-0 mt-0.5">
-                  <svg
-                    className="w-4 md:w-5 h-4 md:h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-2a8 8 0 100-16 8 8 0 000 16z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-800 text-sm md:text-base">
-                    Real-time notification
-                  </h3>
-                  <p className="text-xs md:text-sm text-green-800">
-                    Stay updated with instant notifications
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2 md:gap-3">
-                <div className="bg-green-800 text-white rounded-lg p-1.5 md:p-2 shrink-0 mt-0.5">
-                  <svg
-                    className="w-4 md:w-5 h-4 md:h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 1C6.48 1 2 5.48 2 11s4.48 10 10 10 10-4.48 10-10S17.52 1 12 1zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-13c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-800 text-sm md:text-base">
-                    Location-based service
-                  </h3>
-                  <p className="text-xs md:text-sm text-green-800">
-                    Find what's nearby with smart location
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2 md:gap-3">
-                <div className="bg-green-800 text-white rounded-lg p-1.5 md:p-2 shrink-0 mt-0.5">
-                  <svg
-                    className="w-4 md:w-5 h-4 md:h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-800 text-sm md:text-base">
-                    Direct messaging
-                  </h3>
-                  <p className="text-xs md:text-sm text-green-800">
-                    Connect directly with users
-                  </p>
-                </div>
-              </div>
-            </div>
-            Email Subscription
-            <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 md:px-6 py-2 md:py-3 rounded-full border-2 border-green-800 focus:outline-none focus:ring-2 focus:ring-green-800 text-gray-800 text-sm md:text-base"
-              />
-              <button className="bg-green-800 hover:bg-blue-900 text-white font-semibold py-2 md:py-3 px-4 md:px-8 rounded-full flex items-center justify-center gap-2 transition-colors whitespace-nowrap text-xs md:text-sm">
-                <svg
-                  className="w-4 md:w-5 h-4 md:h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                </svg>
-                Subscribe
-              </button>
-            </div>
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
+              Instant Load
+            </span>
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
+              No App Store
+            </span>
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
+              Auto Updates
+            </span>
           </div>
+
+          <button className="mt-10 inline-flex items-center gap-3 rounded-full bg-green-600 px-9 py-4 text-xl font-bold text-white shadow-[0_12px_40px_rgba(16,185,129,0.45)] transition-all hover:scale-[1.02] hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200">
+            <FaDownload />
+            Install App
+          </button>
         </div>
       </div>
 

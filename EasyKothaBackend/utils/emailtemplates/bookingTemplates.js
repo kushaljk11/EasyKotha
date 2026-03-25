@@ -1,6 +1,8 @@
 import { baseTemplate } from "./baseTemplates.js";
 
-//booking request (user → landlord)
+/**
+ * Email sent to landlord when a new booking request is created.
+ */
 export const bookingRequestTemplate = ({ post, user, booking }) =>
   baseTemplate({
     title: "New Booking Request 📩",
@@ -19,7 +21,9 @@ export const bookingRequestTemplate = ({ post, user, booking }) =>
     `,
   });
 
-//booking request sent (user confirmation)
+/**
+ * Confirmation email sent to tenant after request submission.
+ */
 export const bookingUserConfirmationTemplate = ({ post, booking }) =>
   baseTemplate({
     title: "Booking Request Sent ✅",
@@ -35,7 +39,9 @@ export const bookingUserConfirmationTemplate = ({ post, booking }) =>
     `,
   });
 
-//booking approved
+/**
+ * Email sent to tenant when booking request is approved.
+ */
 export const bookingApprovedTemplate = ({ post, booking }) =>
   baseTemplate({
     title: "Booking Approved 🎉",
@@ -52,7 +58,9 @@ export const bookingApprovedTemplate = ({ post, booking }) =>
     `,
   });
 
-//booking rejected
+/**
+ * Email sent to tenant when booking request is rejected.
+ */
 export const bookingRejectedTemplate = ({ post, booking }) =>
   baseTemplate({
     title: "Booking Rejected ❌",
@@ -66,7 +74,9 @@ export const bookingRejectedTemplate = ({ post, booking }) =>
     `,
   });
 
-//cancel booking
+/**
+ * Email sent to both parties when a booking is cancelled.
+ */
 export const bookingCancelledTemplate = ({ post, booking }) =>
   baseTemplate({
     title: "Booking Cancelled ❌",

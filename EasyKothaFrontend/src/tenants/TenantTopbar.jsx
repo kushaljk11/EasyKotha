@@ -8,8 +8,32 @@ import UserAvatar from "../components/UserAvatar";
 import LanguageDropdown from "../components/LanguageDropdown";
 
 const getNotificationTarget = (link, role) => {
-  if (!link || link === "/admin/bookings") {
-    return role === "LANDLORD" ? "/landlord/bookings" : "/tenant/bookings";
+  if (!link) {
+    return role === "ADMIN"
+      ? "/admin/bookings"
+      : role === "LANDLORD"
+      ? "/landlord/bookings"
+      : "/tenant/bookings";
+  }
+
+  if (
+    link === "/admin/bookings" ||
+    link === "/landlord/bookings" ||
+    link === "/tenant/bookings"
+  ) {
+    return role === "ADMIN"
+      ? "/admin/bookings"
+      : role === "LANDLORD"
+      ? "/landlord/bookings"
+      : "/tenant/bookings";
+  }
+
+  if (link === "/profile") {
+    return role === "ADMIN"
+      ? "/profile"
+      : role === "LANDLORD"
+      ? "/landlord/profile"
+      : "/tenant/profile";
   }
 
   return link;

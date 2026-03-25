@@ -6,8 +6,41 @@ import { useSidebarStore } from "../store/useSidebarStore";
 import UserAvatar from "../components/UserAvatar";
 import LanguageDropdown from "../components/LanguageDropdown";
 
+const getNotificationTarget = (link, role) => {
+  if (!link) {
+    return role === "TENANT"
+      ? "/tenant/bookings"
+      : role === "LANDLORD"
+      ? "/landlord/bookings"
+      : "/admin/bookings";
+  }
+
+  if (
+    link === "/admin/bookings" ||
+    link === "/landlord/bookings" ||
+    link === "/tenant/bookings"
+  ) {
+    return role === "TENANT"
+      ? "/tenant/bookings"
+      : role === "LANDLORD"
+      ? "/landlord/bookings"
+      : "/admin/bookings";
+  }
+
+  if (link === "/profile") {
+    return role === "TENANT"
+      ? "/tenant/profile"
+      : role === "LANDLORD"
+      ? "/landlord/profile"
+      : "/profile";
+  }
+
+  return link;
+};
+
 export default function Topbar() {
   const { authUser, logout, socket } = useAuthStore();
+  const normalizedRole = String(authUser?.role || "ADMIN").trim().toUpperCase();
   const [isOpen, setIsOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -47,7 +80,7 @@ export default function Topbar() {
         id: payload?.id || `notif-${Date.now()}`,
         title: payload?.title || "Notification",
         message: payload?.message || "You have a new update",
-        link: payload?.link || "/admin/bookings",
+        link: getNotificationTarget(payload?.link, normalizedRole),
         createdAt: payload?.createdAt || new Date().toISOString(),
       };
 
@@ -59,7 +92,7 @@ export default function Topbar() {
 
     socket.on("notification", handleNotification);
     return () => socket.off("notification", handleNotification);
-  }, [socket]);
+  }, [socket, normalizedRole]);
 
   const toggleNotificationPanel = () => {
     setIsNotificationOpen((prev) => {

@@ -59,7 +59,7 @@ const resolveFacebookCallbackUrl = (req) => {
   return `${base}/api/oauth/facebook/callback`;
 };
 
-// ---------------- GOOGLE ----------------
+/** Starts and completes Google OAuth flow. */
 Oauthrouter.get(
   "/google",
   (req, res, next) => {
@@ -102,7 +102,7 @@ Oauthrouter.get(
   }
 );
 
-// ---------------- FACEBOOK ----------------
+/** Starts and completes Facebook OAuth flow. */
 Oauthrouter.get(
   "/facebook",
   (req, res, next) => {

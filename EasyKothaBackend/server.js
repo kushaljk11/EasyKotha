@@ -33,7 +33,9 @@ const allowedOrigins = [
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const sessions = new Map();
 
-// Needed for correct https protocol handling behind Render/other proxies.
+/**
+ * Trust proxy headers so protocol/origin detection works behind hosting proxies.
+ */
 app.set("trust proxy", 1);
 
 const SYSTEM_PROMPT = `
@@ -72,8 +74,6 @@ Guidelines:
 Keep responses short and helpful.
 `;
 
-// const app = express();
-
 app.use(cors({
   origin: (origin, callback) => {
     const normalizedOrigin = normalizeOrigin(origin || "");
@@ -101,7 +101,8 @@ app.use('/api', emailrouter);
 app.use('/api', postrouter);
 app.use("/api/bookings", bookingrouter);
 app.use("/api", adminRouter);
-app.use("/api/auth", authRoutes); // Keep support for /api/auth/login etc
+// Keeps compatibility for clients still calling /api/auth/* paths.
+app.use("/api/auth", authRoutes);
 app.use("/api/messages", messagerouter);
 app.use("/api/oauth", Oauthrouter);
 app.use("/api/payment", paymentRouter);

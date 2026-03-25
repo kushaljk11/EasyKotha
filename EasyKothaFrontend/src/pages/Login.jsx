@@ -18,18 +18,19 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  // Handle Google OAuth token from URL
+  /**
+   * Reads OAuth token from callback URL and initializes user session.
+   */
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
       localStorage.setItem("token", token);
       checkAuth();
-      // Remove token from URL for clean look
       navigate("/login", { replace: true });
     }
   }, [searchParams, checkAuth, navigate]);
 
-  // Redirect if already logged in
+  /** Redirects authenticated users to their role dashboard. */
   useEffect(() => {
     if (authUser) {
       if (authUser.role === "ADMIN") navigate("/admin/dashboard");
@@ -55,11 +56,9 @@ export default function Login() {
 
   return (
     <div className="h-dvh w-full flex flex-col md:flex-row items-center md:items-stretch justify-center md:justify-start overflow-hidden font-sans">
-      {/* LEFT SIDE - FORM */}
       <div
         className="w-full md:w-1/2 relative flex flex-col items-center justify-center overflow-hidden p-8 lg:p-12 bg-green-800"
       >
-        {/* Brand */}
         <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 rounded-xl  px-3 py-2 backdrop-blur-sm">
           <img src="/logo.png" alt="EasyKotha" className="h-10 w-10 object-contain" />
           <span className="text-xl font-semibold text-white tracking-wide">EasyKotha</span>
@@ -75,9 +74,7 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
-            {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-white text-sm font-semibold ml-1">
                 Email
@@ -98,7 +95,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Password */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label htmlFor="password" className="text-white text-sm font-semibold ml-1">
@@ -124,7 +120,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
               disabled={isLoggingIn}
@@ -164,7 +159,6 @@ export default function Login() {
             </div>
           </form>
 
-          {/* Sign Up */}
           <p className="text-teal-100/70 text-center mt-12 text-sm">
             Don't have an account?{" "}
             <button
@@ -177,7 +171,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* RIGHT SIDE IMAGE */}
       <div
         className="w-full md:w-1/2 bg-[#f8fafc] bg-center bg-no-repeat hidden md:block relative"
         style={{

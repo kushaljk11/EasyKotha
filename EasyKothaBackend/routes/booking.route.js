@@ -12,22 +12,21 @@ import { authMiddleware } from "../middleware/auth.Middleware.js";
 
 const bookingrouter = express.Router();
 
-// Create booking
+/** Creates a booking request. */
 bookingrouter.post("/", authMiddleware, createBooking);
 
-// Get all bookings (for admin)
+/** Returns all bookings for admin views. */
 bookingrouter.get("/", authMiddleware, getAllBookings);
 
-
-// User bookings
+/** Returns bookings created by the signed-in user. */
 bookingrouter.get("/my-bookings", authMiddleware, getUserBookings);
 
-// All bookings for landlord's posts
+/** Returns bookings for properties owned by the signed-in landlord. */
 bookingrouter.get("/landlord", authMiddleware, getLandlordBookings);
 
-// Bookings for specific post (owner)
+/** Returns bookings for one specific listing. */
 bookingrouter.get("/post/:postId", authMiddleware, getPostBookings);
 
-// Update booking status
+/** Updates booking status. */
 bookingrouter.patch("/:id/status", authMiddleware, updateBookingStatus);
 export default bookingrouter;
