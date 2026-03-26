@@ -15,7 +15,19 @@ const getGeminiResponse = async (message) => {
     body: JSON.stringify({ message, sessionId: SESSION_ID }),
   });
 
-  if (!res.ok) throw new Error("Server error");
+  if (!res.ok) {
+    let errorMessage = "Server error";
+    try {
+      const errorData = await res.json();
+      if (errorData?.error) {
+        errorMessage = errorData.error;
+      }
+    } catch {
+      // Ignore parse errors and keep generic fallback message.
+    }
+
+    throw new Error(errorMessage);
+  }
 
   const data = await res.json();
   return data.reply;
@@ -66,13 +78,13 @@ export default function Chatbot() {
         ...prev,
         { id: Date.now() + 1, from: "bot", text: reply },
       ]);
-    } catch {
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           from: "bot",
-          text: "Connection problem. Try again later.",
+          text: error?.message || "Connection problem. Try again later.",
         },
       ]);
     } finally {
