@@ -30,7 +30,8 @@ const allowedOrigins = [
   ...configuredOrigins,
 ].filter(Boolean);
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const geminiApiKey = String(process.env.GEMINI_API_KEY || "").trim();
+const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 const sessions = new Map();
 
 /**
@@ -116,6 +117,12 @@ app.post("/api/chat", async (req, res) => {
     });
   }
 
+  if (!genAI) {
+    return res.status(503).json({
+      error: "Chatbot is not configured. Missing GEMINI_API_KEY.",
+    });
+  }
+
   try {
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
@@ -140,7 +147,22 @@ app.post("/api/chat", async (req, res) => {
 
   } catch (error) {
     console.error("Gemini error:", error);
-    res.status(500).json({ error: "Gemini failed" });
+
+    const providerMessage = String(error?.message || "");
+
+    if (error?.status === 403 && providerMessage.toLowerCase().includes("reported as leaked")) {
+      return res.status(503).json({
+        error: "Chatbot API key was blocked as leaked. Please rotate GEMINI_API_KEY and restart backend.",
+      });
+    }
+
+    if (error?.status === 403) {
+      return res.status(503).json({
+        error: "Chatbot access denied by AI provider. Check GEMINI_API_KEY permissions.",
+      });
+    }
+
+    return res.status(500).json({ error: "Gemini failed" });
   }
 });
 
