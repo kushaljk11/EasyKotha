@@ -12,6 +12,7 @@ import {
   FaLock,
   FaDownload,
   FaRegEdit,
+  FaArrowRight,
 } from "react-icons/fa";
 import axiosInstance from "../api/axios";
 import Footer from "../components/Footer";
@@ -75,9 +76,12 @@ function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, postedD
           <button
             type="button"
             onClick={onClick}
-            className="w-36 rounded-lg bg-green-800 px-4 py-1.5 text-center text-sm font-semibold text-white transition-colors hover:bg-pink-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-800 text-white transition-colors hover:bg-pink-800 sm:w-36 sm:px-4 sm:py-1.5 sm:text-sm sm:font-semibold"
+            aria-label="View listing details"
+            title="View Details"
           >
-            View Details
+            <FaArrowRight className="text-sm sm:hidden" />
+            <span className="hidden sm:inline">View Details</span>
           </button>
         </div>
       </div>
@@ -122,9 +126,12 @@ function RecentRoomCard({ room, onDetailsClick }) {
           <button
             type="button"
             onClick={() => onDetailsClick(room?.id)}
-            className="w-36 rounded-lg bg-green-800 px-4 py-1.5 text-center text-sm font-semibold text-white transition-colors hover:bg-pink-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-800 text-white transition-colors hover:bg-pink-800 sm:w-36 sm:px-4 sm:py-1.5 sm:text-sm sm:font-semibold"
+            aria-label="View listing details"
+            title="View Details"
           >
-            View Details
+            <FaArrowRight className="text-sm sm:hidden" />
+            <span className="hidden sm:inline">View Details</span>
           </button>
         </div>
       </div>
