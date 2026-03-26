@@ -36,6 +36,9 @@ export const authMiddleware = (req, res, next) => {
   }
 };
 
+// Backward-compatible alias used by some routes/imports.
+export const protectRoute = authMiddleware;
+
 /** Allows access only to admin users. */
 export const adminOnly = (req, res, next) => {
   if (req.user.role !== "ADMIN") {
