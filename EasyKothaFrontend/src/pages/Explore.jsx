@@ -80,7 +80,8 @@ const Explore = () => {
 
   const [city, setCity] = useState("");
   const [roomType, setRoomType] = useState("");
-  const [sort, setSort] = useState("latest");
+  const [sort, setSort] = useState("");
+  const [priceRange, setPriceRange] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -96,8 +97,16 @@ const Explore = () => {
     const queryParams = new URLSearchParams(location.search);
 
     const cityParam = queryParams.get("city") || queryParams.get("district");
+    const sortParam = queryParams.get("sort") || "";
+    const minPriceParam = queryParams.get("minPrice") || "";
+    const maxPriceParam = queryParams.get("maxPrice") || "";
 
     if (cityParam) setCity(cityParam);
+    setSort(sortParam);
+
+    if (minPriceParam || maxPriceParam) {
+      setPriceRange(`${minPriceParam}-${maxPriceParam}`);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -214,6 +223,24 @@ const Explore = () => {
     } else {
       queryParams.delete("type");
     }
+
+    if (sort) {
+      queryParams.set("sort", sort);
+    } else {
+      queryParams.delete("sort");
+    }
+
+    if (priceRange) {
+      const [min, max] = priceRange.split("-");
+      if (min) queryParams.set("minPrice", min);
+      else queryParams.delete("minPrice");
+
+      if (max) queryParams.set("maxPrice", max);
+      else queryParams.delete("maxPrice");
+    } else {
+      queryParams.delete("minPrice");
+      queryParams.delete("maxPrice");
+    }
     
     navigate({
       pathname: location.pathname,
@@ -307,14 +334,28 @@ const Explore = () => {
             {/* Sort */}
             <div className="sm:col-span-1 xl:col-span-2">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-400 md:text-sm">
-                <Filter size={12} /> Sort By
+                <Filter size={12} /> Price
               </label>
               <select
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium outline-none transition-all focus:border-green-800 focus:bg-white focus:ring-2 focus:ring-green-800/20"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
+                value={priceRange || sort}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value.includes("-")) {
+                    setPriceRange(value);
+                    setSort("");
+                    return;
+                  }
+
+                  setSort(value);
+                  setPriceRange("");
+                }}
               >
-                <option value="latest">Newest First</option>
+                <option value="">Any Price</option>
+                <option value="1000-2000">NPR 1000 - 2000</option>
+                <option value="2000-3000">NPR 2000 - 3000</option>
+                <option value="3000-4000">NPR 3000 - 4000</option>
                 <option value="priceLowToHigh">Price: Low</option>
                 <option value="priceHighToLow">Price: High</option>
               </select>

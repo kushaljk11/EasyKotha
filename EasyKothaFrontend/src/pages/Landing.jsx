@@ -216,12 +216,15 @@ function getDisplayLocation(city, district) {
 export default function Landing() {
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
+  const [isInstallPromptAvailable, setIsInstallPromptAvailable] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locationOptions, setLocationOptions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedBudgetRange, setSelectedBudgetRange] = useState("");
   const [featuredRooms, setFeaturedRooms] = useState([]);
   const [isLoadingFeaturedRooms, setIsLoadingFeaturedRooms] = useState(true);
   const suggestionBoxRef = useRef(null);
@@ -365,6 +368,27 @@ export default function Landing() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setDeferredInstallPrompt(event);
+      setIsInstallPromptAvailable(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredInstallPrompt(null);
+      setIsInstallPromptAvailable(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
   const navigateWithAuthCheck = (path) => {
     if (authUser) {
       navigate(path);
@@ -381,7 +405,7 @@ export default function Landing() {
     return "/admin/dashboard";
   };
 
-  const buildExplorePath = ({ keyword = "", city = "" }) => {
+  const buildExplorePath = ({ keyword = "", city = "", budgetRange = "" }) => {
     const basePath = getExploreBasePath();
     if (!basePath) return "/login";
     if (basePath === "/admin/dashboard") return basePath;
@@ -400,6 +424,17 @@ export default function Landing() {
 
       if (!normalizedKeyword) {
         params.set("search", city);
+      }
+    }
+
+    if (budgetRange) {
+      const [minPrice, maxPrice] = budgetRange.split("-");
+      if (minPrice) {
+        params.set("minPrice", minPrice);
+      }
+
+      if (maxPrice) {
+        params.set("maxPrice", maxPrice);
       }
     }
 
@@ -427,6 +462,7 @@ export default function Landing() {
     const target = buildExplorePath({
       keyword: searchTerm,
       city: selectedLocation,
+      budgetRange: selectedBudgetRange,
     });
 
     navigateWithAuthCheck(target);
@@ -464,7 +500,23 @@ export default function Landing() {
       return;
     }
 
-    navigate(buildExplorePath());
+    navigate("/explore");
+  };
+
+  const handleInstallAppClick = async () => {
+    if (!deferredInstallPrompt) {
+      return;
+    }
+
+    deferredInstallPrompt.prompt();
+    const choiceResult = await deferredInstallPrompt.userChoice;
+
+    if (choiceResult.outcome !== "accepted") {
+      return;
+    }
+
+    setDeferredInstallPrompt(null);
+    setIsInstallPromptAvailable(false);
   };
 
   return (
@@ -572,12 +624,15 @@ export default function Landing() {
                 </div>
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 bg-gray-50 md:col-span-3 lg:col-span-2">
                   <FaWallet className="text-green-800 text-lg" />
-                  <select className="w-full bg-transparent text-sm md:text-base focus:outline-none">
-                    <option>Budget Range</option>
-                    <option>Under Rs. 10,000</option>
-                    <option>Rs. 10,000 - Rs. 20,000</option>
-                    <option>Rs. 20,000 - Rs. 30,000</option>
-                    <option>Rs. 30,000+</option>
+                  <select
+                    className="w-full bg-transparent text-sm md:text-base focus:outline-none"
+                    value={selectedBudgetRange}
+                    onChange={(event) => setSelectedBudgetRange(event.target.value)}
+                  >
+                    <option value="">Budget Range</option>
+                    <option value="1000-2000">NPR 1000 - 2000</option>
+                    <option value="2000-3000">NPR 2000 - 3000</option>
+                    <option value="3000-4000">NPR 3000 - 4000</option>
                   </select>
                 </div>
                 <button
@@ -915,7 +970,12 @@ export default function Landing() {
             </span>
           </div>
 
-          <button className="mt-10 inline-flex items-center gap-3 rounded-full bg-green-600 px-9 py-4 text-xl font-bold text-white shadow-[0_12px_40px_rgba(16,185,129,0.45)] transition-all hover:scale-[1.02] hover:bg-pink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200">
+          <button
+            type="button"
+            onClick={handleInstallAppClick}
+            disabled={!isInstallPromptAvailable}
+            className="mt-10 inline-flex items-center gap-3 rounded-full bg-green-600 px-9 py-4 text-xl font-bold text-white shadow-[0_12px_40px_rgba(16,185,129,0.45)] transition-all hover:scale-[1.02] hover:bg-pink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-green-600"
+          >
             <FaDownload />
             Install App
           </button>

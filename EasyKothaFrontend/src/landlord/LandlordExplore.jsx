@@ -74,7 +74,8 @@ export default function LandlordExplore() {
   const [searchQuery, setSearchQuery] = useState("");
   const [district, setDistrict] = useState("");
   const [roomType, setRoomType] = useState("");
-  const [sort, setSort] = useState("latest");
+  const [sort, setSort] = useState("");
+  const [priceRange, setPriceRange] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -93,8 +94,16 @@ export default function LandlordExplore() {
     const queryParams = new URLSearchParams(location.search);
     setDistrict(queryParams.get("district") || "");
     setRoomType(queryParams.get("type") || "");
-    setSort(queryParams.get("sort") || "latest");
+    setSort(queryParams.get("sort") || "");
     setSearchQuery(queryParams.get("search") || "");
+
+    const minPrice = queryParams.get("minPrice") || "";
+    const maxPrice = queryParams.get("maxPrice") || "";
+    if (minPrice || maxPrice) {
+      setPriceRange(`${minPrice}-${maxPrice}`);
+    } else {
+      setPriceRange("");
+    }
   }, [location.search]);
 
   useEffect(() => {
@@ -118,6 +127,8 @@ export default function LandlordExplore() {
       try {
         const queryParams = new URLSearchParams(location.search);
         const search = queryParams.get("search") || "";
+        const minPrice = queryParams.get("minPrice") || "";
+        const maxPrice = queryParams.get("maxPrice") || "";
 
         const res = await axiosInstance.get("/posts", {
           params: {
@@ -128,6 +139,8 @@ export default function LandlordExplore() {
             ...(district && { district }),
             ...(roomType && { type: roomType }),
             ...(sort && { sort }),
+            ...(minPrice && { minPrice }),
+            ...(maxPrice && { maxPrice }),
           },
         });
         setPosts(res.data?.data || []);
@@ -168,6 +181,18 @@ export default function LandlordExplore() {
 
     if (sort) queryParams.set("sort", sort);
     else queryParams.delete("sort");
+
+    if (priceRange) {
+      const [min, max] = priceRange.split("-");
+      if (min) queryParams.set("minPrice", min);
+      else queryParams.delete("minPrice");
+
+      if (max) queryParams.set("maxPrice", max);
+      else queryParams.delete("maxPrice");
+    } else {
+      queryParams.delete("minPrice");
+      queryParams.delete("maxPrice");
+    }
 
     if (searchQuery) queryParams.set("search", searchQuery);
     else queryParams.delete("search");
@@ -252,14 +277,28 @@ export default function LandlordExplore() {
 
           <div className="md:col-span-2">
             <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500">
-              <Filter size={12} /> Sort By
+              <Filter size={12} /> Price
             </label>
             <select
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium outline-none transition-all focus:border-green-800 focus:bg-white focus:ring-2 focus:ring-green-800/20"
-              value={sort}
-              onChange={(event) => setSort(event.target.value)}
+              value={priceRange || sort}
+              onChange={(event) => {
+                const value = event.target.value;
+
+                if (value.includes("-")) {
+                  setPriceRange(value);
+                  setSort("");
+                  return;
+                }
+
+                setSort(value);
+                setPriceRange("");
+              }}
             >
-              <option value="latest">Newest First</option>
+              <option value="">Any Price</option>
+              <option value="1000-2000">NPR 1000 - 2000</option>
+              <option value="2000-3000">NPR 2000 - 3000</option>
+              <option value="3000-4000">NPR 3000 - 4000</option>
               <option value="priceLowToHigh">Price: Low</option>
               <option value="priceHighToLow">Price: High</option>
             </select>

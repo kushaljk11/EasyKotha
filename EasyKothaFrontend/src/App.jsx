@@ -44,6 +44,11 @@ import NotFound from "./pages/NotFound";
 
 function AnimatedRouteContainer() {
   const location = useLocation();
+  const { authUser } = useAuthStore();
+
+  const exploreRedirect = authUser?.role === "LANDLORD"
+    ? "/landlord/explore"
+    : "/tenant/explore";
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -94,6 +99,15 @@ function AnimatedRouteContainer() {
             element={
               <ProtectedRoute roles={["TENANT"]}>
                 <Explore />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/explore"
+            element={
+              <ProtectedRoute roles={["TENANT", "LANDLORD"]}>
+                <Navigate to={exploreRedirect} replace />
               </ProtectedRoute>
             }
           />
