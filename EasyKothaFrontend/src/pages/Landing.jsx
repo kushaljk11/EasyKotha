@@ -920,7 +920,7 @@ export default function Landing() {
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-green-100 px-5 py-6 sm:px-8 lg:px-12">
           <div className="flex flex-col items-center gap-6 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
             <div className="max-w-2xl">
-              <h2 className="text-2xl font-bold leading-tight text-green-800 sm:text-2xl lg:text-[40px] lg:leading-[1.1]">
+              <h2 className="text-2xl font-semibold leading-tight text-green-800 sm:text-2xl lg:text-[40px] lg:leading-[1.1]">
                 Didn&apos;t you find the property of your choice?
               </h2>
               <br />
