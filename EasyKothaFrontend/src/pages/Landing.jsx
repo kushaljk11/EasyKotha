@@ -11,6 +11,7 @@ import {
   FaUserCheck,
   FaLock,
   FaDownload,
+  FaRegEdit,
 } from "react-icons/fa";
 import axiosInstance from "../api/axios";
 import Footer from "../components/Footer";
@@ -51,24 +52,83 @@ function WhyEasyKothaCard({ icon, title, description }) {
   );
 }
 
-function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, onClick }) {
+function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, postedDate, onClick }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="FeaturedListingCard h-full w-full overflow-hidden rounded-xl border border-green-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-    >
-      <div className="h-44 w-full overflow-hidden bg-gray-100 sm:h-52">
+    <article className="FeaturedListingCard flex h-full flex-col overflow-hidden rounded-2xl border border-green-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+      <button type="button" onClick={onClick} className="relative h-36 w-full overflow-hidden bg-gray-100 sm:h-52">
         <img className="h-full! w-full object-cover" src={imageSrc} alt={title} />
-      </div>
-      <div className="p-3 sm:p-4">
-        <h3 className="line-clamp-2 text-base font-semibold text-green-800 sm:text-lg">{title}</h3>
-        <p className="mt-0.5 line-clamp-1 text-xs text-gray-600 sm:text-sm">{location}</p>
-        <p className="mt-2 text-base font-bold text-green-900 sm:text-xl">
+        <span className="absolute left-3 top-3 rounded-full bg-green-800 px-3 py-1 text-xs font-semibold text-white">
+          FEATURED
+        </span>
+        <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-green-800">
           Rs. {pricePerMonth} / month
-        </p>
+        </span>
+      </button>
+      <div className="flex flex-1 flex-col p-4">
+        <button type="button" onClick={onClick} className="text-left">
+          <h3 className="line-clamp-2 min-h-14 text-xl font-semibold text-green-800 sm:min-h-18 sm:text-xl">{title}</h3>
+        </button>
+        <p className="mt-1 line-clamp-1 text-sm text-gray-600">{location}</p>
+
+        <div className="mt-auto flex items-center justify-between border-t border-green-100 pt-3">
+          <p className="text-xs font-medium text-gray-500">{postedDate}</p>
+          <button
+            type="button"
+            onClick={onClick}
+            className="w-36 rounded-lg bg-green-800 px-4 py-1.5 text-center text-sm font-semibold text-white transition-colors hover:bg-pink-800"
+          >
+            View Details
+          </button>
+        </div>
       </div>
-    </button>
+    </article>
+  );
+}
+
+function RecentRoomCard({ room, onDetailsClick }) {
+  const title = room?.title || "Available Room";
+  const location = getDisplayLocation(room?.city, room?.district);
+  const previewImage = getPostPreviewImage(room?.images);
+  const priceLabel = Number(room?.price || 0).toLocaleString();
+  const postedDate = room?.createdAt
+    ? new Date(room.createdAt).toLocaleDateString()
+    : "Recently posted";
+
+  return (
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-green-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <div className="relative h-36 w-full overflow-hidden bg-gray-100 sm:h-52">
+        <img
+          src={previewImage}
+          alt={title}
+          className="h-full w-full object-cover"
+          onError={(event) => {
+            event.currentTarget.src = "/abouthero.webp";
+          }}
+        />
+        <span className="absolute left-3 top-3 rounded-full bg-green-800 px-3 py-1 text-xs font-semibold text-white">
+          RECENT
+        </span>
+        <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-green-800">
+          Rs. {priceLabel} / month
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 min-h-14 text-xl font-semibold text-green-800 sm:min-h-18 sm:text-xl">{title}</h3>
+        <p className="mt-1 line-clamp-1 text-sm text-gray-600">{location}</p>
+
+        <div className="mt-auto flex items-center justify-between border-t border-green-100 pt-3">
+          <p className="text-xs font-medium text-gray-500">{postedDate}</p>
+          <button
+            type="button"
+            onClick={() => onDetailsClick(room?.id)}
+            className="w-36 rounded-lg bg-green-800 px-4 py-1.5 text-center text-sm font-semibold text-white transition-colors hover:bg-pink-800"
+          >
+            View Details
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -129,6 +189,21 @@ function getPostPreviewImage(images) {
   }
 
   return "/abouthero.webp";
+}
+
+function getDisplayLocation(city, district) {
+  const normalizedCity = typeof city === "string" ? city.trim() : "";
+  const normalizedDistrict = typeof district === "string" ? district.trim() : "";
+
+  if (normalizedCity && normalizedDistrict) {
+    if (normalizedCity.toLowerCase() === normalizedDistrict.toLowerCase()) {
+      return normalizedCity;
+    }
+
+    return `${normalizedCity}, ${normalizedDistrict}`;
+  }
+
+  return normalizedCity || normalizedDistrict || "Unknown location";
 }
 
 export default function Landing() {
@@ -356,11 +431,33 @@ export default function Landing() {
     navigateWithAuthCheck(`/posts/${postId}`);
   };
 
+  const handleRecentRoomDetailsClick = (postId) => {
+    if (!postId) return;
+    navigateWithAuthCheck(`/posts/${postId}`);
+  };
+
   const handleSearchInputKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       handleSearchSubmit();
     }
+  };
+
+  const handleFindRoomCtaClick = () => {
+    navigate("/register");
+  };
+
+  const handleListRoomCtaClick = () => {
+    navigateWithAuthCheck("/landlord/add-listing");
+  };
+
+  const handleRequestPropertyClick = () => {
+    if (!authUser) {
+      navigate("/register");
+      return;
+    }
+
+    navigate(buildExplorePath());
   };
 
   return (
@@ -597,7 +694,7 @@ export default function Landing() {
       {/* Featured listing post */}
 
       <div className="FeaturedListingsSection flex flex-col items-center mt-20 gap-8 mb-16 px-4">
-        <h2 className="text-3xl md:text-3xl font-semibold text-center">
+        <h2 className="text-4xl md:text-4xl font-semibold text-center">
           <span className="text-green-800 font-semibold">Featured </span>Listings
         </h2>
         <div className="FeaturedListingsGrid grid w-full max-w-7xl grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4 md:gap-6">
@@ -615,9 +712,32 @@ export default function Landing() {
                 key={room.id || room._id || `${room.title}-${room.createdAt}`}
                 imageSrc={getPostPreviewImage(room.images)}
                 title={room.title || "Available Room"}
-                location={`${room.city || "Unknown city"}, ${room.district || "Unknown district"}`}
+                location={getDisplayLocation(room.city, room.district)}
                 pricePerMonth={Number(room.price || 0).toLocaleString()}
+                postedDate={
+                  room.createdAt
+                    ? new Date(room.createdAt).toLocaleDateString()
+                    : "Recently posted"
+                }
                 onClick={() => handleFeaturedRoomClick(room)}
+              />
+            ))}
+        </div>
+      </div>
+
+      {/* Recent Rooms */}
+      <div className="RecentRoomsSection flex flex-col items-center mb-16 gap-8 px-4">
+        <h2 className="text-4xl md:text-4xl font-semibold text-center">
+          <span className="text-green-800 font-semibold">Recent </span>Rooms
+        </h2>
+
+        <div className="RecentRoomsGrid grid w-full max-w-7xl grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4 md:gap-6">
+          {!isLoadingFeaturedRooms &&
+            featuredRooms.slice(0, 4).map((room) => (
+              <RecentRoomCard
+                key={`recent-${room.id || room._id || room.createdAt}`}
+                room={room}
+                onDetailsClick={handleRecentRoomDetailsClick}
               />
             ))}
         </div>
@@ -728,7 +848,11 @@ export default function Landing() {
             Start your search and find your perfect room today.
           </p>
           <p className="text-center">It's fast, easy, and free</p>
-          <button className="text-green-800 bg-white px-4 py-2 mt-4 rounded-xl">
+          <button
+            type="button"
+            onClick={handleFindRoomCtaClick}
+            className="text-green-800 bg-white px-4 py-2 mt-4 rounded-xl"
+          >
             Find Room
           </button>
         </div>
@@ -741,7 +865,11 @@ export default function Landing() {
             List your property for free and connect with thousand of potential
             tenants
           </p>
-          <button className="text-white bg-green-800 px-4 py-2 mt-4 rounded-xl">
+          <button
+            type="button"
+            onClick={handleListRoomCtaClick}
+            className="text-white bg-green-800 px-4 py-2 mt-4 rounded-xl"
+          >
             List Room
           </button>
         </div>
@@ -755,9 +883,7 @@ export default function Landing() {
         </div>
 
         <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
-          <div className="mb-7 flex h-24 w-24 items-center justify-center rounded-3xl bg-emerald-900/45 text-emerald-300 shadow-[0_0_36px_rgba(16,185,129,0.28)] motion-safe:animate-bounce">
-            <FaDownload className="text-4xl" />
-          </div>
+          
 
           <h2 className="text-balance text-2xl font-bold text-white sm:text-4xl md:text-5xl">
             Install EasyKotha on Your Phone
@@ -782,26 +908,47 @@ export default function Landing() {
             </span>
           </div>
 
-          <button className="mt-10 inline-flex items-center gap-3 rounded-full bg-green-600 px-9 py-4 text-xl font-bold text-white shadow-[0_12px_40px_rgba(16,185,129,0.45)] transition-all hover:scale-[1.02] hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200">
+          <button className="mt-10 inline-flex items-center gap-3 rounded-full bg-green-600 px-9 py-4 text-xl font-bold text-white shadow-[0_12px_40px_rgba(16,185,129,0.45)] transition-all hover:scale-[1.02] hover:bg-pink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200">
             <FaDownload />
             Install App
           </button>
         </div>
       </div>
 
-      {/* browse listings section */}
-      <div className="bg-gray-100 px-4 py-8 md:p-8 flex flex-col items-center gap-2">
-        <h1 className="text-2xl md:text-4xl text-green-800 font-bold text-center">
-          Ready to find the Perfect Rent?
-        </h1>
+      {/* request property section */}
+      <div className="mx-4 mb-10 mt-10 sm:mx-8 lg:mx-24">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-green-100 px-5 py-6 sm:px-8 lg:px-12">
+          <div className="flex flex-col items-center gap-6 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-bold leading-tight text-green-800 sm:text-2xl lg:text-[40px] lg:leading-[1.1]">
+                Didn&apos;t you find the property of your choice?
+              </h2>
+              <br />
+              <p className="mt-2 text-sm text-black sm:text-base lg:text-[20px] lg:leading-[1.2]">
+                Tell us your requirements and get matching properties from sellers,
+                agencies, developers
+              </p>
+            </div>
 
-        <p className="text-base md:text-lg font-normal text-green-800 text-center">
-          Explore our listings and find your ideal rentals today.
-        </p>
+            <button
+              type="button"
+              onClick={handleRequestPropertyClick}
+              className="inline-flex items-center gap-3 whitespace-nowrap rounded-md bg-green-800 text-white px-6 py-3 text-sm font-semibold shadow-sm transition-colors hover:bg-[#1c7fbe] sm:px-10 sm:py-4 sm:text-base lg:px-12"
+            >
+              <FaRegEdit className="text-lg" />
+              Request Property
+            </button>
 
-        <button className="bg-green-800 hover:bg-green-700 cursor-pointer text-white hover:text-white py-2 md:py-3 px-6 rounded-lg">
-          Browse Listings
-        </button>
+            <div className="w-full max-w-60 shrink-0 sm:max-w-[280px] lg:max-w-[300px]">
+              <img
+                src="/confused.webp"
+                alt="Confused person with question marks"
+                className="h-auto w-full object-contain"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* footer */}
