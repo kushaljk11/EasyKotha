@@ -1,11 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axiosInstance from "../api/axios";
-import { MapPin, Home, Filter, Clock } from "lucide-react";
+import { MapPin, Home, Filter, Clock, Crosshair, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import LandlordLayout from "./LandlordLayout";
 import Search from "../components/Search";
 import { API_ORIGIN } from "../config/env";
+import {
+  getAllMunicipalities,
+  getDistrictsByProvince,
+  getProvinces,
+} from "../utils/locationUtils";
 
 const isLikelyImageUrl = (value) => /^https?:\/\//i.test(value);
 const isDataImage = (value) => /^data:image\//i.test(value);
@@ -63,11 +68,65 @@ const normalizeImageUrls = (images) => {
     .filter(Boolean);
 };
 
-  const getPostId = (post) => post?.id ?? post?._id;
+const LOCATION_SUFFIX_PATTERN =
+  /\b(metropolitan city|metropolitan|sub-metropolitan city|sub metropolitan city|municipality|rural municipality|submetropolitan)\b/gi;
+
+const normalizeLocationName = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const toLocationMatchKey = (value) =>
+  normalizeLocationName(value)
+    .replace(LOCATION_SUFFIX_PATTERN, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const findMatchingLocation = (candidates, options) => {
+  const optionRecords = options
+    .map((name) => {
+      const normalized = normalizeLocationName(name);
+      const key = toLocationMatchKey(name);
+      return normalized ? { original: name, normalized, key } : null;
+    })
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    const candidateNormalized = normalizeLocationName(candidate);
+    const candidateKey = toLocationMatchKey(candidate);
+
+    if (!candidateNormalized && !candidateKey) continue;
+
+    const exact = optionRecords.find(
+      (record) =>
+        (candidateNormalized && record.normalized === candidateNormalized) ||
+        (candidateKey && record.key === candidateKey),
+    );
+    if (exact) return exact.original;
+
+    const partial = optionRecords.find(
+      (record) =>
+        (candidateKey &&
+          (record.key.includes(candidateKey) || candidateKey.includes(record.key))) ||
+        (candidateNormalized &&
+          (record.normalized.includes(candidateNormalized) ||
+            candidateNormalized.includes(record.normalized))),
+    );
+    if (partial) return partial.original;
+  }
+
+  return "";
+};
+
+const getPostId = (post) => post?.id ?? post?._id;
 
 export default function LandlordExplore() {
   const navigate = useNavigate();
   const location = useLocation();
+  const locationInputRef = useRef(null);
+  const geolocationAttemptedRef = useRef(false);
   const [posts, setPosts] = useState([]);
   const [roomTypes, setRoomTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,21 +137,21 @@ export default function LandlordExplore() {
   const [priceRange, setPriceRange] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [locatingUser, setLocatingUser] = useState(false);
+  const [usingDetectedLocation, setUsingDetectedLocation] = useState(false);
 
-  const districts = [
-    "Kathmandu",
-    "Lalitpur",
-    "Bhaktapur",
-    "Pokhara",
-    "Chitwan",
-    "Butwal",
-    "Dharan",
-    "Biratnagar",
-  ];
+  const districtNameSet = useMemo(
+    () => new Set(districtOptions.map((item) => normalizeLocationName(item))),
+    [districtOptions],
+  );
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    setDistrict(queryParams.get("district") || "");
+    setDistrict(queryParams.get("city") || queryParams.get("district") || "");
     setRoomType(queryParams.get("type") || "");
     setSort(queryParams.get("sort") || "");
     setSearchQuery(queryParams.get("search") || "");
@@ -105,6 +164,164 @@ export default function LandlordExplore() {
       setPriceRange("");
     }
   }, [location.search]);
+
+  useEffect(() => {
+    const closeLocationSuggestions = (event) => {
+      if (locationInputRef.current && !locationInputRef.current.contains(event.target)) {
+        setShowLocationSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeLocationSuggestions);
+    return () => {
+      document.removeEventListener("mousedown", closeLocationSuggestions);
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadNepalLocations = async () => {
+      try {
+        setLocationsLoading(true);
+        const [provinces, municipalities] = await Promise.all([
+          getProvinces(),
+          getAllMunicipalities(),
+        ]);
+
+        const districtChunks = await Promise.all(
+          provinces.map((province) => getDistrictsByProvince(province)),
+        );
+
+        const allDistricts = districtChunks.flat().filter(Boolean);
+        const mergedLocations = [...allDistricts, ...municipalities]
+          .map((item) => String(item || "").trim())
+          .filter(Boolean);
+
+        const uniqueLocations = [...new Set(mergedLocations)].sort((a, b) =>
+          a.localeCompare(b),
+        );
+        const uniqueDistricts = [...new Set(allDistricts)].sort((a, b) => a.localeCompare(b));
+
+        setLocationOptions(uniqueLocations);
+        setDistrictOptions(uniqueDistricts);
+      } catch (error) {
+        console.error("Failed to load Nepal locations:", error);
+      } finally {
+        setLocationsLoading(false);
+      }
+    };
+
+    loadNepalLocations();
+  }, []);
+
+  const detectAndApplyNearestLocation = async () => {
+    if (typeof window === "undefined" || !window.navigator?.geolocation) {
+      return;
+    }
+
+    if (!locationOptions.length || locatingUser) {
+      return;
+    }
+
+    setLocatingUser(true);
+    try {
+      const position = await new Promise((resolve, reject) => {
+        window.navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 12000,
+          maximumAge: 5 * 60 * 1000,
+        });
+      });
+
+      const latitude = position?.coords?.latitude;
+      const longitude = position?.coords?.longitude;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        return;
+      }
+
+      const reverseUrl =
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}` +
+        "&zoom=10&addressdetails=1&accept-language=en&countrycodes=np";
+      const reverseResponse = await fetch(reverseUrl, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!reverseResponse.ok) {
+        return;
+      }
+
+      const reversePayload = await reverseResponse.json();
+      const address = reversePayload?.address || {};
+      const locationCandidates = [
+        address.city,
+        address.town,
+        address.municipality,
+        address.district,
+        address.county,
+        address.state_district,
+        address.village,
+      ].filter(Boolean);
+
+      const matchedLocation = findMatchingLocation(locationCandidates, locationOptions);
+      if (!matchedLocation) {
+        return;
+      }
+
+      setDistrict(matchedLocation);
+      const queryParams = new URLSearchParams(location.search);
+      const normalizedMatch = normalizeLocationName(matchedLocation);
+
+      if (districtNameSet.has(normalizedMatch)) {
+        queryParams.set("district", matchedLocation);
+        queryParams.delete("city");
+      } else {
+        queryParams.set("city", matchedLocation);
+        queryParams.delete("district");
+      }
+
+      navigate(
+        {
+          pathname: location.pathname,
+          search: queryParams.toString(),
+        },
+        { replace: true },
+      );
+      setUsingDetectedLocation(true);
+    } catch (error) {
+      console.warn("Location detection skipped:", error?.message || error);
+    } finally {
+      setLocatingUser(false);
+    }
+  };
+
+  const disableDetectedLocation = () => {
+    setUsingDetectedLocation(false);
+    setDistrict("");
+    setShowLocationSuggestions(false);
+
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.delete("district");
+    queryParams.delete("city");
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: queryParams.toString(),
+      },
+      { replace: true },
+    );
+  };
+
+  useEffect(() => {
+    if (!locationOptions.length || district || geolocationAttemptedRef.current) {
+      return;
+    }
+
+    geolocationAttemptedRef.current = true;
+    detectAndApplyNearestLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationOptions, district]);
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
@@ -129,6 +346,8 @@ export default function LandlordExplore() {
         const search = queryParams.get("search") || "";
         const minPrice = queryParams.get("minPrice") || "";
         const maxPrice = queryParams.get("maxPrice") || "";
+        const normalizedSelectedLocation = normalizeLocationName(district);
+        const isDistrictFilter = districtNameSet.has(normalizedSelectedLocation);
 
         const res = await axiosInstance.get("/posts", {
           params: {
@@ -136,7 +355,8 @@ export default function LandlordExplore() {
             limit: 10,
             status: "approved",
             ...(search && { search }),
-            ...(district && { district }),
+            ...(district && isDistrictFilter && { district }),
+            ...(district && !isDistrictFilter && { city: district }),
             ...(roomType && { type: roomType }),
             ...(sort && { sort }),
             ...(minPrice && { minPrice }),
@@ -154,7 +374,7 @@ export default function LandlordExplore() {
 
     fetchApprovedPosts();
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [district, roomType, sort, page, location.search]);
+  }, [district, districtNameSet, roomType, sort, page, location.search]);
 
   const filteredPosts = useMemo(() => {
     const term = searchQuery.toLowerCase().trim();
@@ -173,8 +393,19 @@ export default function LandlordExplore() {
     setPage(1);
 
     const queryParams = new URLSearchParams(location.search);
-    if (district) queryParams.set("district", district);
-    else queryParams.delete("district");
+    if (district) {
+      const normalizedSelectedLocation = normalizeLocationName(district);
+      if (districtNameSet.has(normalizedSelectedLocation)) {
+        queryParams.set("district", district);
+        queryParams.delete("city");
+      } else {
+        queryParams.set("city", district);
+        queryParams.delete("district");
+      }
+    } else {
+      queryParams.delete("district");
+      queryParams.delete("city");
+    }
 
     if (roomType) queryParams.set("type", roomType);
     else queryParams.delete("type");
@@ -206,17 +437,25 @@ export default function LandlordExplore() {
     );
   };
 
+  const filteredLocations = district.trim()
+    ? locationOptions.filter((item) =>
+        normalizeLocationName(item).includes(normalizeLocationName(district)),
+      )
+    : locationOptions;
+
+  const locationSuggestions = filteredLocations.slice(0, 12);
+
   return (
     <LandlordLayout searchPlaceholder="Search available listings...">
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 gap-6 md:grid-cols-12 md:items-end">
-          <div className="md:col-span-4">
+          <div className="md:col-span-3">
             <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500">
               Search Property
             </label>
             <Search
               placeholder="Find your next home..."
-              className="w-full"
+              className="w-[calc(100%+3px)] max-w-none"
               value={searchQuery}
               onChange={setSearchQuery}
               district={district}
@@ -239,22 +478,95 @@ export default function LandlordExplore() {
             />
           </div>
 
-          <div className="md:col-span-2">
-            <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500">
-              <MapPin size={12} /> City/District
+          <div ref={locationInputRef} className="relative md:col-span-3">
+            <label className="mb-3 flex flex-col gap-2 text-sm font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+              <span className="inline-flex items-center gap-2">
+                <MapPin size={12} /> City/District
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (usingDetectedLocation) {
+                    disableDetectedLocation();
+                    return;
+                  }
+                  detectAndApplyNearestLocation();
+                }}
+                disabled={locationsLoading || locatingUser}
+                className={`inline-flex w-fit self-start items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 sm:self-auto ${
+                  usingDetectedLocation
+                    ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 focus-visible:ring-red-500/30"
+                    : "border border-green-200 bg-green-50 text-green-800 hover:bg-green-100 hover:text-green-900 focus-visible:ring-green-800/30"
+                }`}
+              >
+                {locatingUser ? (
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-green-300 border-t-green-800" />
+                ) : usingDetectedLocation ? (
+                  <X size={12} className="shrink-0" />
+                ) : (
+                  <Crosshair size={12} className="shrink-0" />
+                )}
+                <span className="whitespace-nowrap">
+                  {locatingUser
+                    ? "Detecting..."
+                    : usingDetectedLocation
+                      ? "Disable my location"
+                      : "Use my location"}
+                </span>
+              </button>
             </label>
-            <select
+
+            <input
+              type="text"
+              autoComplete="off"
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium outline-none transition-all focus:border-green-800 focus:bg-white focus:ring-2 focus:ring-green-800/20"
               value={district}
-              onChange={(event) => setDistrict(event.target.value)}
-            >
-              <option value="">All Locations</option>
-              {districts.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+              onChange={(event) => {
+                setUsingDetectedLocation(false);
+                setDistrict(event.target.value);
+                setShowLocationSuggestions(true);
+              }}
+              onFocus={() => setShowLocationSuggestions(true)}
+              placeholder={locationsLoading ? "Loading Nepal locations..." : "Search city/district in Nepal"}
+              disabled={locationsLoading}
+            />
+
+            {showLocationSuggestions && !locationsLoading && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsingDetectedLocation(false);
+                    setDistrict("");
+                    setShowLocationSuggestions(false);
+                  }}
+                  className="w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm font-semibold text-green-800 transition hover:bg-green-50"
+                >
+                  All Locations
+                </button>
+
+                {locationSuggestions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => {
+                      setUsingDetectedLocation(false);
+                      setDistrict(item);
+                      setShowLocationSuggestions(false);
+                    }}
+                    className="w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-green-800/5 hover:text-green-800 last:border-b-0"
+                  >
+                    {item}
+                  </button>
+                ))}
+
+                {!locationSuggestions.length && (
+                  <p className="px-4 py-3 text-sm text-slate-500">
+                    No matching Nepal city/district found.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="md:col-span-2">

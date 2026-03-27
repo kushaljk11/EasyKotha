@@ -141,7 +141,7 @@ const Search = ({
           {search.length === 0 && recentSearches.length > 0 && (
             <>
               <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Recent Searches</p>
+                <p className="text-[10px] font-semibold text-gray-500 tracking-wide">Recent Searches</p>
               </div>
               {recentSearches.map((keyword, idx) => (
                 <div 
@@ -159,7 +159,7 @@ const Search = ({
           {search.length >= 2 && suggestions.length > 0 && (
             <>
               <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Matching Properties</p>
+                <p className="text-[10px] font-semibold text-gray-500 tracking-wide">Matching Properties</p>
               </div>
               {suggestions.map((item) => (
                 (() => {
