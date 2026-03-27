@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FaUserFriends,
   FaTabletAlt,
@@ -53,16 +54,26 @@ function WhyEasyKothaCard({ icon, title, description }) {
   );
 }
 
-function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, postedDate, onClick }) {
+function FeaturedListingCard({
+  imageSrc,
+  title,
+  location,
+  postedDate,
+  onClick,
+  featuredTag,
+  pricePerMonthLabel,
+  viewDetailsLabel,
+  viewDetailsAria,
+}) {
   return (
     <article className="FeaturedListingCard flex h-full flex-col overflow-hidden rounded-2xl border border-green-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
       <button type="button" onClick={onClick} className="relative h-36 w-full overflow-hidden bg-gray-100 sm:h-52">
         <img className="h-full! w-full object-cover" src={imageSrc} alt={title} />
         <span className="absolute left-3 top-3 rounded-full bg-green-800 px-3 py-1 text-xs font-semibold text-white">
-          FEATURED
+          {featuredTag}
         </span>
         <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-green-800">
-          Rs. {pricePerMonth} / month
+          {pricePerMonthLabel}
         </span>
       </button>
       <div className="flex flex-1 flex-col p-4">
@@ -77,11 +88,11 @@ function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, postedD
             type="button"
             onClick={onClick}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-800 text-white transition-colors hover:bg-pink-800 sm:w-36 sm:px-4 sm:py-1.5 sm:text-sm sm:font-semibold"
-            aria-label="View listing details"
-            title="View Details"
+            aria-label={viewDetailsAria}
+            title={viewDetailsLabel}
           >
             <FaArrowRight className="text-sm sm:hidden" />
-            <span className="hidden sm:inline">View Details</span>
+            <span className="hidden sm:inline">{viewDetailsLabel}</span>
           </button>
         </div>
       </div>
@@ -89,14 +100,14 @@ function FeaturedListingCard({ imageSrc, title, location, pricePerMonth, postedD
   );
 }
 
-function RecentRoomCard({ room, onDetailsClick }) {
-  const title = room?.title || "Available Room";
-  const location = getDisplayLocation(room?.city, room?.district);
+function RecentRoomCard({ room, onDetailsClick, labels, locale }) {
+  const title = room?.title || labels.availableRoom;
+  const location = getDisplayLocation(room?.city, room?.district, labels.unknownLocation);
   const previewImage = getPostPreviewImage(room?.images);
-  const priceLabel = Number(room?.price || 0).toLocaleString();
+  const priceLabel = Number(room?.price || 0).toLocaleString(locale);
   const postedDate = room?.createdAt
-    ? new Date(room.createdAt).toLocaleDateString()
-    : "Recently posted";
+    ? new Date(room.createdAt).toLocaleDateString(locale)
+    : labels.recentlyPosted;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-green-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
@@ -110,10 +121,10 @@ function RecentRoomCard({ room, onDetailsClick }) {
           }}
         />
         <span className="absolute left-3 top-3 rounded-full bg-green-800 px-3 py-1 text-xs font-semibold text-white">
-          RECENT
+          {labels.recentTag}
         </span>
         <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-green-800">
-          Rs. {priceLabel} / month
+          {labels.pricePerMonth(priceLabel)}
         </span>
       </div>
 
@@ -127,11 +138,11 @@ function RecentRoomCard({ room, onDetailsClick }) {
             type="button"
             onClick={() => onDetailsClick(room?.id)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-800 text-white transition-colors hover:bg-pink-800 sm:w-36 sm:px-4 sm:py-1.5 sm:text-sm sm:font-semibold"
-            aria-label="View listing details"
-            title="View Details"
+            aria-label={labels.viewDetailsAria}
+            title={labels.viewDetailsLabel}
           >
             <FaArrowRight className="text-sm sm:hidden" />
-            <span className="hidden sm:inline">View Details</span>
+            <span className="hidden sm:inline">{labels.viewDetailsLabel}</span>
           </button>
         </div>
       </div>
@@ -143,6 +154,7 @@ function HowEasyKothaWorksCard({
   title,
   description,
   description2,
+  stepPrefix,
   number,
   delayMs = 0,
   isVisible = false,
@@ -157,14 +169,14 @@ function HowEasyKothaWorksCard({
       <div className={`ek-step-number h-12 w-12 bg-green-800 text-white flex items-center justify-center rounded-full ${isVisible ? "is-active" : ""}`}>
         {number}
       </div>
-      <h3 className="text-green-800 text-lg font-semibold">Step {title}</h3>
+      <h3 className="text-green-800 text-lg font-semibold">{stepPrefix} {title}</h3>
       <p className="text-sm text-gray-600">{description}</p>
       <p className="text-sm text-gray-600">{description2}</p>
     </div>
   );
 }
 
-function RoomByBudgetCard({ budgetRange, description, to, button }) {
+function RoomByBudgetCard({ budgetRange, description, to = "/login", button }) {
   return (
     <Link
       to={to}
@@ -198,7 +210,7 @@ function getPostPreviewImage(images) {
   return "/abouthero.webp";
 }
 
-function getDisplayLocation(city, district) {
+function getDisplayLocation(city, district, fallback = "Unknown location") {
   const normalizedCity = typeof city === "string" ? city.trim() : "";
   const normalizedDistrict = typeof district === "string" ? district.trim() : "";
 
@@ -210,10 +222,11 @@ function getDisplayLocation(city, district) {
     return `${normalizedCity}, ${normalizedDistrict}`;
   }
 
-  return normalizedCity || normalizedDistrict || "Unknown location";
+  return normalizedCity || normalizedDistrict || fallback;
 }
 
 export default function Landing() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
@@ -230,6 +243,7 @@ export default function Landing() {
   const suggestionBoxRef = useRef(null);
   const howItWorksRef = useRef(null);
   const [isHowItWorksVisible, setIsHowItWorksVisible] = useState(false);
+  const locale = i18n.language === "ne" ? "ne-NP" : "en-US";
 
   useEffect(() => {
     const fetchFeaturedRooms = async () => {
@@ -519,6 +533,16 @@ export default function Landing() {
     setIsInstallPromptAvailable(false);
   };
 
+  const listingLabels = {
+    availableRoom: t("landing.cards.availableRoom"),
+    unknownLocation: t("landing.cards.unknownLocation"),
+    recentlyPosted: t("landing.cards.recentlyPosted"),
+    recentTag: t("landing.cards.recentTag"),
+    viewDetailsAria: t("landing.cards.viewDetailsAria"),
+    viewDetailsLabel: t("landing.cards.viewDetails"),
+    pricePerMonth: (price) => t("landing.cards.pricePerMonth", { price }),
+  };
+
   return (
     <>
       <Topbar />
@@ -532,12 +556,11 @@ export default function Landing() {
       >
         <div className="relative z-10 flex w-full max-w-6xl flex-col items-center px-4 text-center sm:px-8">
           <h1 className="text-white text-[1.9rem] font-semibold leading-snug sm:text-5xl sm:leading-tight lg:text-6xl">
-            Find your perfect space in{" "}
-            <span className="text-green-300 font-bold">Nepal.</span>
+            {t("landing.hero.titlePrefix")}{" "}
+            <span className="text-green-300 font-bold">{t("landing.hero.titleHighlight")}</span>
           </h1>
           <p className="text-white/90 mt-3 max-w-3xl text-sm sm:mt-4 sm:text-base lg:text-lg">
-            From sunny flats in Baneshwor to cozy rooms in Lakeside, trust
-            EasyKotha for your next move.
+            {t("landing.hero.subtitle")}
           </p>
 
           <div className="mt-6 w-full max-w-5xl sm:mt-8">
@@ -550,7 +573,7 @@ export default function Landing() {
                   <FaSearch className="text-green-800 text-lg" />
                   <input
                     className="w-full bg-transparent text-sm md:text-base focus:outline-none"
-                    placeholder="Search rooms"
+                    placeholder={t("landing.hero.searchPlaceholder")}
                     type="text"
                     value={searchTerm}
                     onChange={(event) => {
@@ -564,7 +587,7 @@ export default function Landing() {
                   {showSuggestions && searchTerm.trim().length >= 2 && (
                     <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-xl">
                       {isSearching ? (
-                        <p className="px-4 py-3 text-sm text-gray-500">Searching...</p>
+                        <p className="px-4 py-3 text-sm text-gray-500">{t("landing.hero.searching")}</p>
                       ) : suggestions.length > 0 ? (
                         <ul className="max-h-80 overflow-y-auto p-2">
                           {suggestions.map((post) => (
@@ -579,7 +602,7 @@ export default function Landing() {
                               <div className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-100 p-2 text-left transition-colors hover:bg-green-50">
                                 <img
                                   src={getPostPreviewImage(post.images)}
-                                  alt={post.title || "Room"}
+                                  alt={post.title || t("landing.cards.availableRoom")}
                                   className="h-12 w-14 rounded-md object-cover"
                                   onError={(event) => {
                                     event.currentTarget.src = "/abouthero.webp";
@@ -601,7 +624,7 @@ export default function Landing() {
                         </ul>
                       ) : (
                         <p className="px-4 py-3 text-sm text-gray-500">
-                          No matching active listings found.
+                          {t("landing.hero.noMatchingListings")}
                         </p>
                       )}
                     </div>
@@ -614,7 +637,7 @@ export default function Landing() {
                     value={selectedLocation}
                     onChange={(event) => setSelectedLocation(event.target.value)}
                   >
-                    <option value="">City</option>
+                    <option value="">{t("landing.hero.city")}</option>
                     {locationOptions.map((location) => (
                       <option key={location} value={location}>
                         {location}
@@ -629,10 +652,10 @@ export default function Landing() {
                     value={selectedBudgetRange}
                     onChange={(event) => setSelectedBudgetRange(event.target.value)}
                   >
-                    <option value="">Budget Range</option>
-                    <option value="1000-2000">NPR 1000 - 2000</option>
-                    <option value="2000-3000">NPR 2000 - 3000</option>
-                    <option value="3000-4000">NPR 3000 - 4000</option>
+                    <option value="">{t("landing.hero.budgetRange")}</option>
+                    <option value="1000-2000">{t("landing.hero.budgetOption1")}</option>
+                    <option value="2000-3000">{t("landing.hero.budgetOption2")}</option>
+                    <option value="3000-4000">{t("landing.hero.budgetOption3")}</option>
                   </select>
                 </div>
                 <button
@@ -640,22 +663,22 @@ export default function Landing() {
                   onClick={handleSearchSubmit}
                 >
                   <FaSearch />
-                  Search
+                  {t("landing.hero.search")}
                 </button>
               </div>
 
               <div className="flex flex-col justify-center gap-2.5 text-xs font-semibold text-green-800 sm:flex-row sm:gap-6 sm:text-sm">
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur rounded-lg px-4 py-2 shadow">
                   <FaUserCheck className="text-green-800" />
-                  Verified Landlords
+                  {t("landing.hero.verifiedLandlords")}
                 </div>
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur rounded-lg px-4 py-2 shadow">
                   <FaLock className="text-green-800" />
-                  Secure Payments
+                  {t("landing.hero.securePayments")}
                 </div>
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur rounded-lg px-4 py-2 shadow">
                   <FaHeadset className="text-green-800" />
-                  24/7 Support
+                  {t("landing.hero.support247")}
                 </div>
               </div>
             </div>
@@ -667,20 +690,20 @@ export default function Landing() {
       <div className="PopularCategories w-[94%] sm:w-[92%] md:w-[95%] max-w-6xl mx-auto bg-gray-100 text-black px-3 py-2.5 sm:px-4 sm:py-3 md:px-6 md:py-5 shadow-2xl border border-gray-200 mt-4 md:-mt-10 relative z-20">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-5">
           <h2 className="text-center md:text-left text-base sm:text-lg md:text-2xl font-semibold text-red-600 leading-tight whitespace-nowrap">
-            Popular Searches
+            {t("landing.popular.title")}
           </h2>
           <div className="flex flex-wrap md:flex-nowrap items-center cursor-pointer justify-center md:justify-start gap-0 text-xs sm:text-sm md:text-[20px] font-medium text-gray-800 whitespace-nowrap">
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "furnished room" }))}>Furnished Room</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "furnished room" }))}>{t("landing.popular.furnishedRoom")}</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "shared room" }))}>Shared Room</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "shared room" }))}>{t("landing.popular.sharedRoom")}</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "single room" }))}>Single Room</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "single room" }))}>{t("landing.popular.singleRoom")}</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "pet friendly" }))}>Pet-Friendly</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "pet friendly" }))}>{t("landing.popular.petFriendly")}</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "budget rooms" }))}>Budget Rooms</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "budget rooms" }))}>{t("landing.popular.budgetRooms")}</button>
             <span className="text-gray-400">|</span>
-            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "nearby location" }))}>Nearby Locations</button>
+            <button className="px-1.5 py-0.5 cursor-pointer hover:underline" onClick={() => navigateWithAuthCheck(buildExplorePath({ keyword: "nearby location" }))}>{t("landing.popular.nearbyLocations")}</button>
           </div>
         </div>
       </div>
@@ -688,28 +711,28 @@ export default function Landing() {
       {/* why easykotha section */}
       <div className="WhyEasyKothaSection flex flex-col items-center mt-16 gap-6 px-4">
         <h2 className="text-3xl md:text-4xl font-semibold text-center">
-          Why <span className="text-green-800 font-semibold">EasyKotha</span>?
+          {t("landing.why.titlePrefix")} <span className="text-green-800 font-semibold">{t("landing.why.brand")}</span>?
         </h2>
         <div className="WhyEasyKothaGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
           <WhyEasyKothaCard
             icon={FaUserFriends({ size: 48 })}
-            title="No Middle Man"
-            description="Direct Contact with Room Owners"
+            title={t("landing.why.card1Title")}
+            description={t("landing.why.card1Desc")}
           />
           <WhyEasyKothaCard
             icon={FaTabletAlt({ size: 48 })}
-            title="User-Friendly Interface"
-            description="Easily navigate and find Room."
+            title={t("landing.why.card2Title")}
+            description={t("landing.why.card2Desc")}
           />
           <WhyEasyKothaCard
             icon={FaCheckCircle({ size: 48 })}
-            title="Trusted Listings"
-            description="All listings are verified."
+            title={t("landing.why.card3Title")}
+            description={t("landing.why.card3Desc")}
           />
           <WhyEasyKothaCard
             icon={FaHeadset({ size: 48 })}
-            title="24/7 Customer Support"
-            description="Our support team is always available."
+            title={t("landing.why.card4Title")}
+            description={t("landing.why.card4Desc")}
           />
         </div>
       </div>
@@ -717,37 +740,37 @@ export default function Landing() {
       {/* Location */}
       <div className="LocationsSection flex flex-col items-center mt-20 bg-gray-100 gap-8 px-4 py-10 md:p-10">
         <h2 className="text-3xl md:text-3xl font-semibold text-center">
-          <span className="text-green-800 font-semibold">Explore </span>by Location
+          <span className="text-green-800 font-semibold">{t("landing.locations.titlePrefix")} </span>{t("landing.locations.titleSuffix")}
         </h2>
         <div className="LocationsGrid grid w-full max-w-6xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 md:gap-6">
           <LocationCard
             imageSrc="https://imgs.search.brave.com/GAIYvtELr_GBXvpe7yW6Cz4yl7g-lidMwk8wj79C1-4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/ZWFydGh0cmVra2Vy/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTYvMDIvS2F0/aG1hbmR1LWZyb20t/SGlnaC5qcGcub3B0/aW1hbC5qcGc"
-            locationName="Kathmandu"
+            locationName={t("landing.locations.kathmandu")}
             onClick={() => handleLocationClick("Kathmandu")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/ze4G9XolbChWJjIwSpDNaU624HhLigRyqZ48tHsCk2Y/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZi5i/c3RhdGljLmNvbS94/ZGF0YS9pbWFnZXMv/aG90ZWwvc3F1YXJl/NjAwLzU1NDc3MjAz/OS53ZWJwP2s9ZDRl/NDU4OGNjZjM2MWZl/YTUzY2ZhMzYwODY1/YTczNzg3NzZkN2Ey/MGIyYTU0ZmI5MDM4/ODk5ZjA1ZmZmNGQ3/OCZvPQ"
-            locationName="Itahari"
+            locationName={t("landing.locations.itahari")}
             onClick={() => handleLocationClick("Itahari")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/mUqepwjm1-jjqQvKZdF1-Qxx0jT7o9FKXdXDfFuH5Po/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dHJla2tpbmdhZHZp/c29yLmNvbS9pbWFn/ZS8xMDI0L3RyZWtf/bWVkaWEvcGxhY2Vz/L2RoYXJhbi9EaGFy/YW4uanBn"
-            locationName="Dharan"
+            locationName={t("landing.locations.dharan")}
             onClick={() => handleLocationClick("Dharan")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/GkiPcAl6KnRuamx0dISXq-QBYRXy-c9NlVuHmI1cfDA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cGlnZW9udHJhdmVs/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTgvMTEvYmly/YXRuYWdhci1nYXRl/LTIzMDYyMDE3MDgy/NjI3LTEwMDB4MC5q/cGc"
-            locationName="Biratnagar"
+            locationName={t("landing.locations.biratnagar")}
             onClick={() => handleLocationClick("Biratnagar")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/9yMX6V_cbbmggXZ1OiW5rQ2cxHqJl7rPDzSFQuZt5-o/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9lbmds/aXNoLm5lcGFsbmV3/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMjUvMDIvMzM0/OTg4Mjk5XzExMzk0/NzI3ODY3NDk3Nzdf/ODgyNzE5NjcyMjE1/Mjc3MTI3Ml9uLmpw/Zw"
-            locationName="Damak"
+            locationName={t("landing.locations.damak")}
             onClick={() => handleLocationClick("Damak")}
           />
           <LocationCard
             imageSrc="https://imgs.search.brave.com/yGv11ms-TJXfycSLDgs7vuj3iw52lyIXV9bGT8PtSi0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aHVt/YnMuZHJlYW1zdGlt/ZS5jb20vYi9uZXBh/bC1kb21hay1jaXR5/LWpoYXBhLWJpc2hh/bC1tYXJnLXJvYWQt/ZGlzdHJpY3QtY2xv/c2VzdC10by1yYWRo/YS1rcmlzaG5hLXRl/bXBsZS1qdW5jdGlv/bi0xOTIzNjg3MDYu/anBn"
-            locationName="Kerkha"
+            locationName={t("landing.locations.kerkha")}
             onClick={() => handleLocationClick("Kerkha")}
           />
         </div>
@@ -757,15 +780,15 @@ export default function Landing() {
 
       <div className="FeaturedListingsSection flex flex-col items-center mt-20 gap-8 mb-16 px-4">
         <h2 className="text-4xl md:text-4xl font-semibold text-center">
-          <span className="text-green-800 font-semibold">Featured </span>Listings
+          <span className="text-green-800 font-semibold">{t("landing.featured.titlePrefix")} </span>{t("landing.featured.titleSuffix")}
         </h2>
         <div className="FeaturedListingsGrid grid w-full max-w-7xl grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4 md:gap-6">
           {isLoadingFeaturedRooms && (
-            <p className="col-span-full text-center text-sm font-medium text-slate-500">Loading available rooms...</p>
+            <p className="col-span-full text-center text-sm font-medium text-slate-500">{t("landing.featured.loading")}</p>
           )}
 
           {!isLoadingFeaturedRooms && featuredRooms.length === 0 && (
-            <p className="col-span-full text-center text-sm font-medium text-slate-500">No rooms available at the moment.</p>
+            <p className="col-span-full text-center text-sm font-medium text-slate-500">{t("landing.featured.empty")}</p>
           )}
 
           {!isLoadingFeaturedRooms &&
@@ -773,14 +796,17 @@ export default function Landing() {
               <FeaturedListingCard
                 key={room.id || room._id || `${room.title}-${room.createdAt}`}
                 imageSrc={getPostPreviewImage(room.images)}
-                title={room.title || "Available Room"}
-                location={getDisplayLocation(room.city, room.district)}
-                pricePerMonth={Number(room.price || 0).toLocaleString()}
+                title={room.title || t("landing.cards.availableRoom")}
+                location={getDisplayLocation(room.city, room.district, t("landing.cards.unknownLocation"))}
+                featuredTag={t("landing.cards.featuredTag")}
+                pricePerMonthLabel={t("landing.cards.pricePerMonth", { price: Number(room.price || 0).toLocaleString(locale) })}
                 postedDate={
                   room.createdAt
-                    ? new Date(room.createdAt).toLocaleDateString()
-                    : "Recently posted"
+                    ? new Date(room.createdAt).toLocaleDateString(locale)
+                    : t("landing.cards.recentlyPosted")
                 }
+                viewDetailsAria={t("landing.cards.viewDetailsAria")}
+                viewDetailsLabel={t("landing.cards.viewDetails")}
                 onClick={() => handleFeaturedRoomClick(room)}
               />
             ))}
@@ -790,7 +816,7 @@ export default function Landing() {
       {/* Recent Rooms */}
       <div className="RecentRoomsSection flex flex-col items-center mb-16 gap-8 px-4">
         <h2 className="text-4xl md:text-4xl font-semibold text-center">
-          <span className="text-green-800 font-semibold">Recent </span>Rooms
+          <span className="text-green-800 font-semibold">{t("landing.recent.titlePrefix")} </span>{t("landing.recent.titleSuffix")}
         </h2>
 
         <div className="RecentRoomsGrid grid w-full max-w-7xl grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4 md:gap-6">
@@ -800,6 +826,8 @@ export default function Landing() {
                 key={`recent-${room.id || room._id || room.createdAt}`}
                 room={room}
                 onDetailsClick={handleRecentRoomDetailsClick}
+                labels={listingLabels}
+                locale={locale}
               />
             ))}
         </div>
@@ -811,7 +839,7 @@ export default function Landing() {
         className="HowEasyKothaWorksSection flex flex-col items-center mt-20 mb-16 gap-8 bg-gray-50 px-4 py-10 md:p-10"
       >
         <h2 className="text-3xl md:text-4xl font-semibold text-center">
-          How <span className="text-green-800 font-semibold">EasyKotha</span> Works
+          {t("landing.how.titlePrefix")} <span className="text-green-800 font-semibold">EasyKotha</span> {t("landing.how.titleSuffix")}
         </h2>
         <div className="relative w-full max-w-6xl">
           <div className="pointer-events-none absolute left-16 right-16 top-1/2 hidden -translate-y-1/2 lg:block">
@@ -844,33 +872,37 @@ export default function Landing() {
               delayMs={0}
               isVisible={isHowItWorksVisible}
               number={1}
-              title="Search Rooms"
-              description="Enter your location and preferences to"
-              description2="find suitable rooms."
+              stepPrefix={t("landing.cards.stepPrefix")}
+              title={t("landing.how.step1Title")}
+              description={t("landing.how.step1Desc1")}
+              description2={t("landing.how.step1Desc2")}
             />
             <HowEasyKothaWorksCard
               delayMs={140}
               isVisible={isHowItWorksVisible}
               number={2}
-              title="Browse Listings"
-              description="View detailed photos and room"
-              description2="information."
+              stepPrefix={t("landing.cards.stepPrefix")}
+              title={t("landing.how.step2Title")}
+              description={t("landing.how.step2Desc1")}
+              description2={t("landing.how.step2Desc2")}
             />
             <HowEasyKothaWorksCard
               delayMs={280}
               isVisible={isHowItWorksVisible}
               number={3}
-              title="Contact Owners"
-              description="Directly communicate with"
-              description2="room owners."
+              stepPrefix={t("landing.cards.stepPrefix")}
+              title={t("landing.how.step3Title")}
+              description={t("landing.how.step3Desc1")}
+              description2={t("landing.how.step3Desc2")}
             />
             <HowEasyKothaWorksCard
               delayMs={420}
               isVisible={isHowItWorksVisible}
               number={4}
-              title="Book for Visit"
-              description="Schedule a visit or book"
-              description2="your perfect room."
+              stepPrefix={t("landing.cards.stepPrefix")}
+              title={t("landing.how.step4Title")}
+              description={t("landing.how.step4Desc1")}
+              description2={t("landing.how.step4Desc2")}
             />
           </div>
         </div>
@@ -879,23 +911,26 @@ export default function Landing() {
       {/* Room by budget */}
       <div className="RoomByBudgetSection flex flex-col items-center mt-20 mb-16 gap-8 px-4">
         <h2 className="text-3xl md:text-3xl font-semibold text-center">
-          <span className="text-green-800 font-semibold">Rooms </span>by Budget
+          <span className="text-green-800 font-semibold">{t("landing.budget.titlePrefix")} </span>{t("landing.budget.titleSuffix")}
         </h2>
         <div className="RoomByBudgetGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl">
           <RoomByBudgetCard
-            budgetRange="Under Rs. 10,000"
-            description="Affordable rooms for budget-conscious renters."
-            button="Browse Rooms"
+            budgetRange={t("landing.budget.card1Title")}
+            description={t("landing.budget.card1Desc")}
+            to={buildExplorePath({ budgetRange: "0-10000" })}
+            button={t("landing.budget.browseRooms")}
           />
           <RoomByBudgetCard
-            budgetRange="Rs. 10,000 - Rs. 20,000"
-            description="Comfortable rooms with great amenities."
-            button="Browse Rooms"
+            budgetRange={t("landing.budget.card2Title")}
+            description={t("landing.budget.card2Desc")}
+            to={buildExplorePath({ budgetRange: "10000-20000" })}
+            button={t("landing.budget.browseRooms")}
           />
           <RoomByBudgetCard
-            budgetRange="Rs. 20,000 - Rs. 30,000"
-            description="Spacious rooms in prime locations."
-            button="Browse Rooms"
+            budgetRange={t("landing.budget.card3Title")}
+            description={t("landing.budget.card3Desc")}
+            to={buildExplorePath({ budgetRange: "20000-30000" })}
+            button={t("landing.budget.browseRooms")}
           />
         </div>
       </div>
@@ -904,35 +939,34 @@ export default function Landing() {
       <div className="LookingForARoomSection flex flex-col lg:flex-row justify-between gap-4 items-stretch text-white p-4 sm:p-6 md:p-10 mb-10 rounded-lg mx-4 sm:mx-8 lg:mx-24">
         <div className="bg-green-800 p-6 md:p-10 rounded-lg flex-1 flex flex-col items-center">
           <h1 className="text-2xl font-semibold text-center mt-3">
-            Looking for a Room?
+            {t("landing.cta.findRoomTitle")}
           </h1>
           <p className="text-center">
-            Start your search and find your perfect room today.
+            {t("landing.cta.findRoomDesc")}
           </p>
-          <p className="text-center">It's fast, easy, and free</p>
+          <p className="text-center">{t("landing.cta.findRoomSubDesc")}</p>
           <button
             type="button"
             onClick={handleFindRoomCtaClick}
             className="text-green-800 bg-white px-4 py-2 mt-4 rounded-xl"
           >
-            Find Room
+            {t("landing.cta.findRoomButton")}
           </button>
         </div>
 
         <div className="bg-gray-100 p-6 md:p-10 border border-green-200 rounded-lg flex-1 flex flex-col items-center">
           <h1 className="text-2xl text-green-800 font-semibold text-center mt-3">
-            Have a Room to Rent?
+            {t("landing.cta.listRoomTitle")}
           </h1>
           <p className="text-center text-green-800">
-            List your property for free and connect with thousand of potential
-            tenants
+            {t("landing.cta.listRoomDesc")}
           </p>
           <button
             type="button"
             onClick={handleListRoomCtaClick}
             className="text-white bg-green-800 px-4 py-2 mt-4 rounded-xl"
           >
-            List Room
+            {t("landing.cta.listRoomButton")}
           </button>
         </div>
       </div>
@@ -948,25 +982,25 @@ export default function Landing() {
           
 
           <h2 className="text-balance text-2xl font-bold text-white sm:text-4xl md:text-5xl">
-            Install EasyKotha on Your Phone
+            {t("landing.mobile.title")}
           </h2>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-300">
-            Works offline, loads instantly, and lives on your home screen. Tap
-            <span className="font-semibold text-white"> Install</span> when prompted.
+            {t("landing.mobile.desc")}
+            <span className="font-semibold text-white"> {t("landing.mobile.install")}</span> {t("landing.mobile.whenPrompted")}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
-              Offline Ready
+              {t("landing.mobile.offlineReady")}
             </span>
             <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
-              Instant Load
+              {t("landing.mobile.instantLoad")}
             </span>
             <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
-              No App Store
+              {t("landing.mobile.noAppStore")}
             </span>
             <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-2 text-sm font-semibold text-emerald-300">
-              Auto Updates
+              {t("landing.mobile.autoUpdates")}
             </span>
           </div>
 
@@ -977,7 +1011,7 @@ export default function Landing() {
             className="mt-10 inline-flex items-center gap-3 rounded-full bg-green-600 px-9 py-4 text-xl font-bold text-white shadow-[0_12px_40px_rgba(16,185,129,0.45)] transition-all hover:scale-[1.02] hover:bg-pink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-green-600"
           >
             <FaDownload />
-            Install App
+            {t("landing.mobile.installApp")}
           </button>
         </div>
       </div>
@@ -988,12 +1022,11 @@ export default function Landing() {
           <div className="flex flex-col items-center gap-6 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
             <div className="max-w-2xl">
               <h2 className="text-2xl font-semibold leading-tight text-green-800 sm:text-2xl lg:text-[40px] lg:leading-[1.1]">
-                Didn&apos;t you find the property of your choice?
+                {t("landing.request.title")}
               </h2>
               <br />
               <p className="mt-2 text-sm text-black sm:text-base lg:text-[20px] lg:leading-[1.2]">
-                Tell us your requirements and get matching properties from sellers,
-                agencies, developers
+                {t("landing.request.desc")}
               </p>
             </div>
 
@@ -1003,13 +1036,13 @@ export default function Landing() {
               className="inline-flex items-center gap-3 whitespace-nowrap rounded-md bg-green-800 text-white px-6 py-3 text-sm font-semibold shadow-sm transition-colors hover:bg-[#1c7fbe] sm:px-10 sm:py-4 sm:text-base lg:px-12"
             >
               <FaRegEdit className="text-lg" />
-              Request Property
+              {t("landing.request.button")}
             </button>
 
             <div className="w-full max-w-60 shrink-0 sm:max-w-[280px] lg:max-w-[300px]">
               <img
                 src="/confused.webp"
-                alt="Confused person with question marks"
+                alt={t("landing.request.imageAlt")}
                 className="h-auto w-full object-contain"
                 loading="lazy"
               />

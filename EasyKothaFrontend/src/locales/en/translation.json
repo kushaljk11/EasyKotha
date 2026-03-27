@@ -1,0 +1,348 @@
+{
+  "language": {
+    "labelChoose": "Choose language",
+    "selectorTitle": "Language selector",
+    "options": {
+      "en": "English",
+      "ne": "Nepali"
+    }
+  },
+  "topbar": {
+    "features": "Features",
+    "contactUs": "Contact Us",
+    "aboutUs": "About Us",
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "menu": "Menu",
+    "goToDashboard": "Go to dashboard",
+    "toggleNav": "Toggle navigation menu",
+    "closeMenuOverlay": "Close menu overlay",
+    "closeNav": "Close navigation menu"
+  },
+  "footer": {
+    "description": "Your trusted platform for finding the perfect room. Easy, fast, and reliable.",
+    "quickLinks": "Quick Links",
+    "home": "Home",
+    "aboutUs": "About Us",
+    "features": "Features",
+    "contact": "Contact",
+    "forTenants": "For Tenants",
+    "searchRooms": "Search Rooms",
+    "featuredListings": "Featured Listings",
+    "budgetRooms": "Budget Rooms",
+    "browseLocations": "Browse Locations",
+    "forLandlords": "For Landlords",
+    "listProperty": "List Your Property",
+    "pricing": "Pricing",
+    "listingGuidelines": "Listing Guidelines",
+    "support": "Support",
+    "copyright": "All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "landing": {
+    "cards": {
+      "featuredTag": "FEATURED",
+      "recentTag": "RECENT",
+      "pricePerMonth": "Rs. {{price}} / month",
+      "viewDetails": "View Details",
+      "viewDetailsAria": "View listing details",
+      "availableRoom": "Available Room",
+      "recentlyPosted": "Recently posted",
+      "unknownLocation": "Unknown location",
+      "stepPrefix": "Step"
+    },
+    "hero": {
+      "titlePrefix": "Find your perfect space in",
+      "titleHighlight": "Nepal.",
+      "subtitle": "From sunny flats in Baneshwor to cozy rooms in Lakeside, trust EasyKotha for your next move.",
+      "searchPlaceholder": "Search rooms",
+      "searching": "Searching...",
+      "noMatchingListings": "No matching active listings found.",
+      "city": "City",
+      "budgetRange": "Budget Range",
+      "budgetOption1": "NPR 1000 - 2000",
+      "budgetOption2": "NPR 2000 - 3000",
+      "budgetOption3": "NPR 3000 - 4000",
+      "search": "Search",
+      "verifiedLandlords": "Verified Landlords",
+      "securePayments": "Secure Payments",
+      "support247": "24/7 Support"
+    },
+    "popular": {
+      "title": "Popular Searches",
+      "furnishedRoom": "Furnished Room",
+      "sharedRoom": "Shared Room",
+      "singleRoom": "Single Room",
+      "petFriendly": "Pet-Friendly",
+      "budgetRooms": "Budget Rooms",
+      "nearbyLocations": "Nearby Locations"
+    },
+    "why": {
+      "titlePrefix": "Why",
+      "brand": "EasyKotha",
+      "card1Title": "No Middle Man",
+      "card1Desc": "Direct Contact with Room Owners",
+      "card2Title": "User-Friendly Interface",
+      "card2Desc": "Easily navigate and find room.",
+      "card3Title": "Trusted Listings",
+      "card3Desc": "All listings are verified.",
+      "card4Title": "24/7 Customer Support",
+      "card4Desc": "Our support team is always available."
+    },
+    "locations": {
+      "titlePrefix": "Explore",
+      "titleSuffix": "by Location",
+      "kathmandu": "Kathmandu",
+      "itahari": "Itahari",
+      "dharan": "Dharan",
+      "biratnagar": "Biratnagar",
+      "damak": "Damak",
+      "kerkha": "Kerkha"
+    },
+    "featured": {
+      "titlePrefix": "Featured",
+      "titleSuffix": "Listings",
+      "loading": "Loading available rooms...",
+      "empty": "No rooms available at the moment."
+    },
+    "recent": {
+      "titlePrefix": "Recent",
+      "titleSuffix": "Rooms"
+    },
+    "how": {
+      "titlePrefix": "How",
+      "titleSuffix": "Works",
+      "step1Title": "Search Rooms",
+      "step1Desc1": "Enter your location and preferences to",
+      "step1Desc2": "find suitable rooms.",
+      "step2Title": "Browse Listings",
+      "step2Desc1": "View detailed photos and room",
+      "step2Desc2": "information.",
+      "step3Title": "Contact Owners",
+      "step3Desc1": "Directly communicate with",
+      "step3Desc2": "room owners.",
+      "step4Title": "Book for Visit",
+      "step4Desc1": "Schedule a visit or book",
+      "step4Desc2": "your perfect room."
+    },
+    "budget": {
+      "titlePrefix": "Rooms",
+      "titleSuffix": "by Budget",
+      "card1Title": "Under Rs. 10,000",
+      "card1Desc": "Affordable rooms for budget-conscious renters.",
+      "card2Title": "Rs. 10,000 - Rs. 20,000",
+      "card2Desc": "Comfortable rooms with great amenities.",
+      "card3Title": "Rs. 20,000 - Rs. 30,000",
+      "card3Desc": "Spacious rooms in prime locations.",
+      "browseRooms": "Browse Rooms"
+    },
+    "cta": {
+      "findRoomTitle": "Looking for a Room?",
+      "findRoomDesc": "Start your search and find your perfect room today.",
+      "findRoomSubDesc": "It is fast, easy, and free.",
+      "findRoomButton": "Find Room",
+      "listRoomTitle": "Have a Room to Rent?",
+      "listRoomDesc": "List your property for free and connect with thousands of potential tenants.",
+      "listRoomButton": "List Room"
+    },
+    "mobile": {
+      "title": "Install EasyKotha on Your Phone",
+      "desc": "Works offline, loads instantly, and lives on your home screen. Tap",
+      "install": "Install",
+      "whenPrompted": "when prompted.",
+      "offlineReady": "Offline Ready",
+      "instantLoad": "Instant Load",
+      "noAppStore": "No App Store",
+      "autoUpdates": "Auto Updates",
+      "installApp": "Install App"
+    },
+    "request": {
+      "title": "Didn't you find the property of your choice?",
+      "desc": "Tell us your requirements and get matching properties from sellers, agencies, and developers.",
+      "button": "Request Property",
+      "imageAlt": "Confused person with question marks"
+    }
+  },
+  "about": {
+    "badge": "About EasyKotha",
+    "title": "Finding a home should feel simple, safe, and human.",
+    "subtitle": "EasyKotha helps tenants and landlords connect faster with trust, clarity, and better tools for real-world rental decisions.",
+    "trustKicker": "Built Around Trust",
+    "trustTitle": "Reliable Listings. Better Decisions.",
+    "trustDesc": "Every feature is designed to make renting transparent and straightforward.",
+    "whoTitle": "Who We Are",
+    "para1": "Welcome to EasyKotha, your trusted platform for finding the perfect rental accommodation. We are dedicated to simplifying the rental process and connecting tenants with landlords in a seamless, efficient way.",
+    "para2": "We understand how difficult searching for the right room or flat can be. That is why EasyKotha offers a wide range of listings, rich property details, and practical search tools so students, professionals, and families can find a place that fits.",
+    "para3": "Our team is committed to a smooth and reliable rental experience, backed by responsive support at every step.",
+    "promiseTitle": "What We Promise",
+    "promise1": "Verified and relevant listings",
+    "promise2": "Fast tenant-landlord connection",
+    "promise3": "Clear pricing and details",
+    "promise4": "Helpful support when needed",
+    "stats": {
+      "activeUsers": "Active monthly users",
+      "verifiedListings": "Verified listings",
+      "support": "Support assistance",
+      "trust": "User trust score"
+    }
+  },
+  "contact": {
+    "hero": {
+      "greeting": "Namaste!",
+      "title": "How can we help?",
+      "subtitle": "Whether you are looking for cozy rooms or need assistance with your listing, we are here for you."
+    },
+    "status": {
+      "success": "Message sent successfully!",
+      "error": "Failed to send message. Please try again later."
+    },
+    "form": {
+      "title": "Send us a message",
+      "fullNameLabel": "Full Name",
+      "fullNamePlaceholder": "Ujjwal Timsina",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "ujjwal@gmail.com",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "General Inquiry",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us how we can help...",
+      "replyWithin": "We typically reply within 24 hours",
+      "sending": "Sending...",
+      "submit": "Submit"
+    },
+    "quickSupport": {
+      "title": "Quick Support"
+    },
+    "office": {
+      "imageAlt": "Office Location",
+      "title": "Our Office",
+      "addressLine1": "Lazimpat Road, Kathmandu",
+      "addressLine2": "Bagmati Province, Nepal",
+      "getDirections": "Get Directions"
+    },
+    "commonQuestions": {
+      "title": "Common Questions",
+      "q1": "How to verify my ID?",
+      "q2": "Is listing a room free?",
+      "q3": "How to avoid scams?",
+      "helpCenter": "Visit Help Center"
+    }
+  },
+  "common": {
+    "notifications": {
+      "title": "Notifications",
+      "clearAll": "Clear all",
+      "empty": "No notifications yet.",
+      "defaultTitle": "Notification",
+      "defaultMessage": "You have a new update"
+    }
+  },
+  "auth": {
+    "common": {
+      "email": "Email",
+      "password": "Password",
+      "or": "Or",
+      "login": "Login",
+      "tenant": "Tenant",
+      "landlord": "Landlord"
+    },
+    "login": {
+      "fillAllFields": "Please fill in all fields",
+      "welcomeBack": "Welcome Back",
+      "subtitle": "Please enter your details to sign in",
+      "emailPlaceholder": "name@example.com",
+      "forgot": "Forgot?",
+      "passwordPlaceholder": "••••••••",
+      "loggingIn": "Logging in...",
+      "signIn": "Sign In",
+      "noAccount": "Do not have an account?",
+      "signUpFree": "Sign up for free"
+    },
+    "register": {
+      "fillRequired": "Please fill in all required fields",
+      "createAccount": "Create Account",
+      "creatingAccount": "Creating Account...",
+      "subtitle": "Join thousands finding their perfect home with EasyKotha",
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "orSignUpWith": "or sign up with",
+      "alreadyAccount": "Already have an account?"
+    }
+  },
+  "tenant": {
+    "sidebar": {
+      "panel": "TENANT PANEL",
+      "mainMenu": "MAIN MENU",
+      "dashboard": "Dashboard",
+      "bookings": "Bookings",
+      "saved": "Saved",
+      "exploreRooms": "Explore Rooms",
+      "chat": "Chat",
+      "fallbackName": "Tenant",
+      "roleLabel": "Tenant",
+      "signOut": "Sign out"
+    },
+    "topbar": {
+      "openSidebar": "Open sidebar",
+      "messages": "Messages",
+      "accountType": "Tenant Account",
+      "openProfileMenu": "Open profile menu",
+      "profileSettings": "Profile Settings",
+      "logout": "Logout",
+      "joinNow": "Join Now"
+    }
+  },
+  "landlord": {
+    "sidebar": {
+      "panel": "LANDLORD PANEL",
+      "mainMenu": "MAIN MENU",
+      "dashboard": "Dashboard",
+      "myListings": "My Listings",
+      "explore": "Explore",
+      "addNew": "Add New",
+      "bookings": "Bookings",
+      "chat": "Chat",
+      "profile": "Profile"
+    },
+    "topbar": {
+      "toggleSidebar": "Toggle Sidebar",
+      "searchPlaceholder": "Search...",
+      "search": "Search",
+      "profileSettings": "Profile Settings",
+      "openProfileMenu": "Open profile menu",
+      "fallbackName": "Landlord User",
+      "myProfile": "My Profile",
+      "settings": "Settings",
+      "signOut": "Sign Out"
+    }
+  },
+  "admin": {
+    "sidebar": {
+      "panel": "ADMIN PANEL",
+      "mainMenu": "MAIN MENU",
+      "overview": "Overview",
+      "userManagement": "User Management",
+      "propertyVerification": "Property Verification",
+      "postApprovals": "Post Approvals",
+      "bookings": "Bookings",
+      "payment": "Payment",
+      "manageLog": "Manage Log",
+      "settings": "Settings",
+      "intelligence": "INTELLIGENCE",
+      "aiInsights": "AI Insights"
+    },
+    "topbar": {
+      "toggleSidebar": "Toggle Sidebar",
+      "searchPlaceholder": "Search...",
+      "search": "Search",
+      "settings": "Settings",
+      "openProfileMenu": "Open profile menu",
+      "fallbackName": "Admin User",
+      "superAdmin": "Super Admin",
+      "admin": "Admin",
+      "myProfile": "My Profile",
+      "signOut": "Sign Out"
+    }
+  }
+}

@@ -5,6 +5,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { User, Mail, Lock, Phone, UserCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { API_ORIGIN } from "../config/env";
 
 if (!API_ORIGIN) {
@@ -12,6 +13,7 @@ if (!API_ORIGIN) {
 }
 
 export default function Register() {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +44,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !role) {
-      return toast.error("Please fill in all required fields");
+      return toast.error(t("auth.register.fillRequired"));
     }
     await signup({ name, email, password, role, phone });
   };
@@ -60,9 +62,9 @@ export default function Register() {
       {/* LEFT SIDE - FORM */}
       <div className="flex h-full w-full flex-col items-center justify-center p-6 md:w-1/2 md:p-10 lg:p-12">
         <div className="mb-6 text-center">
-          <h1 className="mt-3 text-4xl font-semibold text-green-800">Create Account</h1>
+          <h1 className="mt-3 text-4xl font-semibold text-green-800">{t("auth.register.createAccount")}</h1>
           <p className="mt-2 text-gray-600">
-            Join thousands finding their perfect home with EasyKotha
+            {t("auth.register.subtitle")}
           </p>
         </div>
 
@@ -72,7 +74,7 @@ export default function Register() {
             <User className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Full Name"
+              placeholder={t("auth.register.fullName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
@@ -85,7 +87,7 @@ export default function Register() {
             <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type="email"
-              placeholder="Email"
+              placeholder={t("auth.common.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
@@ -98,7 +100,7 @@ export default function Register() {
             <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type="password"
-              placeholder="Password"
+              placeholder={t("auth.common.password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
@@ -111,7 +113,7 @@ export default function Register() {
             <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type="tel"
-              placeholder="Phone"
+              placeholder={t("auth.register.phone")}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
@@ -126,8 +128,8 @@ export default function Register() {
               onChange={(e) => setRole(e.target.value)}
               className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-800/30 focus:border-green-800 transition-all"
             >
-              <option value="LANDLORD">Landlord</option>
-              <option value="TENANT">Tenant</option>
+              <option value="LANDLORD">{t("auth.common.landlord")}</option>
+              <option value="TENANT">{t("auth.common.tenant")}</option>
             </select>
           </div>
 
@@ -137,13 +139,13 @@ export default function Register() {
             disabled={isSigningUp}
             className="w-full bg-green-800 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-900 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSigningUp ? "Creating Account..." : "Create Account"}
+            {isSigningUp ? t("auth.register.creatingAccount") : t("auth.register.createAccount")}
           </button>
 
           {/* Social login */}
           <div className="flex items-center my-4">
             <div className="grow border-t border-gray-200"></div>
-            <span className="mx-3 text-gray-400 text-xs uppercase">or sign up with</span>
+            <span className="mx-3 text-gray-400 text-xs uppercase">{t("auth.register.orSignUpWith")}</span>
             <div className="grow border-t border-gray-200"></div>
           </div>
 
@@ -165,13 +167,13 @@ export default function Register() {
           </div>
 
           <p className="text-center text-gray-600 mt-4 text-sm">
-            Already have an account?{" "}
+            {t("auth.register.alreadyAccount")} {" "}
             <button
               type="button"
               onClick={() => navigate("/login")}
               className="text-green-800 font-bold hover:underline"
             >
-              Login
+              {t("auth.common.login")}
             </button>
           </p>
         </form>

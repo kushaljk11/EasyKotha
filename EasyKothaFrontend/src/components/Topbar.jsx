@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { FaBars, FaTimes, FaTachometerAlt, FaUserCircle } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/useAuthStore";
 import LanguageDropdown from "./LanguageDropdown";
 
 export default function Topbar() {
+  const { t } = useTranslation();
   const { authUser } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -30,27 +32,27 @@ export default function Topbar() {
         <div className="hidden md:flex items-center gap-6 text-base font-medium">
           <LanguageDropdown />
           <Link className="text-black hover:text-green-800" to="/">
-            Features
+            {t("topbar.features")}
           </Link>
           <Link className="text-black hover:text-green-800" to="/contact">
-            Contact Us
+            {t("topbar.contactUs")}
           </Link>
           <Link className="text-black hover:text-green-800" to="/about">
-            About Us
+            {t("topbar.aboutUs")}
           </Link>
           {authUser ? (
             <Link
               className="rounded-2xl bg-green-800 px-6 py-2 text-white hover:bg-green-700"
               to={dashboardPath}
             >
-              Dashboard
+              {t("topbar.dashboard")}
             </Link>
           ) : (
             <Link
               className="rounded-2xl bg-green-800 px-6 py-2 text-white hover:bg-green-700"
               to="/login"
             >
-              Login
+              {t("topbar.login")}
             </Link>
           )}
         </div>
@@ -60,18 +62,18 @@ export default function Topbar() {
             <Link
               className="inline-flex items-center gap-2 rounded-xl bg-green-800 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
               to={dashboardPath}
-              aria-label="Go to dashboard"
-              title="Dashboard"
+              aria-label={t("topbar.goToDashboard")}
+              title={t("topbar.dashboard")}
             >
               <FaTachometerAlt size={12} />
-              Dashboard
+              {t("topbar.dashboard")}
             </Link>
           ) : (
             <Link
               className="inline-flex items-center justify-center rounded-xl bg-green-800 p-2.5 text-white hover:bg-green-700"
               to="/login"
-              aria-label="Login"
-              title="Login"
+              aria-label={t("topbar.login")}
+              title={t("topbar.login")}
             >
               <FaUserCircle size={18} />
             </Link>
@@ -81,7 +83,7 @@ export default function Topbar() {
             type="button"
             className="inline-flex items-center justify-center rounded-lg border border-green-200 p-2 text-green-800 hover:bg-green-50"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            aria-label="Toggle navigation menu"
+            aria-label={t("topbar.toggleNav")}
             aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -100,7 +102,7 @@ export default function Topbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22 }}
-              aria-label="Close menu overlay"
+              aria-label={t("topbar.closeMenuOverlay")}
             />
 
             <motion.div
@@ -111,12 +113,12 @@ export default function Topbar() {
               transition={{ duration: 0.28, ease: "easeOut" }}
             >
               <div className="mb-4 flex items-center justify-between border-b border-green-100 pb-3">
-                <p className="text-sm font-semibold text-green-800">Menu</p>
+                <p className="text-sm font-semibold text-green-800">{t("topbar.menu")}</p>
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-lg border border-green-200 p-2 text-green-800 hover:bg-green-50"
                   onClick={() => setIsMenuOpen(false)}
-                  aria-label="Close navigation menu"
+                  aria-label={t("topbar.closeNav")}
                 >
                   <FaTimes size={16} />
                 </button>
@@ -128,21 +130,21 @@ export default function Topbar() {
                   to="/"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Features
+                  {t("topbar.features")}
                 </Link>
                 <Link
                   className="rounded-lg px-3 py-2 text-black hover:bg-green-50 hover:text-green-800"
                   to="/contact"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Contact Us
+                  {t("topbar.contactUs")}
                 </Link>
                 <Link
                   className="rounded-lg px-3 py-2 text-black hover:bg-green-50 hover:text-green-800"
                   to="/about"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  About Us
+                  {t("topbar.aboutUs")}
                 </Link>
               </div>
             </motion.div>

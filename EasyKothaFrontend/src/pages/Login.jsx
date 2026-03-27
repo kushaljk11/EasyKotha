@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { Mail, Lock } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { API_ORIGIN } from "../config/env";
 
 if (!API_ORIGIN) {
@@ -11,6 +12,7 @@ if (!API_ORIGIN) {
 }
 
 export default function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const {login, isLoggingIn, authUser, checkAuth } = useAuthStore();
@@ -41,7 +43,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) return toast.error("Please fill in all fields");
+    if (!email || !password) return toast.error(t("auth.login.fillAllFields"));
 
     await login({ email, password });
   };
@@ -67,17 +69,17 @@ export default function Login() {
         <div className="w-full max-w-sm">
           <div className="text-center md:text-center mb-5">
             <h2 className="text-4xl font-semibold text-white tracking-tight">
-              Welcome Back
+              {t("auth.login.welcomeBack")}
             </h2>
             <p className="text-teal-100/70  text-sm">
-              Please enter your details to sign in
+              {t("auth.login.subtitle")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
             <div className="space-y-2">
               <label htmlFor="email" className="text-white text-sm font-semibold ml-1">
-                Email
+                {t("auth.common.email")}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-green-800  transition-colors duration-200">
@@ -89,7 +91,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder={t("auth.login.emailPlaceholder")}
                   className="w-full bg-white/10 border border-white/20 p-3 pl-10 rounded-xl text-white placeholder-teal-100/30 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all duration-200"
                 />
               </div>
@@ -98,10 +100,10 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label htmlFor="password" className="text-white text-sm font-semibold ml-1">
-                  Password
+                  {t("auth.common.password")}
                 </label>
                 <button type="button" className="text-teal-200 text-xs font-medium hover:underline">
-                  Forgot?
+                  {t("auth.login.forgot")}
                 </button>
               </div>
               <div className="relative group">
@@ -114,7 +116,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={t("auth.login.passwordPlaceholder")}
                   className="w-full bg-white/10 border border-white/20 p-3 pl-10 rounded-xl text-white placeholder-teal-100/30 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all duration-200"
                 />
               </div>
@@ -127,12 +129,12 @@ export default function Login() {
                        hover:bg-teal-50 transform active:scale-[0.98]
                        transition-all duration-200 shadow-xl disabled:opacity-60"
             >
-              {isLoggingIn ? "Logging in..." : "Sign In"}
+              {isLoggingIn ? t("auth.login.loggingIn") : t("auth.login.signIn")}
             </button>
 
             <div className="flex items-center my-6">
               <div className="grow border-t border-white/20"></div>
-              <span className="px-3 text-teal-100/50 text-xs uppercase tracking-widest font-medium">Or</span>
+              <span className="px-3 text-teal-100/50 text-xs uppercase tracking-widest font-medium">{t("auth.common.or")}</span>
               <div className="grow border-t border-white/20"></div>
             </div>
 
@@ -160,12 +162,12 @@ export default function Login() {
           </form>
 
           <p className="text-teal-100/70 text-center mt-12 text-sm">
-            Don't have an account?{" "}
+            {t("auth.login.noAccount")} {" "}
             <button
               onClick={() => navigate("/register")}
               className="text-white font-bold hover:underline transition-all"
             >
-              Sign up for free
+              {t("auth.login.signUpFree")}
             </button>
           </p>
         </div>

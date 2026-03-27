@@ -1,6 +1,7 @@
 import { FaSearch, FaBell, FaCog, FaSignOutAlt, FaUser, FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/useAuthStore";
 import { useSidebarStore } from "../store/useSidebarStore";
 import UserAvatar from "../components/UserAvatar";
@@ -39,6 +40,7 @@ const getNotificationTarget = (link, role) => {
 };
 
 export default function Topbar() {
+  const { t } = useTranslation();
   const { authUser, logout, socket } = useAuthStore();
   const normalizedRole = String(authUser?.role || "ADMIN").trim().toUpperCase();
   const [isOpen, setIsOpen] = useState(false);
@@ -78,8 +80,8 @@ export default function Topbar() {
     const handleNotification = (payload) => {
       const nextNotification = {
         id: payload?.id || `notif-${Date.now()}`,
-        title: payload?.title || "Notification",
-        message: payload?.message || "You have a new update",
+        title: payload?.title || t("common.notifications.defaultTitle"),
+        message: payload?.message || t("common.notifications.defaultMessage"),
         link: getNotificationTarget(payload?.link, normalizedRole),
         createdAt: payload?.createdAt || new Date().toISOString(),
       };
@@ -92,7 +94,7 @@ export default function Topbar() {
 
     socket.on("notification", handleNotification);
     return () => socket.off("notification", handleNotification);
-  }, [socket, normalizedRole]);
+  }, [socket, normalizedRole, t]);
 
   const toggleNotificationPanel = () => {
     setIsNotificationOpen((prev) => {
@@ -111,7 +113,7 @@ export default function Topbar() {
             type="button"
             onClick={toggleSidebar}
             className="p-2 text-green-800 hover:bg-green-800/5 rounded-lg md:hidden"
-            aria-label="Toggle Sidebar"
+            aria-label={t("admin.topbar.toggleSidebar")}
           >
             <FaBars className="text-xl" />
           </button>
@@ -121,7 +123,7 @@ export default function Topbar() {
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-800/40" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={t("admin.topbar.searchPlaceholder")}
                 className="w-full pl-10 pr-4 py-2 border border-blue-800/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-800 focus:border-transparent text-sm text-blue-800 placeholder-blue-800/30"
               />
             </div>
@@ -133,7 +135,7 @@ export default function Topbar() {
           <LanguageDropdown />
 
           {/* Mobile Search Icon (only visible when the search input is hidden) */}
-          <button type="button" className="sm:hidden p-2 text-green-800 hover:bg-green-800/5 rounded-lg">
+          <button type="button" className="sm:hidden p-2 text-green-800 hover:bg-green-800/5 rounded-lg" title={t("admin.topbar.search")}>
             <FaSearch className="text-lg" />
           </button>
 
@@ -143,7 +145,7 @@ export default function Topbar() {
               type="button"
               onClick={toggleNotificationPanel}
               className="relative p-2 text-green-800 hover:bg-green-800/5 rounded-lg transition-colors"
-              title="Notifications"
+              title={t("common.notifications.title")}
             >
               <FaBell className="text-lg" />
               {unreadCount > 0 && (
@@ -156,19 +158,19 @@ export default function Topbar() {
             {isNotificationOpen && (
               <div className="absolute right-0 mt-2 w-80 max-w-[92vw] rounded-xl border border-gray-200 bg-white shadow-xl z-50">
                 <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                  <p className="text-sm font-semibold text-slate-800">Notifications</p>
+                  <p className="text-sm font-semibold text-slate-800">{t("common.notifications.title")}</p>
                   <button
                     type="button"
                     onClick={() => setNotifications([])}
                     className="text-xs font-semibold text-green-800 hover:underline"
                   >
-                    Clear all
+                    {t("common.notifications.clearAll")}
                   </button>
                 </div>
 
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <p className="px-4 py-6 text-sm text-slate-500">No notifications yet.</p>
+                    <p className="px-4 py-6 text-sm text-slate-500">{t("common.notifications.empty")}</p>
                   ) : (
                     notifications.map((notification) => (
                       <Link
@@ -194,8 +196,8 @@ export default function Topbar() {
           <Link
             to="/admin/settings"
             className="hidden sm:block p-2 text-green-800 hover:bg-green-800/5 rounded-lg transition-colors"
-            title="Settings"
-            aria-label="Settings"
+            title={t("admin.topbar.settings")}
+            aria-label={t("admin.topbar.settings")}
           >
             <FaCog className="text-lg" />
           </Link>
@@ -212,7 +214,7 @@ export default function Topbar() {
               onClick={() => setIsOpen((prev) => !prev)}
               className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer focus:outline-none"
               aria-expanded={isOpen}
-              aria-label="Open profile menu"
+              aria-label={t("admin.topbar.openProfileMenu")}
             >
               <UserAvatar
                 src={authUser?.profileImage}
@@ -228,10 +230,10 @@ export default function Topbar() {
               <div className="absolute right-0 mt-1 w-56 md:w-60 bg-white rounded-xl shadow-xl border border-green-200 py-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="px-4 py-2 border-b border-gray-100 mb-1">
                   <p className="text-sm font-semibold text-green-800 truncate">
-                    {authUser?.name || "Admin User"}
+                    {authUser?.name || t("admin.topbar.fallbackName")}
                   </p>
                   <p className="text-xs font-medium text-green-700 mt-0.5">
-                    {authUser?.role === "ADMIN" ? "Super Admin" : authUser?.role || "Admin"}
+                    {authUser?.role === "ADMIN" ? t("admin.topbar.superAdmin") : authUser?.role || t("admin.topbar.admin")}
                   </p>
                 </div>
                 
@@ -241,14 +243,14 @@ export default function Topbar() {
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-green-50 transition-colors"
                   >
                     <FaUser className="text-green-700" />
-                    <span>My Profile</span>
+                    <span>{t("admin.topbar.myProfile")}</span>
                   </Link>
                   <Link
                     to="/admin/settings"
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-green-50 transition-colors"
                   >
                     <FaCog className="text-green-700" />
-                    <span>Settings</span>
+                    <span>{t("admin.topbar.settings")}</span>
                   </Link>
                 </div>
 
@@ -258,7 +260,7 @@ export default function Topbar() {
                     className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium cursor-pointer"
                   >
                     <FaSignOutAlt />
-                    <span>Sign Out</span>
+                    <span>{t("admin.topbar.signOut")}</span>
                   </button>
                 </div>
               </div>

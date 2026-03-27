@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useSidebarStore } from "../store/useSidebarStore";
@@ -42,6 +43,7 @@ function MenuItem({ to, icon, label, active, unreadCount, onClick }) {
 }
 
 export default function TenantSidebar() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const { authUser, logout } = useAuthStore();
   const { unreadMessages } = useChatStore();
@@ -78,7 +80,7 @@ export default function TenantSidebar() {
                 <img src="/EasyKothaColoured-02.png" alt="EasyKotha" className="h-10 w-10 rounded-md object-contain" />
                 <div>
                   <div className="font-semibold leading-5 text-black">EasyKotha</div>
-                  <div className="text-[11px] tracking-wide text-slate-500">TENANT PANEL</div>
+                    <div className="text-[11px] tracking-wide text-slate-500">{t("tenant.sidebar.panel")}</div>
                 </div>
               </div>
               <button className="rounded-lg p-2 text-slate-600 hover:bg-gray-200 md:hidden" onClick={closeSidebar}>
@@ -89,40 +91,40 @@ export default function TenantSidebar() {
             <hr className="border-gray-300" />
 
             <nav className="px-4 py-4">
-              <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">MAIN MENU</p>
+              <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">{t("tenant.sidebar.mainMenu")}</p>
               <div className="space-y-2">
                 <MenuItem
                   to="/tenant/dashboard"
                   icon={FaThLarge}
-                  label="Dashboard"
+                  label={t("tenant.sidebar.dashboard")}
                   active={pathname.includes("/tenant/dashboard")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/tenant/bookings"
                   icon={FaKey}
-                  label="Bookings"
+                  label={t("tenant.sidebar.bookings")}
                   active={pathname.includes("/tenant/bookings")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/tenant/saved"
                   icon={FaFileAlt}
-                  label="Saved"
+                  label={t("tenant.sidebar.saved")}
                   active={pathname.includes("/tenant/saved") || pathname.includes("/tenant/favourites")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/tenant/explore"
                   icon={FaBell}
-                  label="Explore Rooms"
+                  label={t("tenant.sidebar.exploreRooms")}
                   active={pathname.includes("/tenant/explore")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/chat"
                   icon={FaComments}
-                  label="Chat"
+                  label={t("tenant.sidebar.chat")}
                   active={pathname.includes("/chat")}
                   unreadCount={totalUnread}
                   onClick={closeSidebar}
@@ -140,11 +142,11 @@ export default function TenantSidebar() {
                     sizeClass="h-9 w-9"
                   />
                   <div className="leading-4">
-                    <div className="text-sm font-semibold">{authUser?.name || "Tenant"}</div>
-                    <div className="text-[11px] text-slate-500">Tenant</div>
+                        <div className="text-sm font-semibold">{authUser?.name || t("tenant.sidebar.fallbackName")}</div>
+                        <div className="text-[11px] text-slate-500">{t("tenant.sidebar.roleLabel")}</div>
                   </div>
                 </Link>
-                <button onClick={logout} type="button" title="Sign out" className="text-green-800 hover:text-green-700">
+                    <button onClick={logout} type="button" title={t("tenant.sidebar.signOut")} className="text-green-800 hover:text-green-700">
                   <FaSignOutAlt />
                 </button>
               </div>
@@ -159,7 +161,7 @@ export default function TenantSidebar() {
             <img src="/EasyKothaColoured-02.png" alt="EasyKotha" className="h-10 w-10 rounded-md object-contain" />
             <div>
               <div className="font-semibold leading-5 text-black">EasyKotha</div>
-              <div className="text-[11px] tracking-wide text-slate-500">TENANT PANEL</div>
+              <div className="text-[11px] tracking-wide text-slate-500">{t("tenant.sidebar.panel")}</div>
             </div>
           </div>
           <button className="rounded-lg p-2 text-slate-600 hover:bg-gray-200 md:hidden" onClick={closeSidebar}>
@@ -170,41 +172,41 @@ export default function TenantSidebar() {
         <hr className="border-gray-300" />
 
         <nav className="px-4 py-4">
-          <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">MAIN MENU</p>
+          <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">{t("tenant.sidebar.mainMenu")}</p>
           <div className="space-y-2">
             {/* <MenuItem to="/" icon={FaHome} label="Home" active={pathname === "/"} onClick={closeSidebar} /> */}
             <MenuItem
               to="/tenant/dashboard"
               icon={FaThLarge}
-              label="Dashboard"
+              label={t("tenant.sidebar.dashboard")}
               active={pathname.includes("/tenant/dashboard")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/tenant/bookings"
               icon={FaKey}
-              label="Bookings"
+              label={t("tenant.sidebar.bookings")}
               active={pathname.includes("/tenant/bookings")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/tenant/saved"
               icon={FaFileAlt}
-              label="Saved"
+              label={t("tenant.sidebar.saved")}
               active={pathname.includes("/tenant/saved") || pathname.includes("/tenant/favourites")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/tenant/explore"
               icon={FaBell}
-              label="Explore Rooms"
+              label={t("tenant.sidebar.exploreRooms")}
               active={pathname.includes("/tenant/explore")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/chat"
               icon={FaComments}
-              label="Chat"
+              label={t("tenant.sidebar.chat")}
               active={pathname.includes("/chat")}
               unreadCount={totalUnread}
               onClick={closeSidebar}
@@ -222,11 +224,11 @@ export default function TenantSidebar() {
                 sizeClass="h-9 w-9"
               />
               <div className="leading-4">
-                <div className="text-sm font-semibold">{authUser?.name || "Tenant"}</div>
-                <div className="text-[11px] text-slate-500">Tenant</div>
+                <div className="text-sm font-semibold">{authUser?.name || t("tenant.sidebar.fallbackName")}</div>
+                <div className="text-[11px] text-slate-500">{t("tenant.sidebar.roleLabel")}</div>
               </div>
             </Link>
-            <button onClick={logout} type="button" title="Sign out" className="text-green-800 hover:text-green-700">
+            <button onClick={logout} type="button" title={t("tenant.sidebar.signOut")} className="text-green-800 hover:text-green-700">
               <FaSignOutAlt />
             </button>
           </div>

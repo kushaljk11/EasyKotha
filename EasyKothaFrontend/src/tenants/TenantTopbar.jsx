@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useSidebarStore } from "../store/useSidebarStore";
@@ -56,6 +57,7 @@ const getNotificationIcon = (notification) => {
 };
 
 export default function TenantTopbar() {
+  const { t } = useTranslation();
   const { authUser, logout, socket } = useAuthStore();
   const { unreadMessages } = useChatStore();
   const { toggleSidebar } = useSidebarStore();
@@ -99,8 +101,8 @@ export default function TenantTopbar() {
     const handleNotification = (payload) => {
       const nextNotification = {
         id: payload?.id || `tenant-notif-${Date.now()}`,
-        title: payload?.title || "Notification",
-        message: payload?.message || "You have a new update",
+        title: payload?.title || t("common.notifications.defaultTitle"),
+        message: payload?.message || t("common.notifications.defaultMessage"),
         type: payload?.type || "generic",
         link: getNotificationTarget(payload?.link, normalizedRole),
         createdAt: payload?.createdAt || new Date().toISOString(),
@@ -114,7 +116,7 @@ export default function TenantTopbar() {
 
     socket.on("notification", handleNotification);
     return () => socket.off("notification", handleNotification);
-  }, [socket, normalizedRole]);
+  }, [socket, normalizedRole, t]);
 
   const toggleNotificationPanel = () => {
     setIsNotificationOpen((prev) => {
@@ -131,7 +133,7 @@ export default function TenantTopbar() {
           type="button"
           onClick={toggleSidebar}
           className="rounded-lg p-2 text-green-800 hover:bg-green-50 lg:hidden"
-          aria-label="Open sidebar"
+          aria-label={t("tenant.topbar.openSidebar")}
         >
           <Menu size={20} />
         </button>
@@ -143,7 +145,7 @@ export default function TenantTopbar() {
         <Link
           to="/chat"
           className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-green-100 bg-green-50/50 text-green-800 transition-all hover:bg-green-100"
-          title="Messages"
+          title={t("tenant.topbar.messages")}
         >
           <MessageCircleMore size={20} />
           {totalUnread > 0 && (
@@ -158,7 +160,7 @@ export default function TenantTopbar() {
             type="button"
             onClick={toggleNotificationPanel}
             className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-green-100 bg-green-50/50 text-green-800 transition-all hover:bg-green-100"
-            title="Notifications"
+            title={t("common.notifications.title")}
           >
             <BellDot size={20} />
             {unreadNotificationCount > 0 && (
@@ -171,19 +173,19 @@ export default function TenantTopbar() {
           {isNotificationOpen && (
             <div className="absolute right-0 z-50 mt-2 w-80 max-w-[92vw] rounded-xl border border-gray-200 bg-white shadow-xl">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                <p className="text-sm font-semibold text-slate-800">Notifications</p>
+                <p className="text-sm font-semibold text-slate-800">{t("common.notifications.title")}</p>
                 <button
                   type="button"
                   onClick={() => setNotifications([])}
                   className="text-xs font-semibold text-green-800 hover:underline"
                 >
-                  Clear all
+                  {t("common.notifications.clearAll")}
                 </button>
               </div>
 
               <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-slate-500">No notifications yet.</p>
+                  <p className="px-4 py-6 text-sm text-slate-500">{t("common.notifications.empty")}</p>
                 ) : (
                   notifications.map((notification) => {
                     const NotificationIcon = getNotificationIcon(notification);
@@ -219,7 +221,7 @@ export default function TenantTopbar() {
           <div ref={profileRef} className="relative flex items-center gap-4 border-l border-gray-100 pl-5">
             <div className="hidden text-right sm:block">
               <p className="text-xs font-semibold text-gray-900">{authUser.name}</p>
-              <p className="mt-1 text-xs font-semibold capitalize text-gray-400">{authUser.role.toLowerCase()} Account</p>
+              <p className="mt-1 text-xs font-semibold capitalize text-gray-400">{t("tenant.topbar.accountType")}</p>
             </div>
 
             <button
@@ -227,7 +229,7 @@ export default function TenantTopbar() {
               onClick={() => setIsProfileOpen((prev) => !prev)}
               className="rounded-full p-0.5"
               aria-expanded={isProfileOpen}
-              aria-label="Open profile menu"
+              aria-label={t("tenant.topbar.openProfileMenu")}
             >
               <UserAvatar
                 src={authUser?.profileImage}
@@ -245,7 +247,7 @@ export default function TenantTopbar() {
                   onClick={() => setIsProfileOpen(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-green-700"
                 >
-                  <User size={16} className="opacity-60" /> Profile Settings
+                  <User size={16} className="opacity-60" /> {t("tenant.topbar.profileSettings")}
                 </Link>
                 <div className="mx-2 my-1 h-px bg-gray-50" />
                 <button
@@ -253,7 +255,7 @@ export default function TenantTopbar() {
                   onClick={logout}
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
                 >
-                  <LogOut size={16} className="opacity-60" /> Logout
+                  <LogOut size={16} className="opacity-60" /> {t("tenant.topbar.logout")}
                 </button>
               </div>
             )}
@@ -261,10 +263,10 @@ export default function TenantTopbar() {
         ) : (
           <div className="flex items-center gap-3">
             <Link to="/login" className="px-4 text-[13px] font-semibold text-gray-500 hover:text-green-700">
-              Login
+              {t("auth.common.login")}
             </Link>
             <Link to="/register" className="rounded-xl bg-green-800 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-white shadow-lg shadow-green-800/20 transition-all hover:bg-green-700">
-              Join Now
+              {t("tenant.topbar.joinNow")}
             </Link>
           </div>
         )}

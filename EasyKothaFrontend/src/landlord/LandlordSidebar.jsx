@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { useSidebarStore } from "../store/useSidebarStore";
 import {
   FaCalendarAlt,
@@ -32,6 +33,7 @@ function NavItem({ to, icon, label, active, onClick }) {
 }
 
 export default function LandlordSidebar() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const { isSidebarOpen, closeSidebar } = useSidebarStore();
 
@@ -64,7 +66,7 @@ export default function LandlordSidebar() {
                 <img src="/EasyKothaColoured-02.png" alt="EasyKotha" className="h-10 w-10 rounded-md object-contain" />
                 <div>
                   <p className="leading-5 font-semibold text-black">EasyKotha</p>
-                  <p className="text-[11px] tracking-wide text-slate-500">LANDLORD PANEL</p>
+                  <p className="text-[11px] tracking-wide text-slate-500">{t("landlord.sidebar.panel")}</p>
                 </div>
               </div>
               <button className="rounded-lg p-2 text-slate-600 hover:bg-gray-200 md:hidden" onClick={closeSidebar}>
@@ -75,54 +77,54 @@ export default function LandlordSidebar() {
             <hr className="border-gray-300" />
 
             <nav className="px-4 py-4">
-              <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">MAIN MENU</p>
+              <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">{t("landlord.sidebar.mainMenu")}</p>
               <div className="space-y-2">
                 <NavItem
                   to="/landlord/dashboard"
                   icon={FaTachometerAlt}
-                  label="Dashboard"
+                  label={t("landlord.sidebar.dashboard")}
                   active={pathname.includes("/landlord/dashboard")}
                   onClick={closeSidebar}
                 />
                 <NavItem
                   to="/landlord/listings"
                   icon={FaHome}
-                  label="My Listings"
+                  label={t("landlord.sidebar.myListings")}
                   active={pathname.includes("/landlord/listings")}
                   onClick={closeSidebar}
                 />
                 <NavItem
                   to="/landlord/explore"
                   icon={FaCompass}
-                  label="Explore"
+                  label={t("landlord.sidebar.explore")}
                   active={pathname.includes("/landlord/explore")}
                   onClick={closeSidebar}
                 />
                 <NavItem
                   to="/landlord/add-listing"
                   icon={FaPlusCircle}
-                  label="Add New"
+                  label={t("landlord.sidebar.addNew")}
                   active={pathname.includes("/landlord/add-listing")}
                   onClick={closeSidebar}
                 />
                 <NavItem
                   to="/landlord/bookings"
                   icon={FaCalendarAlt}
-                  label="Bookings"
+                  label={t("landlord.sidebar.bookings")}
                   active={pathname.includes("/landlord/bookings")}
                   onClick={closeSidebar}
                 />
                 <NavItem
                   to="/chat"
                   icon={FaComments}
-                  label="Chat"
+                  label={t("landlord.sidebar.chat")}
                   active={pathname.includes("/chat")}
                   onClick={closeSidebar}
                 />
                 <NavItem
                   to="/landlord/profile"
                   icon={FaUser}
-                  label="Profile"
+                  label={t("landlord.sidebar.profile")}
                   active={pathname.includes("/landlord/profile")}
                   onClick={closeSidebar}
                 />
@@ -138,7 +140,7 @@ export default function LandlordSidebar() {
             <img src="/EasyKothaColoured-02.png" alt="EasyKotha" className="h-10 w-10 rounded-md object-contain" />
             <div>
               <p className="leading-5 font-semibold text-black">EasyKotha</p>
-              <p className="text-[11px] tracking-wide text-slate-500">LANDLORD PANEL</p>
+              <p className="text-[11px] tracking-wide text-slate-500">{t("landlord.sidebar.panel")}</p>
             </div>
           </div>
           <button className="rounded-lg p-2 text-slate-600 hover:bg-gray-200 md:hidden" onClick={closeSidebar}>
@@ -149,54 +151,54 @@ export default function LandlordSidebar() {
         <hr className="border-gray-300" />
 
         <nav className="px-4 py-4">
-          <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">MAIN MENU</p>
+          <p className="mb-2 text-[11px] font-semibold tracking-wider text-slate-500">{t("landlord.sidebar.mainMenu")}</p>
           <div className="space-y-2">
             <NavItem
               to="/landlord/dashboard"
               icon={FaTachometerAlt}
-              label="Dashboard"
+              label={t("landlord.sidebar.dashboard")}
               active={pathname.includes("/landlord/dashboard")}
               onClick={closeSidebar}
             />
             <NavItem
               to="/landlord/listings"
               icon={FaHome}
-              label="My Listings"
+              label={t("landlord.sidebar.myListings")}
               active={pathname.includes("/landlord/listings")}
               onClick={closeSidebar}
             />
             <NavItem
               to="/landlord/explore"
               icon={FaCompass}
-              label="Explore"
+              label={t("landlord.sidebar.explore")}
               active={pathname.includes("/landlord/explore")}
               onClick={closeSidebar}
             />
             <NavItem
               to="/landlord/add-listing"
               icon={FaPlusCircle}
-              label="Add New"
+              label={t("landlord.sidebar.addNew")}
               active={pathname.includes("/landlord/add-listing")}
               onClick={closeSidebar}
             />
             <NavItem
               to="/landlord/bookings"
               icon={FaCalendarAlt}
-              label="Bookings"
+              label={t("landlord.sidebar.bookings")}
               active={pathname.includes("/landlord/bookings")}
               onClick={closeSidebar}
             />
             <NavItem
               to="/chat"
               icon={FaComments}
-              label="Chat"
+              label={t("landlord.sidebar.chat")}
               active={pathname.includes("/chat")}
               onClick={closeSidebar}
             />
             <NavItem
               to="/landlord/profile"
               icon={FaUser}
-              label="Profile"
+              label={t("landlord.sidebar.profile")}
               active={pathname.includes("/landlord/profile")}
               onClick={closeSidebar}
             />

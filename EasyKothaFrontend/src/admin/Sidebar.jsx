@@ -1,6 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";// import { useChatStore } from "../store/useChatStore";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { useSidebarStore } from "../store/useSidebarStore";
 import {
   FaThLarge,
@@ -46,6 +47,7 @@ function MenuItem({ to, icon: Icon, label, active, unreadCount, onClick }) {
 }
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   // const { unreadMessages } = useChatStore();
   const { isSidebarOpen, closeSidebar } = useSidebarStore();
@@ -87,7 +89,7 @@ export default function Sidebar() {
                 />
                 <div>
                   <div className="font-semibold leading-5 text-black">EasyKotha</div>
-                  <div className="text-[11px] text-slate-500 tracking-wide">ADMIN PANEL</div>
+                  <div className="text-[11px] text-slate-500 tracking-wide">{t("admin.sidebar.panel")}</div>
                 </div>
               </div>
               <button
@@ -101,62 +103,62 @@ export default function Sidebar() {
           <br />
             <nav className="px-4">
               <p className="text-[11px] font-semibold text-slate-500 tracking-wider mb-2">
-                MAIN MENU
+                {t("admin.sidebar.mainMenu")}
               </p>
               <div className="space-y-2">
                 <MenuItem
                   to="/admin/dashboard"
                   icon={FaThLarge}
-                  label="Overview"
+                  label={t("admin.sidebar.overview")}
                   active={pathname.includes("/admin/dashboard")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/users"
                   icon={FaUsers}
-                  label="User Management"
+                  label={t("admin.sidebar.userManagement")}
                   active={pathname.includes("/admin/users")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/properties"
                   icon={FaShieldAlt}
-                  label="Property Verification"
+                  label={t("admin.sidebar.propertyVerification")}
                   active={pathname.includes("/admin/properties")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/approvals"
                   icon={FaCheckCircle}
-                  label="Post Approvals"
+                  label={t("admin.sidebar.postApprovals")}
                   active={pathname.includes("/admin/approvals")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/bookings"
                   icon={FaCalendarAlt}
-                  label="Bookings"
+                  label={t("admin.sidebar.bookings")}
                   active={pathname.includes("/admin/bookings")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/payments"
                   icon={FaMoneyCheckAlt}
-                  label="Payment"
+                  label={t("admin.sidebar.payment")}
                   active={pathname.includes("/admin/payments")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/logs"
                   icon={FaHistory}
-                  label="Manage Log"
+                  label={t("admin.sidebar.manageLog")}
                   active={pathname.includes("/admin/logs")}
                   onClick={closeSidebar}
                 />
                 <MenuItem
                   to="/admin/settings"
                   icon={FaCog}
-                  label="Settings"
+                  label={t("admin.sidebar.settings")}
                   active={pathname.includes("/admin/settings")}
                   onClick={closeSidebar}
                 />
@@ -165,7 +167,7 @@ export default function Sidebar() {
               <div className="my-4 border-t border-gray-300" />
 
               <p className="text-[11px] font-semibold text-slate-500 tracking-wider mb-2">
-                INTELLIGENCE
+                {t("admin.sidebar.intelligence")}
               </p>
               <Link
                 to="/admin/ai-insights"
@@ -174,7 +176,7 @@ export default function Sidebar() {
               >
                 <span className="flex items-center gap-2 text-sm text-slate-700">
                   <FaStar className="text-green-800" />
-                  AI Insights
+                  {t("admin.sidebar.aiInsights")}
                 </span>
                 <span className="h-2 w-2 bg-green-800 rounded-full" />
               </Link>
@@ -194,7 +196,7 @@ export default function Sidebar() {
             />
             <div>
               <div className="font-semibold leading-5 text-black">EasyKotha</div>
-              <div className="text-[11px] text-slate-500 tracking-wide">ADMIN PANEL</div>
+              <div className="text-[11px] text-slate-500 tracking-wide">{t("admin.sidebar.panel")}</div>
             </div>
           </div>
           <button 
@@ -208,62 +210,62 @@ export default function Sidebar() {
       <br />
         <nav className="px-4">
           <p className="text-[11px] font-semibold text-slate-500 tracking-wider mb-2">
-            MAIN MENU
+            {t("admin.sidebar.mainMenu")}
           </p>
           <div className="space-y-2">
             <MenuItem
               to="/admin/dashboard"
               icon={FaThLarge}
-              label="Overview"
+              label={t("admin.sidebar.overview")}
               active={pathname.includes("/admin/dashboard")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/users"
               icon={FaUsers}
-              label="User Management"
+              label={t("admin.sidebar.userManagement")}
               active={pathname.includes("/admin/users")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/properties"
               icon={FaShieldAlt}
-              label="Property Verification"
+              label={t("admin.sidebar.propertyVerification")}
               active={pathname.includes("/admin/properties")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/approvals"
               icon={FaCheckCircle}
-              label="Post Approvals"
+              label={t("admin.sidebar.postApprovals")}
               active={pathname.includes("/admin/approvals")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/bookings"
               icon={FaCalendarAlt}
-              label="Bookings"
+              label={t("admin.sidebar.bookings")}
               active={pathname.includes("/admin/bookings")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/payments"
               icon={FaMoneyCheckAlt}
-              label="Payment"
+              label={t("admin.sidebar.payment")}
               active={pathname.includes("/admin/payments")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/logs"
               icon={FaHistory}
-              label="Manage Log"
+              label={t("admin.sidebar.manageLog")}
               active={pathname.includes("/admin/logs")}
               onClick={closeSidebar}
             />
             <MenuItem
               to="/admin/settings"
               icon={FaCog}
-              label="Settings"
+              label={t("admin.sidebar.settings")}
               active={pathname.includes("/admin/settings")}
               onClick={closeSidebar}
             />
@@ -280,7 +282,7 @@ export default function Sidebar() {
           <div className="my-4 border-t border-gray-300" />
 
           <p className="text-[11px] font-semibold text-slate-500 tracking-wider mb-2">
-            INTELLIGENCE
+            {t("admin.sidebar.intelligence")}
           </p>
           <Link
             to="/admin/ai-insights"
@@ -289,7 +291,7 @@ export default function Sidebar() {
           >
             <span className="flex items-center gap-2 text-sm text-slate-700">
               <FaStar className="text-green-800" />
-              AI Insights
+              {t("admin.sidebar.aiInsights")}
             </span>
             <span className="h-2 w-2 bg-green-800 rounded-full" />
           </Link>
