@@ -58,19 +58,21 @@ export default function Topbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
+          <LanguageDropdown compact className="shrink-0" />
+
           {authUser ? (
             <Link
-              className="inline-flex items-center gap-2 rounded-xl bg-green-800 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-green-800 text-white hover:bg-green-700"
               to={dashboardPath}
               aria-label={t("topbar.goToDashboard")}
               title={t("topbar.dashboard")}
             >
-              <FaTachometerAlt size={12} />
-              {t("topbar.dashboard")}
+              <FaTachometerAlt size={14} />
+              <span className="sr-only">{t("topbar.dashboard")}</span>
             </Link>
           ) : (
             <Link
-              className="inline-flex items-center justify-center rounded-xl bg-green-800 p-2.5 text-white hover:bg-green-700"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-green-800 text-white hover:bg-green-700"
               to="/login"
               aria-label={t("topbar.login")}
               title={t("topbar.login")}
