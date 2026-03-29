@@ -62,7 +62,7 @@ export const register = async (req, res) => {
 
     const token = generateToken(user);
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "User registered successfully.",
       user: {
         id: user.id,
@@ -76,18 +76,23 @@ export const register = async (req, res) => {
       token,
     });
 
-    const registeredUser = await prisma.user.findUnique({ where: { email } });
-
-    // Sends a welcome email after registration when delivery is available.
-    try {
-      await sendEmail({
-        to: registeredUser.email,
-        subject: "Welcome to Easy Kotha!",
-        html: welcomeTemplate({ name: registeredUser.name }),
+    Promise.resolve()
+      .then(async () => {
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: "Welcome to Easy Kotha!",
+            html: welcomeTemplate({ name: user.name }),
+          });
+        } catch (emailError) {
+          console.error("Email notification error:", emailError.message);
+        }
+      })
+      .catch(() => {
+        /** The detailed error is already logged in the block above. */
       });
-    } catch (emailError) {
-      console.error("Email notification error:", emailError.message);
-    }
+
+    return;
 
   } catch (error) {
     console.error("Register Error:", error);

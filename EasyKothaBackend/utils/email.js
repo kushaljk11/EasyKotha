@@ -2,36 +2,53 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-const { EMAIL_USER, EMAIL_PASS, EMAIL_HOST, EMAIL_PORT } = process.env;
+const {
+  EMAIL_USER,
+  EMAIL_PASS,
+  EMAIL_HOST,
+  EMAIL_PORT,
+  SMTP_MAIL,
+  SMTP_PASS,
+  SMTP_HOST,
+  SMTP_PORT,
+} = process.env;
 
-if (!EMAIL_USER || !EMAIL_PASS) {
-  throw new Error("Email credentials not found in environment variables");
+const mailUser = String(EMAIL_USER || SMTP_MAIL || "").trim();
+const mailPass = String(EMAIL_PASS || SMTP_PASS || "").trim();
+const mailHost = String(EMAIL_HOST || SMTP_HOST || "smtp.gmail.com").trim();
+const mailPort = Number(EMAIL_PORT || SMTP_PORT || 587);
+
+if (!mailUser || !mailPass) {
+  throw new Error(
+    "Email credentials not found. Set EMAIL_USER/EMAIL_PASS or SMTP_MAIL/SMTP_PASS",
+  );
 }
 
 /**
  * SMTP transporter used by backend email notifications.
  */
 const transporter = nodemailer.createTransport({
-  host: EMAIL_HOST || "smtp.gmail.com",
-  port: EMAIL_PORT || 587,
+  host: mailHost,
+  port: mailPort,
   secure: false,
   auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
+    user: mailUser,
+    pass: mailPass,
   },
 });
 
 /**
  * Sends an email using configured SMTP credentials.
  */
-export const sendEmail = async ({ to, subject, text, html }) => {
+export const sendEmail = async ({ to, subject, text, html, replyTo }) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Easy Kotha" <${EMAIL_USER}>`,
+      from: `"Easy Kotha" <${mailUser}>`,
       to,
       subject,
       text,
       html,
+      replyTo,
     });
 
     console.log("Email sent:", info.messageId);

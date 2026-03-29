@@ -1,16 +1,14 @@
 import dotenv from 'dotenv';
-import nodemailer from 'nodemailer';
+import { sendEmail } from '../utils/email.js';
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_MAIL,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const normalizeEnvValue = (value = '') => String(value).trim();
+
+const SUPPORT_EMAIL =
+  normalizeEnvValue(process.env.SUPPORT_EMAIL) ||
+  normalizeEnvValue(process.env.ADMIN_EMAIL) ||
+  normalizeEnvValue(process.env.EMAIL_USER) ||
+  normalizeEnvValue(process.env.SMTP_MAIL);
 
 /**
  * Sends a contact-form message to the support mailbox.
@@ -19,9 +17,12 @@ const sendContactEmail = async (email, subject, message) => {
   try {
     console.log(`Sending email from: ${email}, Subject: ${subject}`);
 
-    const mailOptions = {
-      from: process.env.SMTP_MAIL,
-      to: process.env.SMTP_MAIL,
+    if (!SUPPORT_EMAIL) {
+      throw new Error('Support inbox email is not configured');
+    }
+
+    const info = await sendEmail({
+      to: SUPPORT_EMAIL,
       replyTo: email,
       subject: `Contact Form: ${subject}`,
       text: `From: ${email}\n\nSubject: ${subject}\n\nMessage:\n${message}`,
@@ -32,9 +33,8 @@ const sendContactEmail = async (email, subject, message) => {
         <p><strong>Message:</strong></p>
         <p>${message}</p>
       `,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
     console.log('Email sent successfully:', info.messageId);
     return info;
   } catch (error) {
